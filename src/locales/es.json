@@ -1,0 +1,30 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "dashboard": "Panel"
+  },
+  "menu": {
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión",
+    "language": "Idioma"
+  },
+  "lang": {
+    "english": "Inglés",
+    "spanish": "Español"
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar sesión",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "emailPlaceholder": "tu@correo.com",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "signIn": "Entrar",
+      "signingIn": "Ingresando...",
+      "success": "¡Inicio de sesión exitoso!",
+      "failed": "Error al iniciar sesión. Inténtalo de nuevo."
+    }
+  }
+}

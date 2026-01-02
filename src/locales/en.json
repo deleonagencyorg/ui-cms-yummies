@@ -1,0 +1,30 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard"
+  },
+  "menu": {
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout",
+    "language": "Language"
+  },
+  "lang": {
+    "english": "English",
+    "spanish": "Spanish"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "email": "Email",
+      "password": "Password",
+      "emailPlaceholder": "your@email.com",
+      "passwordPlaceholder": "••••••••",
+      "forgotPassword": "Forgot Password?",
+      "signIn": "Sign In",
+      "signingIn": "Signing In...",
+      "success": "Login successful!",
+      "failed": "Login failed. Please try again."
+    }
+  }
+}
