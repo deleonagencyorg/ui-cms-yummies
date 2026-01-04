@@ -7,6 +7,7 @@ export const API_ENDPOINTS = {
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
     ME: '/auth/me',
+    CHANGE_PASSWORD: '/auth/change-password',
   },
   ROOT: {
     CREATE_USER: '/root/create-user',
@@ -44,6 +45,18 @@ export const API_ENDPOINTS = {
   PAGES: {
     BASE: '/pages',
     BY_ID: (id: number) => `/pages/${id}`,
+  },
+  DEPARTMENTS: {
+    BASE: '/departments',
+    BY_ID: (id: string) => `/departments/${id}`,
+  },
+  PROFILES: {
+    BASE: '/profiles',
+    BY_ID: (id: string) => `/profiles/${id}`,
+  },
+  JOB_TITLES: {
+    BASE: '/job-titles',
+    BY_ID: (id: string) => `/job-titles/${id}`,
   },
 } as const
 

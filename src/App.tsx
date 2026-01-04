@@ -12,6 +12,10 @@ import ResetPassword from '@/pages/ResetPassword'
 import Dashboard from '@/pages/Dashboard'
 import Profile from '@/pages/Profile'
 import Settings from '@/pages/Settings'
+import Departments from '@/pages/Departments'
+import Profiles from '@/pages/Profiles'
+import JobTitles from '@/pages/JobTitles'
+import ChangePassword from '@/pages/ChangePassword'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -32,7 +36,15 @@ function App() {
       {/* Public routes */}
       <Route
         path="/"
-        element={isAuthenticated ? <Home /> : <Navigate to="/login" replace />}
+        element={
+          isAuthenticated ? (
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
       />
       <Route
         path="/login"
@@ -48,6 +60,14 @@ function App() {
       />
 
       {/* Protected routes */}
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute skipPasswordCheck>
+            <ChangePassword />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={
@@ -69,6 +89,30 @@ function App() {
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/departments"
+        element={
+          <ProtectedRoute>
+            <Departments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profiles"
+        element={
+          <ProtectedRoute>
+            <Profiles />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/job-titles"
+        element={
+          <ProtectedRoute>
+            <JobTitles />
           </ProtectedRoute>
         }
       />

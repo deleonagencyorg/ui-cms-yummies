@@ -1,7 +1,10 @@
 {
   "nav": {
     "home": "Home",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "departments": "Departments",
+    "profiles": "Profiles",
+    "jobTitles": "Job Titles"
   },
   "menu": {
     "settings": "Settings",
@@ -25,6 +28,29 @@
       "signingIn": "Signing In...",
       "success": "Login successful!",
       "failed": "Login failed. Please try again."
+    }
+  },
+  "changePassword": {
+    "title": "Change Your Password",
+    "description": "For security reasons, you must change your password before continuing.",
+    "fields": {
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password"
+    },
+    "hints": {
+      "newPassword": "Must be at least 6 characters long"
+    },
+    "buttons": {
+      "change": "Change Password",
+      "changing": "Changing Password...",
+      "logout": "Logout"
+    },
+    "success": "Password changed successfully!",
+    "errors": {
+      "passwordTooShort": "Password must be at least 6 characters long",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "samePassword": "New password must be different from the default password",
+      "failed": "Failed to change password. Please try again."
     }
   }
 }

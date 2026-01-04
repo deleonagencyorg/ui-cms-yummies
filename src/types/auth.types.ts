@@ -16,10 +16,16 @@ export interface ResetPasswordRequest {
   password: string
 }
 
+export interface ChangePasswordRequest {
+  oldPassword: string
+  newPassword: string
+}
+
 export interface UserResponse {
   id: number
   name: string
   email: string
+  mustChangePassword: boolean
   lastLoginAt?: string
   createdAt: string
   updatedAt: string

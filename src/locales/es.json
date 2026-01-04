@@ -1,7 +1,10 @@
 {
   "nav": {
     "home": "Inicio",
-    "dashboard": "Panel"
+    "dashboard": "Panel",
+    "departments": "Departamentos",
+    "profiles": "Perfiles",
+    "jobTitles": "Títulos de Trabajo"
   },
   "menu": {
     "settings": "Configuración",
@@ -25,6 +28,29 @@
       "signingIn": "Ingresando...",
       "success": "¡Inicio de sesión exitoso!",
       "failed": "Error al iniciar sesión. Inténtalo de nuevo."
+    }
+  },
+  "changePassword": {
+    "title": "Cambia tu Contraseña",
+    "description": "Por razones de seguridad, debes cambiar tu contraseña antes de continuar.",
+    "fields": {
+      "newPassword": "Nueva Contraseña",
+      "confirmPassword": "Confirmar Nueva Contraseña"
+    },
+    "hints": {
+      "newPassword": "Debe tener al menos 6 caracteres"
+    },
+    "buttons": {
+      "change": "Cambiar Contraseña",
+      "changing": "Cambiando Contraseña...",
+      "logout": "Cerrar Sesión"
+    },
+    "success": "¡Contraseña cambiada exitosamente!",
+    "errors": {
+      "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden",
+      "samePassword": "La nueva contraseña debe ser diferente de la contraseña predeterminada",
+      "failed": "Error al cambiar la contraseña. Inténtalo de nuevo."
     }
   }
 }

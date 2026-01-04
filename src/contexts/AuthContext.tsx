@@ -11,6 +11,7 @@ interface AuthContextType {
   error: string | null
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -122,8 +123,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
   }
 
+  const refreshUser = async () => {
+    try {
+      const response = await axiosInstance.get<UserResponse>(API_ENDPOINTS.AUTH.ME)
+      const userData = response.data
+      localStorage.setItem('user', JSON.stringify(userData))
+      setUser(userData)
+    } catch (err) {
+      console.error('Failed to refresh user data:', err)
+      throw err
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, loading, error, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, loading, error, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )
