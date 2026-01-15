@@ -12,9 +12,13 @@ import ResetPassword from '@/pages/ResetPassword'
 import Dashboard from '@/pages/Dashboard'
 import Profile from '@/pages/Profile'
 import Settings from '@/pages/Settings'
+import Languages from '@/pages/Languages'
 import Departments from '@/pages/Departments'
 import Profiles from '@/pages/Profiles'
 import JobTitles from '@/pages/JobTitles'
+import Multimedia from '@/pages/Multimedia'
+import Sites from '@/pages/Sites'
+import Pages from '@/pages/Pages'
 import ChangePassword from '@/pages/ChangePassword'
 
 function App() {
@@ -77,6 +81,14 @@ function App() {
         }
       />
       <Route
+        path="/languages"
+        element={
+          <ProtectedRoute>
+            <Languages />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/profile"
         element={
           <ProtectedRoute>
@@ -113,6 +125,30 @@ function App() {
         element={
           <ProtectedRoute>
             <JobTitles />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/multimedia"
+        element={
+          <ProtectedRoute>
+            <Multimedia />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sites"
+        element={
+          <ProtectedRoute>
+            <Sites />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pages"
+        element={
+          <ProtectedRoute>
+            <Pages />
           </ProtectedRoute>
         }
       />

@@ -2,9 +2,16 @@
   "nav": {
     "home": "Inicio",
     "dashboard": "Panel",
+    "languages": "Idiomas",
     "departments": "Departamentos",
     "profiles": "Perfiles",
-    "jobTitles": "Títulos de Trabajo"
+    "jobTitles": "Títulos de Trabajo",
+    "multimedia": "Biblioteca de Medios",
+    "sites": "Sitios",
+    "pages": "Páginas",
+    "selectSite": "Seleccionar Sitio",
+    "noSiteSelected": "Ningún sitio seleccionado",
+    "selectSiteFirst": "Por favor selecciona un sitio primero"
   },
   "menu": {
     "settings": "Configuración",

@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
   },
   MULTIMEDIA: {
     BASE: '/multimedia',
-    BY_ID: (id: number) => `/multimedia/${id}`,
+    BY_ID: (id: string) => `/multimedia/${id}`,
   },
   APPLICATIONS: {
     BASE: '/applications',
@@ -36,7 +36,7 @@ export const API_ENDPOINTS = {
   },
   SITES: {
     BASE: '/sites',
-    BY_ID: (id: number) => `/sites/${id}`,
+    BY_ID: (id: string) => `/sites/${id}`,
   },
   LANGUAGES: {
     BASE: '/languages',
@@ -44,7 +44,7 @@ export const API_ENDPOINTS = {
   },
   PAGES: {
     BASE: '/pages',
-    BY_ID: (id: number) => `/pages/${id}`,
+    BY_ID: (id: string) => `/pages/${id}`,
   },
   DEPARTMENTS: {
     BASE: '/departments',

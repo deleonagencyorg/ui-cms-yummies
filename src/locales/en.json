@@ -2,9 +2,16 @@
   "nav": {
     "home": "Home",
     "dashboard": "Dashboard",
+    "languages": "Languages",
     "departments": "Departments",
     "profiles": "Profiles",
-    "jobTitles": "Job Titles"
+    "jobTitles": "Job Titles",
+    "multimedia": "Media Library",
+    "sites": "Sites",
+    "pages": "Pages",
+    "selectSite": "Select Site",
+    "noSiteSelected": "No site selected",
+    "selectSiteFirst": "Please select a site first"
   },
   "menu": {
     "settings": "Settings",
