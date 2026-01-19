@@ -12,11 +12,13 @@ export interface MultimediaResponse {
   originalUrl: string
   optimizedUrl?: string
   thumbnailUrl?: string
+  seoUrl?: string
   width?: number
   height?: number
   duration?: number
   altText?: string
   caption?: string
+  folderId?: string | null
   uploadedBy: number
   createdAt: string
   updatedAt: string
@@ -30,6 +32,11 @@ export interface MultimediaListResponse {
 export interface UpdateMultimediaRequest {
   altText?: string
   caption?: string
+  folderId?: string | null
+}
+
+export interface MoveMultimediaRequest {
+  folderId: string | null
 }
 
 export interface MultimediaFiltersRequest {
@@ -39,6 +46,7 @@ export interface MultimediaFiltersRequest {
   maxSize?: number
   userId?: number
   byMe?: boolean
+  folderId?: string | null
   page?: number
   pageSize?: number
 }
@@ -47,6 +55,7 @@ export interface UploadMultimediaRequest {
   file: File
   altText?: string
   caption?: string
+  folderId?: string | null
 }
 
 export const multimediaActions = {
@@ -70,6 +79,7 @@ export const multimediaActions = {
     formData.append('file', data.file)
     if (data.altText) formData.append('altText', data.altText)
     if (data.caption) formData.append('caption', data.caption)
+    if (data.folderId) formData.append('folderId', data.folderId)
 
     const response = await axiosInstance.post<MultimediaResponse>(
       API_ENDPOINTS.MULTIMEDIA.BASE,
@@ -93,5 +103,13 @@ export const multimediaActions = {
 
   delete: async (id: string) => {
     await axiosInstance.delete(API_ENDPOINTS.MULTIMEDIA.BY_ID(id))
+  },
+
+  move: async (id: string, data: MoveMultimediaRequest) => {
+    const response = await axiosInstance.put<MultimediaResponse>(
+      API_ENDPOINTS.MULTIMEDIA.MOVE(id),
+      data
+    )
+    return response.data
   },
 }

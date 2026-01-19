@@ -10,7 +10,7 @@ interface MediaPickerProps {
   title?: string
 }
 
-type UrlType = 'original' | 'optimized' | 'thumbnail'
+type UrlType = 'original' | 'optimized' | 'thumbnail' | 'seo'
 
 export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, title = 'Select Media' }: MediaPickerProps) {
   const [page, setPage] = useState(1)
@@ -35,6 +35,8 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
       url = selectedMedia.optimizedUrl
     } else if (selectedUrlType === 'thumbnail' && selectedMedia.thumbnailUrl) {
       url = selectedMedia.thumbnailUrl
+    } else if (selectedUrlType === 'seo' && selectedMedia.seoUrl) {
+      url = selectedMedia.seoUrl
     }
 
     onSelect(url, selectedMedia)
@@ -53,6 +55,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
     const types: UrlType[] = ['original']
     if (media.optimizedUrl) types.push('optimized')
     if (media.thumbnailUrl) types.push('thumbnail')
+    if (media.seoUrl) types.push('seo')
     return types
   }
 
@@ -220,6 +223,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
                     {selectedUrlType === 'original' && 'Full resolution original file'}
                     {selectedUrlType === 'optimized' && 'Compressed and optimized version'}
                     {selectedUrlType === 'thumbnail' && 'Small thumbnail version'}
+                    {selectedUrlType === 'seo' && 'SEO-optimized version (max width 300px)'}
                   </p>
                 </div>
               </div>

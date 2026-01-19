@@ -137,6 +137,14 @@ function App() {
         }
       />
       <Route
+        path="/multimedia/folder/:folderId"
+        element={
+          <ProtectedRoute>
+            <Multimedia />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/sites"
         element={
           <ProtectedRoute>

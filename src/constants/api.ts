@@ -15,6 +15,14 @@ export const API_ENDPOINTS = {
   MULTIMEDIA: {
     BASE: '/multimedia',
     BY_ID: (id: string) => `/multimedia/${id}`,
+    MOVE: (id: string) => `/multimedia/${id}/move`,
+  },
+  FOLDERS: {
+    BASE: '/folders',
+    BY_ID: (id: string) => `/folders/${id}`,
+    MOVE: (id: string) => `/folders/${id}/move`,
+    CONTENTS: '/folders/contents',
+    CONTENTS_BY_ID: (id: string) => `/folders/${id}/contents`,
   },
   APPLICATIONS: {
     BASE: '/applications',
