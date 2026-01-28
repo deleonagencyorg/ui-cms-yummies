@@ -66,6 +66,10 @@ export const API_ENDPOINTS = {
     BASE: '/job-titles',
     BY_ID: (id: string) => `/job-titles/${id}`,
   },
+  BRANDS: {
+    BASE: '/brands',
+    BY_ID: (id: string) => `/brands/${id}`,
+  },
 } as const
 
 export const TOKEN_STORAGE_KEY = 'access_token'

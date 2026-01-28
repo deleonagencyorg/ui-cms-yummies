@@ -16,6 +16,7 @@ import Languages from '@/pages/Languages'
 import Departments from '@/pages/Departments'
 import Profiles from '@/pages/Profiles'
 import JobTitles from '@/pages/JobTitles'
+import Brands from '@/pages/Brands'
 import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
 import Pages from '@/pages/Pages'
@@ -125,6 +126,14 @@ function App() {
         element={
           <ProtectedRoute>
             <JobTitles />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/brands"
+        element={
+          <ProtectedRoute>
+            <Brands />
           </ProtectedRoute>
         }
       />

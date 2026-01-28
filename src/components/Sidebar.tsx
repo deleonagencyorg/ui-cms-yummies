@@ -28,6 +28,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t('nav.departments'), path: '/departments', icon: DepartmentsIcon },
     { name: t('nav.profiles'), path: '/profiles', icon: ProfilesIcon },
     { name: t('nav.jobTitles'), path: '/job-titles', icon: JobTitlesIcon },
+    { name: t('nav.brands'), path: '/brands', icon: BrandsIcon },
     { name: t('nav.multimedia'), path: '/multimedia', icon: MultimediaIcon },
     { name: t('nav.sites'), path: '/sites', icon: SitesIcon },
     { name: t('nav.pages'), path: '/pages', icon: PagesIcon },
@@ -493,6 +494,30 @@ function LanguagesIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802"
+      />
+    </svg>
+  )
+}
+
+function BrandsIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6 6h.008v.008H6V6z"
       />
     </svg>
   )
