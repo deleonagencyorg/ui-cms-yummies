@@ -55,6 +55,7 @@ export default function Pages() {
     if (selectedSiteId && !formData.siteId) {
       setFormData(prev => ({ ...prev, siteId: selectedSiteId }))
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSiteId])
 
   const { data, isLoading, error } = usePages({
@@ -74,8 +75,8 @@ export default function Pages() {
       setIsCreateModalOpen(false)
       resetForm()
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to create page')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create page')
     },
   })
 
@@ -86,8 +87,8 @@ export default function Pages() {
       setSelectedPage(null)
       resetForm()
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to update page')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to update page')
     },
   })
 
@@ -97,8 +98,8 @@ export default function Pages() {
       setIsDeleteModalOpen(false)
       setSelectedPage(null)
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to delete page')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete page')
     },
   })
 
@@ -148,6 +149,7 @@ export default function Pages() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<PageResponse, any>[]>(
     () => [
       columnHelper.accessor('title', {
@@ -433,7 +435,7 @@ export default function Pages() {
         <LargeModal
           title={isCreateModalOpen ? 'Create Page' : 'Edit Page'}
           onClose={() => {
-            isCreateModalOpen ? setIsCreateModalOpen(false) : setIsEditModalOpen(false)
+            if (isCreateModalOpen) { setIsCreateModalOpen(false) } else { setIsEditModalOpen(false) }
             setSelectedPage(null)
             resetForm()
           }}
@@ -488,7 +490,7 @@ export default function Pages() {
                   </label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as typeof PAGE_STATUSES[number] })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {PAGE_STATUSES.map((status) => (
@@ -704,7 +706,7 @@ export default function Pages() {
               <button
                 type="button"
                 onClick={() => {
-                  isCreateModalOpen ? setIsCreateModalOpen(false) : setIsEditModalOpen(false)
+                  if (isCreateModalOpen) { setIsCreateModalOpen(false) } else { setIsEditModalOpen(false) }
                   setSelectedPage(null)
                   resetForm()
                 }}
@@ -766,16 +768,14 @@ export default function Pages() {
       <MediaPicker
         isOpen={isFeaturedImagePickerOpen}
         onClose={() => setIsFeaturedImagePickerOpen(false)}
-        onSelect={(url, media) => setFormData({ ...formData, featuredImageId: media.id })}
-        currentUrl={formData.featuredImageId}
+        onSelect={(media) => setFormData({ ...formData, featuredImageId: media.id })}
         title="Select Featured Image"
       />
 
       <MediaPicker
         isOpen={isOgImagePickerOpen}
         onClose={() => setIsOgImagePickerOpen(false)}
-        onSelect={(url, media) => setFormData({ ...formData, ogImageId: media.id })}
-        currentUrl={formData.ogImageId}
+        onSelect={(media) => setFormData({ ...formData, ogImageId: media.id })}
         title="Select Open Graph Image"
       />
     </Layout>

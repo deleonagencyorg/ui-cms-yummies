@@ -79,6 +79,7 @@ export default function Brands() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<BrandResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {

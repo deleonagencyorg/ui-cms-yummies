@@ -3,7 +3,6 @@ import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import RichTextEditor from '@/components/RichTextEditor'
-import SafeHtml from '@/components/SafeHtml'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import { useTranslation } from 'react-i18next'
 import { useNews } from '@/queries/news'
@@ -121,6 +120,7 @@ export default function News() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<NewsResponse, any>[]>(
     () => [
       columnHelper.accessor('title', {

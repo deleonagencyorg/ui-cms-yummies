@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useProfiles } from '@/queries/profiles'
 import { useCreateProfile, useUpdateProfile, useDeleteProfile } from '@/mutations/profiles'
 import { useJobTitles } from '@/queries/job-titles'
-import type { ProfileResponse, CreateProfileRequest, UpdateProfileRequest } from '@/actions/profiles'
+import type { ProfileResponse, CreateProfileRequest } from '@/actions/profiles'
 import {
   useReactTable,
   getCoreRowModel,
@@ -76,6 +76,7 @@ export default function Profiles() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<ProfileResponse, any>[]>(
     () => [
       columnHelper.accessor('firstName', {
@@ -171,13 +172,13 @@ export default function Profiles() {
         lastName: formData.lastName!,
         avatar: formData.avatar || null,
         birthday: formData.birthday ? new Date(formData.birthday).toISOString() : null,
-        gender: formData.gender as any,
+        gender: formData.gender as CreateProfileRequest['gender'],
         employeeId: formData.employeeId || null,
         workEmail: formData.workEmail || null,
         workPhone: formData.workPhone || null,
         jobTitleId: formData.jobTitleId || null,
         location: formData.location || null,
-        employmentStatus: formData.employmentStatus as any,
+        employmentStatus: formData.employmentStatus as CreateProfileRequest['employmentStatus'],
         hireDate: formData.hireDate ? new Date(formData.hireDate).toISOString() : null,
         terminationDate: formData.terminationDate ? new Date(formData.terminationDate).toISOString() : null,
         bossUserId: formData.bossUserId || null,
@@ -207,13 +208,13 @@ export default function Profiles() {
           lastName: formData.lastName,
           avatar: formData.avatar || null,
           birthday: formData.birthday ? new Date(formData.birthday).toISOString() : null,
-          gender: formData.gender as any,
+          gender: formData.gender as CreateProfileRequest['gender'],
           employeeId: formData.employeeId || null,
           workEmail: formData.workEmail || null,
           workPhone: formData.workPhone || null,
           jobTitleId: formData.jobTitleId || null,
           location: formData.location || null,
-          employmentStatus: formData.employmentStatus as any,
+          employmentStatus: formData.employmentStatus as CreateProfileRequest['employmentStatus'],
           hireDate: formData.hireDate ? new Date(formData.hireDate).toISOString() : null,
           terminationDate: formData.terminationDate ? new Date(formData.terminationDate).toISOString() : null,
           bossUserId: formData.bossUserId || null,
@@ -465,7 +466,7 @@ export default function Profiles() {
                   </label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as string })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {GENDERS.map((gender) => (
@@ -562,7 +563,7 @@ export default function Profiles() {
                   </label>
                   <select
                     value={formData.employmentStatus}
-                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as string })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {EMPLOYMENT_STATUSES.map((status) => (
@@ -677,7 +678,7 @@ export default function Profiles() {
                   </label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as string })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {GENDERS.map((gender) => (
@@ -774,7 +775,7 @@ export default function Profiles() {
                   </label>
                   <select
                     value={formData.employmentStatus}
-                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as string })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {EMPLOYMENT_STATUSES.map((status) => (

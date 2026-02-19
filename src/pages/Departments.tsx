@@ -42,6 +42,7 @@ export default function Departments() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<DepartmentResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {

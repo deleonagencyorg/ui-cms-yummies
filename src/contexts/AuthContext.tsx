@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react'
 
 import axiosInstance from '@/lib/axios'
@@ -105,8 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('user', JSON.stringify(resolvedUser))
       setUser(resolvedUser)
       setIsAuthenticated(true)
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Login failed. Please try again.'
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Login failed. Please try again.'
       setError(errorMessage)
       throw new Error(errorMessage)
     } finally {

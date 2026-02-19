@@ -22,8 +22,8 @@ export default function ForgotPassword() {
 
       toast.success(response.data.message || 'Password reset link has been sent to your email.')
       setEmail('')
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Failed to send reset link. Please try again.'
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to send reset link. Please try again.'
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)

@@ -141,6 +141,7 @@ export default function Products() {
     return brandsData?.data.find((b) => b.id === brandId)?.name || '-'
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<ProductResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {

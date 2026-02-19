@@ -115,6 +115,7 @@ export default function Recipes() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<RecipeResponse, any>[]>(
     () => [
       columnHelper.accessor('title', {

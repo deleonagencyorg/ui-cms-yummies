@@ -16,7 +16,7 @@ interface BreadcrumbItem {
   name: string
 }
 
-export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, title = 'Select Media' }: MediaPickerProps) {
+export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select Media' }: MediaPickerProps) {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(24)
   const [searchFileName, setSearchFileName] = useState('')
@@ -37,6 +37,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
   })
 
   // Update breadcrumbs when folder changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!currentFolderId) {
       setBreadcrumbs([{ id: null, name: 'Root' }])
@@ -52,17 +53,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
   useEffect(() => {
     setPage(1)
   }, [currentFolderId])
-
-  // Reset state when modal closes/opens
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedMedia(null)
-      setCurrentFolderId(null)
-      setSearchFileName('')
-      setPage(1)
-      setBreadcrumbs([{ id: null, name: 'Root' }])
-    }
-  }, [isOpen])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!isOpen) return null
 
@@ -78,10 +69,19 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
     setSelectedMedia(null)
   }
 
+  const resetAndClose = () => {
+    setSelectedMedia(null)
+    setCurrentFolderId(null)
+    setSearchFileName('')
+    setPage(1)
+    setBreadcrumbs([{ id: null, name: 'Root' }])
+    onClose()
+  }
+
   const handleSelect = () => {
     if (!selectedMedia) return
     onSelect(selectedMedia)
-    onClose()
+    resetAndClose()
   }
 
   const formatFileSize = (bytes: number) => {
@@ -99,7 +99,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
           <button
-            onClick={onClose}
+            onClick={resetAndClose}
             className="text-muted-foreground hover:text-foreground"
           >
             <XIcon className="w-5 h-5" />
@@ -282,7 +282,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
         {/* Footer */}
         <div className="flex gap-3 justify-end p-6 border-t border-border">
           <button
-            onClick={onClose}
+            onClick={resetAndClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
           >
             Cancel
