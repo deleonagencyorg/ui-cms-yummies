@@ -17,10 +17,10 @@ export const useUploadMultimedia = (
   return useMutation<MultimediaResponse, Error, UploadMultimediaRequest>({
     mutationFn: multimediaActions.upload,
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: MULTIMEDIA_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }
@@ -36,11 +36,11 @@ export const useUpdateMultimedia = (
   return useMutation<MultimediaResponse, Error, { id: string; data: UpdateMultimediaRequest }>({
     mutationFn: ({ id, data }) => multimediaActions.update(id, data),
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: MULTIMEDIA_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })
       await queryClient.invalidateQueries({ queryKey: MULTIMEDIA_KEYS.detail(variables.id) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }
@@ -53,11 +53,11 @@ export const useDeleteMultimedia = (
   return useMutation<void, Error, string>({
     mutationFn: multimediaActions.delete,
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: MULTIMEDIA_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })
       queryClient.removeQueries({ queryKey: MULTIMEDIA_KEYS.detail(variables) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }
@@ -73,11 +73,11 @@ export const useMoveMultimedia = (
   return useMutation<MultimediaResponse, Error, { id: string; data: MoveMultimediaRequest }>({
     mutationFn: ({ id, data }) => multimediaActions.move(id, data),
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: MULTIMEDIA_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })
       await queryClient.invalidateQueries({ queryKey: MULTIMEDIA_KEYS.detail(variables.id) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }

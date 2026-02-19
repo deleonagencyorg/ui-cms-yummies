@@ -15,9 +15,9 @@ export const useCreateSite = (
   return useMutation<SiteResponse, Error, CreateSiteRequest>({
     mutationFn: siteActions.create,
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: SITE_KEYS.lists() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }
@@ -33,10 +33,10 @@ export const useUpdateSite = (
   return useMutation<SiteResponse, Error, { id: string; data: UpdateSiteRequest }>({
     mutationFn: ({ id, data }) => siteActions.update(id, data),
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: SITE_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: SITE_KEYS.detail(variables.id) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }
@@ -49,10 +49,10 @@ export const useDeleteSite = (
   return useMutation<void, Error, string>({
     mutationFn: siteActions.delete,
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: SITE_KEYS.lists() })
       queryClient.removeQueries({ queryKey: SITE_KEYS.detail(variables) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }

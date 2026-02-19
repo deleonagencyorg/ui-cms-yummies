@@ -192,7 +192,7 @@ export default function Pages() {
         header: 'Status',
         cell: (info) => {
           const status = info.getValue()
-          const statusColors = {
+          const statusColors: { [key: string]: string } = {
             draft: 'bg-gray-100 text-gray-800',
             published: 'bg-green-100 text-green-800',
             scheduled: 'bg-blue-100 text-blue-800',

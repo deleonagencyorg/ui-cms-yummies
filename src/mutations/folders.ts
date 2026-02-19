@@ -16,10 +16,10 @@ export const useCreateFolder = (
   return useMutation<FolderResponse, Error, CreateFolderRequest>({
     mutationFn: folderActions.create,
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }
@@ -35,11 +35,11 @@ export const useUpdateFolder = (
   return useMutation<FolderResponse, Error, { id: string; data: UpdateFolderRequest }>({
     mutationFn: ({ id, data }) => folderActions.update(id, data),
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.detail(variables.id) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }
@@ -55,11 +55,11 @@ export const useMoveFolder = (
   return useMutation<FolderResponse, Error, { id: string; data: MoveFolderRequest }>({
     mutationFn: ({ id, data }) => folderActions.move(id, data),
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.detail(variables.id) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }
@@ -72,11 +72,11 @@ export const useDeleteFolder = (
   return useMutation<void, Error, string>({
     mutationFn: folderActions.delete,
     ...options,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })
       queryClient.removeQueries({ queryKey: FOLDER_KEYS.detail(variables) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
   })
 }

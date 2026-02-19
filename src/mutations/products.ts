@@ -14,9 +14,9 @@ export const useCreateProduct = (
 
   return useMutation<ProductResponse, Error, CreateProductRequest>({
     mutationFn: productActions.create,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: PRODUCT_KEYS.lists() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
@@ -32,10 +32,10 @@ export const useUpdateProduct = (
 
   return useMutation<ProductResponse, Error, { id: string; data: UpdateProductRequest }>({
     mutationFn: ({ id, data }) => productActions.update(id, data),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: PRODUCT_KEYS.lists() })
       queryClient.invalidateQueries({ queryKey: PRODUCT_KEYS.detail(variables.id) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
@@ -48,10 +48,10 @@ export const useDeleteProduct = (
 
   return useMutation<void, Error, string>({
     mutationFn: productActions.delete,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: PRODUCT_KEYS.lists() })
       queryClient.removeQueries({ queryKey: PRODUCT_KEYS.detail(variables) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })

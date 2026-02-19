@@ -466,7 +466,7 @@ export default function Profiles() {
                   </label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as string })}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {GENDERS.map((gender) => (
@@ -563,7 +563,7 @@ export default function Profiles() {
                   </label>
                   <select
                     value={formData.employmentStatus}
-                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as string })}
+                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as 'active' | 'inactive' | 'terminated' | 'leave' })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {EMPLOYMENT_STATUSES.map((status) => (
@@ -678,7 +678,7 @@ export default function Profiles() {
                   </label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as string })}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'unspecified' | 'male' | 'female' | 'other' })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {GENDERS.map((gender) => (
@@ -775,7 +775,7 @@ export default function Profiles() {
                   </label>
                   <select
                     value={formData.employmentStatus}
-                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as string })}
+                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as 'active' | 'inactive' | 'terminated' | 'leave' })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {EMPLOYMENT_STATUSES.map((status) => (

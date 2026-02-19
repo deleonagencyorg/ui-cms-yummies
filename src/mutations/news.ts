@@ -14,9 +14,9 @@ export const useCreateNews = (
 
   return useMutation<NewsResponse, Error, CreateNewsRequest>({
     mutationFn: newsActions.create,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: NEWS_KEYS.lists() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
@@ -32,10 +32,10 @@ export const useUpdateNews = (
 
   return useMutation<NewsResponse, Error, { id: string; data: UpdateNewsRequest }>({
     mutationFn: ({ id, data }) => newsActions.update(id, data),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: NEWS_KEYS.lists() })
       queryClient.invalidateQueries({ queryKey: NEWS_KEYS.detail(variables.id) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
@@ -48,10 +48,10 @@ export const useDeleteNews = (
 
   return useMutation<void, Error, string>({
     mutationFn: newsActions.delete,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: NEWS_KEYS.lists() })
       queryClient.removeQueries({ queryKey: NEWS_KEYS.detail(variables) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })

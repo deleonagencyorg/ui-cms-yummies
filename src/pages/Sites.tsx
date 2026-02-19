@@ -154,7 +154,7 @@ export default function Sites() {
         header: 'Status',
         cell: (info) => {
           const status = info.getValue()
-          const statusColors = {
+          const statusColors: Record<string, string> = {
             active: 'bg-green-100 text-green-800',
             inactive: 'bg-gray-100 text-gray-800',
             maintenance: 'bg-yellow-100 text-yellow-800',
@@ -714,7 +714,7 @@ export default function Sites() {
       <MediaPicker
         isOpen={isFaviconPickerOpen}
         onClose={() => setIsFaviconPickerOpen(false)}
-        onSelect={(url) => setFormData({ ...formData, faviconUrl: url })}
+        onSelect={(url) => setFormData({ ...formData, faviconUrl: url as any})}
         currentUrl={formData.faviconUrl}
         title="Select Favicon"
       />
@@ -722,7 +722,7 @@ export default function Sites() {
       <MediaPicker
         isOpen={isLogoPickerOpen}
         onClose={() => setIsLogoPickerOpen(false)}
-        onSelect={(url) => setFormData({ ...formData, logoUrl: url })}
+        onSelect={(url) => setFormData({ ...formData, logoUrl: url as any })}
         currentUrl={formData.logoUrl}
         title="Select Logo"
       />
