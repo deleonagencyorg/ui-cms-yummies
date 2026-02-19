@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
+import type { MultimediaResponse } from '@/actions/multimedia'
 import { useTranslation } from 'react-i18next'
 import { useBrands } from '@/queries/brands'
 import { useLanguages } from '@/queries/languages'
@@ -245,15 +246,15 @@ export default function Brands() {
   }
 
   // Handle brand logo selection from media picker
-  const handleBrandLogoSelect = (url: string) => {
-    setFormData((prev) => ({ ...prev, logoUrl: url }))
+  const handleBrandLogoSelect = (media: MultimediaResponse) => {
+    setFormData((prev) => ({ ...prev, logoUrl: media.originalUrl }))
     setIsBrandLogoPickerOpen(false)
   }
 
   // Handle brand language logo selection from media picker
-  const handleBrandLanguageLogoSelect = (url: string) => {
+  const handleBrandLanguageLogoSelect = (media: MultimediaResponse) => {
     if (brandLanguageLogoIndex !== null) {
-      updateBrandLanguage(brandLanguageLogoIndex, 'logoUrl', url)
+      updateBrandLanguage(brandLanguageLogoIndex, 'logoUrl', media.originalUrl)
       setBrandLanguageLogoIndex(null)
     }
   }

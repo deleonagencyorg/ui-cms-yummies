@@ -17,6 +17,9 @@ import Departments from '@/pages/Departments'
 import Profiles from '@/pages/Profiles'
 import JobTitles from '@/pages/JobTitles'
 import Brands from '@/pages/Brands'
+import Products from '@/pages/Products'
+import Recipes from '@/pages/Recipes'
+import News from '@/pages/News'
 import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
 import Pages from '@/pages/Pages'
@@ -138,6 +141,22 @@ function App() {
         }
       />
       <Route
+        path="/products"
+        element={
+          <ProtectedRoute>
+            <Products />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/recipes"
+        element={
+          <ProtectedRoute>
+            <Recipes />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/multimedia"
         element={
           <ProtectedRoute>
@@ -166,6 +185,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Pages />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/news"
+        element={
+          <ProtectedRoute>
+            <News />
           </ProtectedRoute>
         }
       />

@@ -1,45 +1,86 @@
-import { useState } from 'react'
-import { useMultimedia } from '@/queries/multimedia'
+import { useState, useEffect } from 'react'
+import { useFolderContents, useFolderById } from '@/queries/folders'
 import type { MultimediaResponse } from '@/actions/multimedia'
+import type { FolderResponse } from '@/actions/folders'
 
 interface MediaPickerProps {
   isOpen: boolean
   onClose: () => void
-  onSelect: (url: string, media: MultimediaResponse) => void
+  onSelect: (media: MultimediaResponse) => void
   currentUrl?: string
   title?: string
 }
 
-type UrlType = 'original' | 'optimized' | 'thumbnail' | 'seo'
+interface BreadcrumbItem {
+  id: string | null
+  name: string
+}
 
 export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, title = 'Select Media' }: MediaPickerProps) {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(24)
   const [searchFileName, setSearchFileName] = useState('')
   const [selectedMedia, setSelectedMedia] = useState<MultimediaResponse | null>(null)
-  const [selectedUrlType, setSelectedUrlType] = useState<UrlType>('original')
 
-  const { data, isLoading } = useMultimedia({
+  // Folder navigation state
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([{ id: null, name: 'Root' }])
+
+  const { data: currentFolderData } = useFolderById(currentFolderId || '', {
+    enabled: !!currentFolderId,
+  })
+
+  const { data, isLoading } = useFolderContents(currentFolderId, {
     page,
     pageSize,
     fileName: searchFileName || undefined,
   })
 
+  // Update breadcrumbs when folder changes
+  useEffect(() => {
+    if (!currentFolderId) {
+      setBreadcrumbs([{ id: null, name: 'Root' }])
+    } else if (currentFolderData) {
+      setBreadcrumbs([
+        { id: null, name: 'Root' },
+        { id: currentFolderData.id, name: currentFolderData.name },
+      ])
+    }
+  }, [currentFolderId, currentFolderData])
+
+  // Reset page when folder changes
+  useEffect(() => {
+    setPage(1)
+  }, [currentFolderId])
+
+  // Reset state when modal closes/opens
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedMedia(null)
+      setCurrentFolderId(null)
+      setSearchFileName('')
+      setPage(1)
+      setBreadcrumbs([{ id: null, name: 'Root' }])
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
+
+  const navigateToFolder = (folder: FolderResponse) => {
+    setCurrentFolderId(folder.id)
+    setSelectedMedia(null)
+  }
+
+  const navigateToBreadcrumb = (index: number) => {
+    const item = breadcrumbs[index]
+    setCurrentFolderId(item.id)
+    setBreadcrumbs(breadcrumbs.slice(0, index + 1))
+    setSelectedMedia(null)
+  }
 
   const handleSelect = () => {
     if (!selectedMedia) return
-
-    let url = selectedMedia.originalUrl
-    if (selectedUrlType === 'optimized' && selectedMedia.optimizedUrl) {
-      url = selectedMedia.optimizedUrl
-    } else if (selectedUrlType === 'thumbnail' && selectedMedia.thumbnailUrl) {
-      url = selectedMedia.thumbnailUrl
-    } else if (selectedUrlType === 'seo' && selectedMedia.seoUrl) {
-      url = selectedMedia.seoUrl
-    }
-
-    onSelect(url, selectedMedia)
+    onSelect(selectedMedia)
     onClose()
   }
 
@@ -51,16 +92,8 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
   }
 
-  const getAvailableUrlTypes = (media: MultimediaResponse): UrlType[] => {
-    const types: UrlType[] = ['original']
-    if (media.optimizedUrl) types.push('optimized')
-    if (media.thumbnailUrl) types.push('thumbnail')
-    if (media.seoUrl) types.push('seo')
-    return types
-  }
-
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-xl max-w-5xl w-full border border-border max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
@@ -73,8 +106,28 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
           </button>
         </div>
 
-        {/* Search */}
-        <div className="p-6 border-b border-border">
+        {/* Breadcrumbs + Search */}
+        <div className="p-4 border-b border-border space-y-3">
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-2 text-sm">
+            {breadcrumbs.map((crumb, index) => (
+              <div key={crumb.id ?? 'root'} className="flex items-center gap-2">
+                {index > 0 && <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />}
+                <button
+                  onClick={() => navigateToBreadcrumb(index)}
+                  className={`hover:text-primary transition-colors ${
+                    index === breadcrumbs.length - 1
+                      ? 'text-card-foreground font-medium'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {crumb.name}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Search */}
           <input
             type="text"
             placeholder="Search by filename..."
@@ -94,30 +147,43 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
               <p className="mt-4 text-muted-foreground">Loading media...</p>
             </div>
-          ) : !data?.data.length ? (
+          ) : !data?.folders?.length && !data?.multimedia?.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No media files found</p>
+              <p className="text-muted-foreground">This folder is empty</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {data.data.map((media) => (
+              {/* Folders */}
+              {data?.folders?.map((folder) => (
+                <div
+                  key={folder.id}
+                  onDoubleClick={() => navigateToFolder(folder)}
+                  onClick={() => navigateToFolder(folder)}
+                  className="cursor-pointer bg-background border-2 border-border rounded-lg overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all"
+                >
+                  <div className="aspect-square bg-secondary flex items-center justify-center">
+                    <FolderIcon className="w-16 h-16 text-yellow-500" />
+                  </div>
+                  <div className="p-2">
+                    <p className="text-xs font-medium text-card-foreground truncate" title={folder.name}>
+                      {folder.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Folder</p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Media files */}
+              {data?.multimedia?.map((media) => (
                 <div
                   key={media.id}
-                  onClick={() => {
-                    setSelectedMedia(media)
-                    // Reset to original if the previously selected type isn't available
-                    const availableTypes = getAvailableUrlTypes(media)
-                    if (!availableTypes.includes(selectedUrlType)) {
-                      setSelectedUrlType('original')
-                    }
-                  }}
+                  onClick={() => setSelectedMedia(media)}
                   className={`cursor-pointer bg-background border-2 rounded-lg overflow-hidden hover:shadow-lg transition-all ${
                     selectedMedia?.id === media.id
                       ? 'border-primary ring-2 ring-primary'
                       : 'border-border'
                   }`}
                 >
-                  {/* Thumbnail */}
                   <div className="aspect-square bg-secondary flex items-center justify-center">
                     {media.fileType.startsWith('image') ? (
                       <img
@@ -131,8 +197,6 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
                       </div>
                     )}
                   </div>
-
-                  {/* Info */}
                   <div className="p-2">
                     <p className="text-xs font-medium text-card-foreground truncate" title={media.fileName}>
                       {media.fileName}
@@ -170,11 +234,10 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
           )}
         </div>
 
-        {/* Selected Media Preview & URL Type Selection */}
+        {/* Selected Media Preview */}
         {selectedMedia && (
           <div className="p-6 border-t border-border bg-secondary/30">
             <div className="flex gap-6">
-              {/* Preview */}
               <div className="flex-shrink-0">
                 <div className="w-32 h-32 bg-secondary rounded-lg flex items-center justify-center overflow-hidden">
                   {selectedMedia.fileType.startsWith('image') ? (
@@ -188,43 +251,28 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
                   )}
                 </div>
               </div>
-
-              {/* Details & URL Type Selection */}
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-card-foreground mb-2">Selected Media</h4>
-                <p className="text-sm text-muted-foreground mb-1">{selectedMedia.fileName}</p>
-                <p className="text-xs text-muted-foreground mb-4">
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold text-card-foreground mb-1">Selected Media</h4>
+                <p className="text-sm text-muted-foreground truncate">{selectedMedia.fileName}</p>
+                <p className="text-xs text-muted-foreground mb-2">
                   {formatFileSize(selectedMedia.fileSize)}
                   {selectedMedia.width && selectedMedia.height &&
                     ` • ${selectedMedia.width}x${selectedMedia.height}`
                   }
                 </p>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-card-foreground">
-                    Select URL Type
-                  </label>
-                  <div className="flex gap-2">
-                    {getAvailableUrlTypes(selectedMedia).map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setSelectedUrlType(type)}
-                        className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                          selectedUrlType === type
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-background border border-border hover:bg-secondary'
-                        }`}
-                      >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {selectedUrlType === 'original' && 'Full resolution original file'}
-                    {selectedUrlType === 'optimized' && 'Compressed and optimized version'}
-                    {selectedUrlType === 'thumbnail' && 'Small thumbnail version'}
-                    {selectedUrlType === 'seo' && 'SEO-optimized version (max width 300px)'}
-                  </p>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {selectedMedia.originalUrl && (
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">Original</span>
+                  )}
+                  {selectedMedia.optimizedUrl && (
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">Optimized</span>
+                  )}
+                  {selectedMedia.thumbnailUrl && (
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">Thumbnail</span>
+                  )}
+                  {selectedMedia.seoUrl && (
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">SEO</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -264,6 +312,22 @@ function FileIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    </svg>
+  )
+}
+
+function FolderIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className={className}>
+      <path d="M19.5 21a3 3 0 003-3v-9a3 3 0 00-3-3h-5.379a.75.75 0 01-.53-.22L11.47 3.66A2.25 2.25 0 009.879 3H4.5a3 3 0 00-3 3v12a3 3 0 003 3h15z" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
     </svg>
   )
 }

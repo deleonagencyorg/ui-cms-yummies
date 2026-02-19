@@ -29,6 +29,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t('nav.profiles'), path: '/profiles', icon: ProfilesIcon },
     { name: t('nav.jobTitles'), path: '/job-titles', icon: JobTitlesIcon },
     { name: t('nav.brands'), path: '/brands', icon: BrandsIcon },
+    { name: t('nav.products'), path: '/products', icon: ProductsIcon },
+    { name: t('nav.recipes'), path: '/recipes', icon: RecipesIcon },
+    { name: t('nav.news'), path: '/news', icon: NewsIcon },
     { name: t('nav.multimedia'), path: '/multimedia', icon: MultimediaIcon },
     { name: t('nav.sites'), path: '/sites', icon: SitesIcon },
     { name: t('nav.pages'), path: '/pages', icon: PagesIcon },
@@ -518,6 +521,63 @@ function BrandsIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M6 6h.008v.008H6V6z"
+      />
+    </svg>
+  )
+}
+
+function ProductsIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
+      />
+    </svg>
+  )
+}
+
+function RecipesIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+      />
+    </svg>
+  )
+}
+
+function NewsIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"
       />
     </svg>
   )

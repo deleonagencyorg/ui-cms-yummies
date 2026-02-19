@@ -70,6 +70,18 @@ export const API_ENDPOINTS = {
     BASE: '/brands',
     BY_ID: (id: string) => `/brands/${id}`,
   },
+  PRODUCTS: {
+    BASE: '/products',
+    BY_ID: (id: string) => `/products/${id}`,
+  },
+  RECIPES: {
+    BASE: '/recipes',
+    BY_ID: (id: string) => `/recipes/${id}`,
+  },
+  NEWS: {
+    BASE: '/news',
+    BY_ID: (id: string) => `/news/${id}`,
+  },
 } as const
 
 export const TOKEN_STORAGE_KEY = 'access_token'
