@@ -121,7 +121,7 @@ export default function RichTextEditor({ value, onChange, placeholder, className
     onChange(html)
   }
 
-  const handleMediaSelect = (media: MultimediaResponse) => {
+  const handleMediaSelect = (media: MultimediaResponse, _variant?: string) => {
     insertImage(editor, media.originalUrl, media.fileName)
     setIsMediaPickerOpen(false)
   }

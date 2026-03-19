@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
-import MediaPicker from '@/components/MediaPicker'
+import MediaPicker, { type MediaUrlVariant } from '@/components/MediaPicker'
+import type { MultimediaResponse } from '@/actions/multimedia'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useSites } from '@/queries/sites'
@@ -80,6 +81,14 @@ export default function Sites() {
       toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete site')
     },
   })
+
+  const getMediaUrl = (media: MultimediaResponse, variant: MediaUrlVariant): string => {
+    switch (variant) {
+      case 'thumbnail': return media.thumbnailUrl || media.originalUrl
+      case 'seo': return media.seoUrl || media.originalUrl
+      default: return media.originalUrl
+    }
+  }
 
   const resetForm = () => {
     setFormData({
@@ -714,7 +723,7 @@ export default function Sites() {
       <MediaPicker
         isOpen={isFaviconPickerOpen}
         onClose={() => setIsFaviconPickerOpen(false)}
-        onSelect={(url) => setFormData({ ...formData, faviconUrl: url as any})}
+        onSelect={(media, variant) => setFormData({ ...formData, faviconUrl: getMediaUrl(media, variant) })}
         currentUrl={formData.faviconUrl}
         title="Select Favicon"
       />
@@ -722,7 +731,7 @@ export default function Sites() {
       <MediaPicker
         isOpen={isLogoPickerOpen}
         onClose={() => setIsLogoPickerOpen(false)}
-        onSelect={(url) => setFormData({ ...formData, logoUrl: url as any })}
+        onSelect={(media, variant) => setFormData({ ...formData, logoUrl: getMediaUrl(media, variant) })}
         currentUrl={formData.logoUrl}
         title="Select Logo"
       />

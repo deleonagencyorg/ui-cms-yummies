@@ -303,7 +303,7 @@ export default function News() {
   }
 
   // Media picker handlers
-  const handleMediaSelect = (media: MultimediaResponse) => {
+  const handleMediaSelect = (media: MultimediaResponse, _variant?: string) => {
     if (!mediaPickerTarget) return
 
     if (mediaPickerTarget.type === 'image') {

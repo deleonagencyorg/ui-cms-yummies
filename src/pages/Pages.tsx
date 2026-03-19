@@ -768,14 +768,14 @@ export default function Pages() {
       <MediaPicker
         isOpen={isFeaturedImagePickerOpen}
         onClose={() => setIsFeaturedImagePickerOpen(false)}
-        onSelect={(media) => setFormData({ ...formData, featuredImageId: media.id })}
+        onSelect={(media, _variant) => setFormData({ ...formData, featuredImageId: media.id })}
         title="Select Featured Image"
       />
 
       <MediaPicker
         isOpen={isOgImagePickerOpen}
         onClose={() => setIsOgImagePickerOpen(false)}
-        onSelect={(media) => setFormData({ ...formData, ogImageId: media.id })}
+        onSelect={(media, _variant) => setFormData({ ...formData, ogImageId: media.id })}
         title="Select Open Graph Image"
       />
     </Layout>
