@@ -13,6 +13,7 @@
     "multimedia": "Biblioteca de Medios",
     "sites": "Sitios",
     "pages": "Páginas",
+    "apiTokens": "Tokens API",
     "selectSite": "Seleccionar Sitio",
     "noSiteSelected": "Ningún sitio seleccionado",
     "selectSiteFirst": "Por favor selecciona un sitio primero"
@@ -62,6 +63,57 @@
       "passwordsDoNotMatch": "Las contraseñas no coinciden",
       "samePassword": "La nueva contraseña debe ser diferente de la contraseña predeterminada",
       "failed": "Error al cambiar la contraseña. Inténtalo de nuevo."
+    }
+  },
+  "apiTokens": {
+    "description": "Crear y gestionar tokens API para integraciones externas",
+    "createButton": "Crear Token",
+    "createTitle": "Crear Token API",
+    "revokeTitle": "Revocar Token",
+    "deleteTitle": "Eliminar Token",
+    "loading": "Cargando tokens...",
+    "error": "Error al cargar tokens",
+    "empty": "No se encontraron tokens API",
+    "revokeConfirm": "¿Estás seguro de que deseas revocar el token \"{{name}}\"?",
+    "revokeHint": "Los tokens revocados seguirán permitiendo operaciones de lectura hasta que expiren, pero las operaciones de escritura se bloquearán inmediatamente.",
+    "deleteConfirm": "¿Estás seguro de que deseas eliminar el token \"{{name}}\"? Esta acción no se puede deshacer.",
+    "table": {
+      "name": "Nombre",
+      "scopes": "Permisos",
+      "expiresAt": "Expira",
+      "status": "Estado",
+      "createdAt": "Creado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "revoked": "Revocado",
+      "expired": "Expirado"
+    },
+    "form": {
+      "name": "Nombre del Token",
+      "namePlaceholder": "ej. Frontend del sitio web",
+      "expiresAt": "Fecha de Expiración",
+      "scopes": "Permisos",
+      "scopesHint": "Selecciona a qué recursos puede acceder este token y si tiene acceso de solo lectura o lectura/escritura.",
+      "read": "Lectura",
+      "readWrite": "Lectura/Escritura",
+      "cancel": "Cancelar",
+      "create": "Crear",
+      "creating": "Creando..."
+    },
+    "actions": {
+      "revoke": "Revocar",
+      "revoking": "Revocando...",
+      "delete": "Eliminar",
+      "deleting": "Eliminando..."
+    },
+    "tokenCreated": {
+      "title": "Token Creado",
+      "warning": "Copia este token ahora. No se mostrará de nuevo.",
+      "copy": "Copiar",
+      "copied": "¡Copiado!",
+      "done": "Listo"
     }
   }
 }
