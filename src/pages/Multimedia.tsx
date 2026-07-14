@@ -8,6 +8,8 @@ import { useCreateFolder, useUpdateFolder, useDeleteFolder } from '@/mutations/f
 import { useUploadMultimedia, useDeleteMultimedia, useUpdateMultimedia, useMoveMultimedia } from '@/mutations/multimedia'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import type { FolderResponse } from '@/actions/folders'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { multimediaActions } from '@/actions/multimedia'
 
 type ViewMode = 'grid' | 'list'
 
@@ -25,6 +27,8 @@ export default function Multimedia() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [searchFileName, setSearchFileName] = useState('')
   const [filterFileType, setFilterFileType] = useState('')
+  const [uploadType, setUploadType] = useState<'file' | 'url'>('file')
+  const [externalUrl, setExternalUrl] = useState('')
 
   // Current folder ID from URL
   const currentFolderId = folderId || null
@@ -76,18 +80,6 @@ export default function Multimedia() {
 
   // Fetch root folders for move modal
   const { data: rootFoldersData } = useFolderContents(null, { pageSize: 100 })
-
-  // Mutations
-  const uploadMutation = useUploadMultimedia({
-    onSuccess: () => {
-      toast.success('File uploaded successfully!')
-      setIsUploadModalOpen(false)
-      setUploadData({ file: null, altText: '', caption: '' })
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to upload file')
-    },
-  })
 
   const updateMutation = useUpdateMultimedia({
     onSuccess: () => {
@@ -207,13 +199,65 @@ export default function Multimedia() {
       return
     }
 
-    await uploadMutation.mutateAsync({
+    const payload: any = {
       file: uploadData.file,
       altText: uploadData.altText || undefined,
       caption: uploadData.caption || undefined,
-      folderId: currentFolderId,
-    })
+    };
+
+    if (currentFolderId) {
+      payload.folderId = currentFolderId;
+    }
+
+    await uploadMutation.mutateAsync(payload);
   }
+
+  const handleExternalUrlSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!externalUrl?.trim()) {
+      toast.error('Enter a valid URL.')
+      return
+    }
+
+    const payload: any = {
+      externalUrl: externalUrl.trim(),
+      altText: uploadData.altText || '',
+      caption: uploadData.caption || '',
+    };
+
+    if (currentFolderId) {
+      payload.folderId = currentFolderId;
+    }
+
+    try {
+      await uploadMutation.mutateAsync(payload);
+      toast.success('Video agregado')
+      setExternalUrl('')
+      setIsUploadModalOpen(false)
+      setUploadData({ file: null, altText: '', caption: '' })
+    } catch (error: any) {
+      console.error('Error subiendo URL:', error)
+      toast.error(error.response?.data?.error || 'Error al agregar el video')
+    }
+  }
+
+  const queryClient = useQueryClient()
+
+  const uploadMutation = useMutation({
+    mutationFn: multimediaActions.create,
+    onSuccess: () => {
+      toast.success('File uploaded successfully!')
+      setIsUploadModalOpen(false)
+      setExternalUrl('')
+      setUploadData({ file: null, altText: '', caption: '' })
+      queryClient.invalidateQueries({ queryKey: ['folderContents'] })
+    },
+    onError: (error: any) => {
+      console.error('Error subiendo:', error)
+      toast.error(error.response?.data?.error || 'Failed to upload file.')
+    }
+  })
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -307,11 +351,19 @@ export default function Multimedia() {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
   }
 
-  const getFileIcon = (fileType: string) => {
-    if (fileType.startsWith('image')) return <ImageIcon className="w-6 h-6" />
-    if (fileType.startsWith('video')) return <VideoIcon className="w-6 h-6" />
-    if (fileType.startsWith('audio')) return <AudioIcon className="w-6 h-6" />
-    if (fileType.includes('pdf')) return <DocumentIcon className="w-6 h-6" />
+    const getFileIcon = (media: MultimediaResponse) => {
+    if (media.isExternal || media.fileType === "external_video" || media.externalUrl) {
+      return <VideoIcon className="w-6 h-6 text-purple-500" />
+    }
+
+    if (media.fileType?.startsWith('image')) {return <ImageIcon className="w-6 h-6" />
+    }
+    if (media.fileType?.startsWith('video')) {return <VideoIcon className="w-6 h-6" />
+    }
+    if (media.fileType?.startsWith('audio')) {return <AudioIcon className="w-6 h-6" />
+    }
+    if (media.fileType?.includes('pdf')) {return <DocumentIcon className="w-6 h-6" />
+    }
     return <FileIcon className="w-6 h-6" />
   }
 
@@ -488,7 +540,9 @@ export default function Multimedia() {
                     >
                       {/* Thumbnail */}
                       <div className="aspect-square bg-secondary flex items-center justify-center">
-                        {media.fileType.startsWith('image') ? (
+                        {media.isExternal || media.externalUrl ? (
+                          <div className="text-6xl"></div>
+                        ) : media.fileType?.startsWith('image') ? (
                           <img
                             src={media.thumbnailUrl || media.originalUrl}
                             alt={media.altText || media.fileName}
@@ -496,7 +550,7 @@ export default function Multimedia() {
                           />
                         ) : (
                           <div className="text-muted-foreground">
-                            {getFileIcon(media.fileType)}
+                            {getFileIcon(media)}
                           </div>
                         )}
                       </div>
@@ -535,14 +589,14 @@ export default function Multimedia() {
                           <DeleteIcon className="w-4 h-4 text-red-600" />
                         </button>
                         <a
-                          href={media.originalUrl}
+                          href={media.isExternal ? media.externalUrl : media.originalUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
                           title="View"
                         >
                           <EyeIcon className="w-4 h-4 text-gray-700" />
-                        </a>
+                        </a> 
                       </div>
                     </div>
                   ))}
@@ -731,85 +785,160 @@ export default function Multimedia() {
       {/* Upload Modal */}
       {isUploadModalOpen && (
         <Modal
-          title="Upload File"
+          title="Upload File or URL"
           onClose={() => {
             setIsUploadModalOpen(false)
             setUploadData({ file: null, altText: '', caption: '' })
+            setExternalUrl('')
+            setUploadType('file')
           }}
         >
-          <form onSubmit={handleUpload} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">
-                File *
-              </label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileSelect}
-                required
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              {uploadData.file && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Selected: {uploadData.file.name} ({formatFileSize(uploadData.file.size)})
-                </p>
-              )}
+          <div className="space-y-6">
+            {/* Toggle File / URL */}
+            <div className="flex border border-border rounded-lg p-1">
+              <button
+                onClick={() => setUploadType('file')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                  uploadType === 'file' ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'
+                }`}
+              >
+                Subir Archivo
+              </button>
+              <button
+                onClick={() => setUploadType('url')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                  uploadType === 'url' ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'
+                }`}
+              >
+                Pegar URL
+              </button>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">
-                Alt Text
-              </label>
-              <input
-                type="text"
-                value={uploadData.altText}
-                onChange={(e) => setUploadData({ ...uploadData, altText: e.target.value })}
-                maxLength={255}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Describe this image for accessibility"
-              />
-            </div>
+            {uploadType === 'file' ? (
+              <form onSubmit={handleUpload} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">
+                    File *
+                  </label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileSelect}
+                    required
+                    className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  {uploadData.file && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Selected: {uploadData.file.name} ({formatFileSize(uploadData.file.size)})
+                    </p>
+                  )}
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">
-                Caption
-              </label>
-              <textarea
-                value={uploadData.caption}
-                onChange={(e) => setUploadData({ ...uploadData, caption: e.target.value })}
-                maxLength={500}
-                rows={3}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Optional caption"
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">
+                    Alt Text
+                  </label>
+                  <input
+                    type="text"
+                    value={uploadData.altText}
+                    onChange={(e) => setUploadData({ ...uploadData, altText: e.target.value })}
+                    maxLength={255}
+                    className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Describe this image for accessibility"
+                  />
+                </div>
 
-            {currentFolderId && (
-              <p className="text-sm text-muted-foreground">
-                Uploading to: {breadcrumbs[breadcrumbs.length - 1]?.name}
-              </p>
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">
+                    Caption
+                  </label>
+                  <textarea
+                    value={uploadData.caption}
+                    onChange={(e) => setUploadData({ ...uploadData, caption: e.target.value })}
+                    maxLength={500}
+                    rows={3}
+                    className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Optional caption"
+                  />
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUploadModalOpen(false)
+                      setUploadData({ file: null, altText: '', caption: '' })
+                    }}
+                    className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={uploadMutation.isPending}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {uploadMutation.isPending ? 'Uploading...' : 'Upload'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* external upload */
+              <form onSubmit={handleExternalUrlSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">
+                    Video URL *
+                  </label>
+                  <input
+                    type="url"
+                    value={externalUrl || ''}
+                    onChange={(e) => setExternalUrl(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..."
+                    className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ejemplo: https://youtu.be/AVOMZkoahhw
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-card-foreground mb-2">
+                    Alt Text
+                  </label>
+                  <input
+                    type="text"
+                    value={uploadData.altText}
+                    onChange={(e) => setUploadData({ ...uploadData, altText: e.target.value })}
+                    maxLength={255}
+                    className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Describe this video"
+                  />
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUploadModalOpen(false)
+                      setExternalUrl('')
+                      setUploadType('file')
+                    }}
+                    className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={uploadMutation.isPending}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {uploadMutation.isPending ? 'Adding...' : 'Add Video'}
+                  </button>
+                </div>
+              </form>
             )}
-
-            <div className="flex gap-3 justify-end pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsUploadModalOpen(false)
-                  setUploadData({ file: null, altText: '', caption: '' })
-                }}
-                className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={uploadMutation.isPending}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
-              >
-                {uploadMutation.isPending ? 'Uploading...' : 'Upload'}
-              </button>
-            </div>
-          </form>
+          </div>
         </Modal>
       )}
 

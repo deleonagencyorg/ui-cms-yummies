@@ -24,6 +24,7 @@ import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
 import Pages from '@/pages/Pages'
 import ChangePassword from '@/pages/ChangePassword'
+import Health from './pages/Healt'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -193,6 +194,14 @@ function App() {
         element={
           <ProtectedRoute>
             <News />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/health"
+        element={
+          <ProtectedRoute>
+            <Health />
           </ProtectedRoute>
         }
       />
