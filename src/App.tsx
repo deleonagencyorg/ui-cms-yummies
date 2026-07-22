@@ -19,6 +19,7 @@ import JobTitles from '@/pages/JobTitles'
 import Brands from '@/pages/Brands'
 import Products from '@/pages/Products'
 import Recipes from '@/pages/Recipes'
+import TopMessages from '@/pages/TopMessages'
 import News from '@/pages/News'
 import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
@@ -153,6 +154,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Recipes />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/top-messages"
+        element={
+          <ProtectedRoute>
+            <TopMessages />
           </ProtectedRoute>
         }
       />

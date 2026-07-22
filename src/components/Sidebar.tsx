@@ -31,6 +31,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t('nav.brands'), path: '/brands', icon: BrandsIcon },
     { name: t('nav.products'), path: '/products', icon: ProductsIcon },
     { name: t('nav.recipes'), path: '/recipes', icon: RecipesIcon },
+    { name: t('nav.topMessages'), path: '/top-messages', icon: MegaphoneIcon },
     { name: t('nav.news'), path: '/news', icon: NewsIcon },
     { name: t('nav.multimedia'), path: '/multimedia', icon: MultimediaIcon },
     { name: t('nav.sites'), path: '/sites', icon: SitesIcon },
@@ -578,6 +579,25 @@ function NewsIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"
+      />
+    </svg>
+  )
+}
+
+function MegaphoneIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
       />
     </svg>
   )
