@@ -15,10 +15,8 @@ import {
 
 const columnHelper = createColumnHelper<LanguageResponse>()
 
-const DIRECTIONS = ['ltr', 'rtl'] as const
-
 export default function Languages() {
-  const { t } = useTranslation()
+  useTranslation()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchName, setSearchName] = useState('')
@@ -69,6 +67,7 @@ export default function Languages() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<LanguageResponse, any>[]>(
     () => [
       columnHelper.accessor('code', {

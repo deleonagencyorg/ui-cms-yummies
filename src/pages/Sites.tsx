@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
-import MediaPicker from '@/components/MediaPicker'
+import MediaPicker, { type MediaUrlVariant } from '@/components/MediaPicker'
+import type { MultimediaResponse } from '@/actions/multimedia'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useSites } from '@/queries/sites'
@@ -20,7 +21,7 @@ const columnHelper = createColumnHelper<SiteResponse>()
 const SITE_STATUSES = ['active', 'inactive', 'maintenance'] as const
 
 export default function Sites() {
-  const { t } = useTranslation()
+  useTranslation()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchName, setSearchName] = useState('')
@@ -53,8 +54,8 @@ export default function Sites() {
       setIsCreateModalOpen(false)
       resetForm()
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to create site')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create site')
     },
   })
 
@@ -65,8 +66,8 @@ export default function Sites() {
       setSelectedSite(null)
       resetForm()
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to update site')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to update site')
     },
   })
 
@@ -76,10 +77,18 @@ export default function Sites() {
       setIsDeleteModalOpen(false)
       setSelectedSite(null)
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to delete site')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete site')
     },
   })
+
+  const getMediaUrl = (media: MultimediaResponse, variant: MediaUrlVariant): string => {
+    switch (variant) {
+      case 'thumbnail': return media.thumbnailUrl || media.originalUrl
+      case 'seo': return media.seoUrl || media.originalUrl
+      default: return media.originalUrl
+    }
+  }
 
   const resetForm = () => {
     setFormData({
@@ -118,6 +127,7 @@ export default function Sites() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<SiteResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {
@@ -153,7 +163,7 @@ export default function Sites() {
         header: 'Status',
         cell: (info) => {
           const status = info.getValue()
-          const statusColors = {
+          const statusColors: Record<string, string> = {
             active: 'bg-green-100 text-green-800',
             inactive: 'bg-gray-100 text-gray-800',
             maintenance: 'bg-yellow-100 text-yellow-800',
@@ -380,7 +390,7 @@ export default function Sites() {
         <LargeModal
           title={isCreateModalOpen ? 'Create Site' : 'Edit Site'}
           onClose={() => {
-            isCreateModalOpen ? setIsCreateModalOpen(false) : setIsEditModalOpen(false)
+            if (isCreateModalOpen) { setIsCreateModalOpen(false) } else { setIsEditModalOpen(false) }
             setSelectedSite(null)
             resetForm()
           }}
@@ -450,7 +460,7 @@ export default function Sites() {
                   </label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as typeof SITE_STATUSES[number] })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {SITE_STATUSES.map((status) => (
@@ -651,7 +661,7 @@ export default function Sites() {
               <button
                 type="button"
                 onClick={() => {
-                  isCreateModalOpen ? setIsCreateModalOpen(false) : setIsEditModalOpen(false)
+                  if (isCreateModalOpen) { setIsCreateModalOpen(false) } else { setIsEditModalOpen(false) }
                   setSelectedSite(null)
                   resetForm()
                 }}
@@ -713,7 +723,7 @@ export default function Sites() {
       <MediaPicker
         isOpen={isFaviconPickerOpen}
         onClose={() => setIsFaviconPickerOpen(false)}
-        onSelect={(url) => setFormData({ ...formData, faviconUrl: url })}
+        onSelect={(media, variant) => setFormData({ ...formData, faviconUrl: getMediaUrl(media, variant) })}
         currentUrl={formData.faviconUrl}
         title="Select Favicon"
       />
@@ -721,7 +731,7 @@ export default function Sites() {
       <MediaPicker
         isOpen={isLogoPickerOpen}
         onClose={() => setIsLogoPickerOpen(false)}
-        onSelect={(url) => setFormData({ ...formData, logoUrl: url })}
+        onSelect={(media, variant) => setFormData({ ...formData, logoUrl: getMediaUrl(media, variant) })}
         currentUrl={formData.logoUrl}
         title="Select Logo"
       />

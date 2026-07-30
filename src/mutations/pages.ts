@@ -3,17 +3,17 @@ import { pageActions, type CreatePageRequest, type UpdatePageRequest } from '@/a
 
 interface UseCreatePageOptions {
   onSuccess?: () => void
-  onError?: (error: any) => void
+  onError?: (error: unknown) => void
 }
 
 interface UseUpdatePageOptions {
   onSuccess?: () => void
-  onError?: (error: any) => void
+  onError?: (error: unknown) => void
 }
 
 interface UseDeletePageOptions {
   onSuccess?: () => void
-  onError?: (error: any) => void
+  onError?: (error: unknown) => void
 }
 
 export const useCreatePage = (options?: UseCreatePageOptions) => {

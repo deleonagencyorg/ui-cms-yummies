@@ -49,8 +49,8 @@ export default function ResetPassword() {
       setTimeout(() => {
         navigate('/login')
       }, 2000)
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Failed to reset password. Please try again.'
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to reset password. Please try again.'
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)

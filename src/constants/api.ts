@@ -82,6 +82,11 @@ export const API_ENDPOINTS = {
     BASE: '/news',
     BY_ID: (id: string) => `/news/${id}`,
   },
+  API_TOKENS: {
+    BASE: '/api-tokens',
+    BY_ID: (id: string) => `/api-tokens/${id}`,
+    REVOKE: (id: string) => `/api-tokens/${id}/revoke`,
+  },
 } as const
 
 export const TOKEN_STORAGE_KEY = 'access_token'

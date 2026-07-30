@@ -14,9 +14,9 @@ export const useCreateRecipe = (
 
   return useMutation<RecipeResponse, Error, CreateRecipeRequest>({
     mutationFn: recipeActions.create,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: RECIPE_KEYS.lists() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
@@ -32,10 +32,10 @@ export const useUpdateRecipe = (
 
   return useMutation<RecipeResponse, Error, { id: string; data: UpdateRecipeRequest }>({
     mutationFn: ({ id, data }) => recipeActions.update(id, data),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: RECIPE_KEYS.lists() })
       queryClient.invalidateQueries({ queryKey: RECIPE_KEYS.detail(variables.id) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
@@ -48,10 +48,10 @@ export const useDeleteRecipe = (
 
   return useMutation<void, Error, string>({
     mutationFn: recipeActions.delete,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: RECIPE_KEYS.lists() })
       queryClient.removeQueries({ queryKey: RECIPE_KEYS.detail(variables) })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })

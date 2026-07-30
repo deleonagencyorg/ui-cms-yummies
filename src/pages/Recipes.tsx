@@ -115,6 +115,7 @@ export default function Recipes() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<RecipeResponse, any>[]>(
     () => [
       columnHelper.accessor('title', {
@@ -292,7 +293,7 @@ export default function Recipes() {
   }
 
   // Media picker handlers
-  const handleMediaSelect = (media: MultimediaResponse) => {
+  const handleMediaSelect = (media: MultimediaResponse, _variant?: string) => {
     if (!mediaPickerTarget) return
 
     if (mediaPickerTarget.type === 'image') {

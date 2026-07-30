@@ -25,6 +25,7 @@ import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
 import Pages from '@/pages/Pages'
 import ChangePassword from '@/pages/ChangePassword'
+import ApiTokens from '@/pages/ApiTokens'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -202,6 +203,15 @@ function App() {
         element={
           <ProtectedRoute>
             <News />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/api-tokens"
+        element={
+          <ProtectedRoute>
+            <ApiTokens />
           </ProtectedRoute>
         }
       />

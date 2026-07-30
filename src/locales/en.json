@@ -14,6 +14,7 @@
     "multimedia": "Media Library",
     "sites": "Sites",
     "pages": "Pages",
+    "apiTokens": "API Tokens",
     "selectSite": "Select Site",
     "noSiteSelected": "No site selected",
     "selectSiteFirst": "Please select a site first"
@@ -63,6 +64,57 @@
       "passwordsDoNotMatch": "Passwords do not match",
       "samePassword": "New password must be different from the default password",
       "failed": "Failed to change password. Please try again."
+    }
+  },
+  "apiTokens": {
+    "description": "Create and manage API tokens for external integrations",
+    "createButton": "Create Token",
+    "createTitle": "Create API Token",
+    "revokeTitle": "Revoke Token",
+    "deleteTitle": "Delete Token",
+    "loading": "Loading tokens...",
+    "error": "Failed to load tokens",
+    "empty": "No API tokens found",
+    "revokeConfirm": "Are you sure you want to revoke the token \"{{name}}\"?",
+    "revokeHint": "Revoked tokens will still allow read operations until they expire, but write operations will be blocked immediately.",
+    "deleteConfirm": "Are you sure you want to delete the token \"{{name}}\"? This action cannot be undone.",
+    "table": {
+      "name": "Name",
+      "scopes": "Scopes",
+      "expiresAt": "Expires",
+      "status": "Status",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "revoked": "Revoked",
+      "expired": "Expired"
+    },
+    "form": {
+      "name": "Token Name",
+      "namePlaceholder": "e.g. Website frontend",
+      "expiresAt": "Expiration Date",
+      "scopes": "Permissions",
+      "scopesHint": "Select which resources this token can access and whether it has read-only or read-write access.",
+      "read": "Read",
+      "readWrite": "Read/Write",
+      "cancel": "Cancel",
+      "create": "Create",
+      "creating": "Creating..."
+    },
+    "actions": {
+      "revoke": "Revoke",
+      "revoking": "Revoking...",
+      "delete": "Delete",
+      "deleting": "Deleting..."
+    },
+    "tokenCreated": {
+      "title": "Token Created",
+      "warning": "Copy this token now. It will not be shown again.",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "done": "Done"
     }
   }
 }

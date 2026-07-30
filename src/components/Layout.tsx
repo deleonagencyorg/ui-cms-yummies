@@ -1,4 +1,4 @@
-import { useState, ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import Navbar from '@/components/Navbar'
 import Sidebar from '@/components/Sidebar'
 
