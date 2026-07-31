@@ -82,6 +82,9 @@ export const API_ENDPOINTS = {
     BASE: '/news',
     BY_ID: (id: string) => `/news/${id}`,
   },
+  HEALTH: {
+    CONFIG: '/health/config',
+  },
 } as const
 
 export const TOKEN_STORAGE_KEY = 'access_token'

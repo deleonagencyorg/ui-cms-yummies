@@ -24,7 +24,7 @@ import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
 import Pages from '@/pages/Pages'
 import ChangePassword from '@/pages/ChangePassword'
-import Health from './pages/Healt'
+import Health from './pages/Health'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
