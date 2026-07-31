@@ -111,9 +111,7 @@ export default function RichTextEditor({ value, onChange, placeholder, className
   const editor = useMemo(() => withImages(withHistory(withReact(createEditor()))), [])
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false)
 
-  const initialValue: Descendant[] = useMemo(() => {
-    return htmlToSlate(value)
-  }, [])
+  const [initialValue] = useState<Descendant[]>(() => htmlToSlate(value))
 
   const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, [])
   const renderLeaf = useCallback((props: RenderLeafProps) => <Leaf {...props} />, [])
@@ -123,8 +121,8 @@ export default function RichTextEditor({ value, onChange, placeholder, className
     onChange(html)
   }
 
-  const handleMediaSelect = (media: MultimediaResponse) => {
-    insertImage(editor, media.originalUrl, media.filename)
+  const handleMediaSelect = (media: MultimediaResponse, _variant?: string) => {
+    insertImage(editor, media.originalUrl, media.fileName)
     setIsMediaPickerOpen(false)
   }
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
@@ -87,8 +87,8 @@ export default function Multimedia() {
       setIsEditModalOpen(false)
       setSelectedMedia(null)
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to update media')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to update media')
     },
   })
 
@@ -98,8 +98,8 @@ export default function Multimedia() {
       setIsDeleteModalOpen(false)
       setSelectedMedia(null)
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to delete media')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete media')
     },
   })
 
@@ -110,8 +110,8 @@ export default function Multimedia() {
       setSelectedMedia(null)
       setMoveTargetFolderId(null)
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to move media')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to move media')
     },
   })
 
@@ -121,8 +121,8 @@ export default function Multimedia() {
       setIsFolderModalOpen(false)
       setNewFolderName('')
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to create folder')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create folder')
     },
   })
 
@@ -133,8 +133,8 @@ export default function Multimedia() {
       setSelectedFolder(null)
       setRenameFolderName('')
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to rename folder')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to rename folder')
     },
   })
 
@@ -144,20 +144,17 @@ export default function Multimedia() {
       setIsDeleteFolderModalOpen(false)
       setSelectedFolder(null)
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to delete folder. Make sure the folder is empty.')
+    onError: (err: unknown) => {
+      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete folder. Make sure the folder is empty.')
     },
   })
 
   // Update breadcrumbs when folder changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!folderId) {
-      // At root
       setBreadcrumbs([{ id: null, name: 'Root' }])
     } else if (currentFolderData) {
-      // Build breadcrumbs from current folder
-      // For now, just show Root > Current Folder
-      // A more complete solution would fetch the full path from the API
       setBreadcrumbs([
         { id: null, name: 'Root' },
         { id: currentFolderData.id, name: currentFolderData.name }
@@ -169,6 +166,7 @@ export default function Multimedia() {
   useEffect(() => {
     setPage(1)
   }, [folderId])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Navigation handlers
   const navigateToFolder = (folder: FolderResponse) => {

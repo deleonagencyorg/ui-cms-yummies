@@ -3,10 +3,39 @@ import { useFolderContents, useFolderById } from '@/queries/folders'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import type { FolderResponse } from '@/actions/folders'
 
+export type MediaUrlVariant = 'original' | 'thumbnail' | 'seo'
+
+interface ImageDimensions {
+  width: number
+  height: number
+}
+
+function useImageDimensions(url: string | undefined | null): ImageDimensions | null {
+  const [dimensions, setDimensions] = useState<ImageDimensions | null>(null)
+
+  useEffect(() => {
+    if (!url) {
+      setDimensions(null)
+      return
+    }
+
+    const img = new Image()
+    img.onload = () => {
+      setDimensions({ width: img.naturalWidth, height: img.naturalHeight })
+    }
+    img.onerror = () => {
+      setDimensions(null)
+    }
+    img.src = url
+  }, [url])
+
+  return dimensions
+}
+
 interface MediaPickerProps {
   isOpen: boolean
   onClose: () => void
-  onSelect: (media: MultimediaResponse) => void
+  onSelect: (media: MultimediaResponse, urlVariant: MediaUrlVariant) => void
   currentUrl?: string
   title?: string
   type?: 'image' | 'gallery' | 'video' | 'all'
@@ -17,11 +46,12 @@ interface BreadcrumbItem {
   name: string
 }
 
-export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, title = 'Select Media' }: MediaPickerProps) {
+export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select Media' }: MediaPickerProps) {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(24)
   const [searchFileName, setSearchFileName] = useState('')
   const [selectedMedia, setSelectedMedia] = useState<MultimediaResponse | null>(null)
+  const [selectedVariant, setSelectedVariant] = useState<MediaUrlVariant>('original')
 
   // Folder navigation state
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
@@ -38,6 +68,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
   })
 
   // Update breadcrumbs when folder changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!currentFolderId) {
       setBreadcrumbs([{ id: null, name: 'Root' }])
@@ -53,17 +84,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
   useEffect(() => {
     setPage(1)
   }, [currentFolderId])
-
-  // Reset state when modal closes/opens
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedMedia(null)
-      setCurrentFolderId(null)
-      setSearchFileName('')
-      setPage(1)
-      setBreadcrumbs([{ id: null, name: 'Root' }])
-    }
-  }, [isOpen])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!isOpen) return null
 
@@ -79,10 +100,20 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
     setSelectedMedia(null)
   }
 
+  const resetAndClose = () => {
+    setSelectedMedia(null)
+    setSelectedVariant('original')
+    setCurrentFolderId(null)
+    setSearchFileName('')
+    setPage(1)
+    setBreadcrumbs([{ id: null, name: 'Root' }])
+    onClose()
+  }
+
   const handleSelect = () => {
     if (!selectedMedia) return
-    onSelect(selectedMedia)
-    onClose()
+    onSelect(selectedMedia, selectedVariant)
+    resetAndClose()
   }
 
   const formatFileSize = (bytes: number) => {
@@ -151,7 +182,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
           <button
-            onClick={onClose}
+            onClick={resetAndClose}
             className="text-muted-foreground hover:text-foreground"
           >
             <XIcon className="w-5 h-5" />
@@ -334,7 +365,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
         {/* Footer */}
         <div className="flex gap-3 justify-end p-6 border-t border-border">
           <button
-            onClick={onClose}
+            onClick={resetAndClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
           >
             Cancel
@@ -346,6 +377,97 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
           >
             Select
           </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function VariantDimensions({ url }: { url: string }) {
+  const dims = useImageDimensions(url)
+  if (!dims) return null
+  return (
+    <span className="text-muted-foreground">
+      {dims.width} x {dims.height}px
+    </span>
+  )
+}
+
+function getVariantUrl(media: MultimediaResponse, variant: MediaUrlVariant): string {
+  switch (variant) {
+    case 'thumbnail': return media.thumbnailUrl || media.originalUrl
+    case 'seo': return media.seoUrl || media.originalUrl
+    default: return media.originalUrl
+  }
+}
+
+function MediaPreviewPanel({
+  media,
+  selectedVariant,
+  onVariantChange,
+  formatFileSize,
+}: {
+  media: MultimediaResponse
+  selectedVariant: MediaUrlVariant
+  onVariantChange: (v: MediaUrlVariant) => void
+  formatFileSize: (bytes: number) => string
+}) {
+  const previewUrl = getVariantUrl(media, selectedVariant)
+
+  const variants: { label: string; variant: MediaUrlVariant; url: string | undefined }[] = [
+    { label: 'Original', variant: 'original', url: media.originalUrl },
+    { label: 'Thumbnail', variant: 'thumbnail', url: media.thumbnailUrl },
+    { label: 'SEO', variant: 'seo', url: media.seoUrl },
+  ]
+
+  const availableVariants = variants.filter((v) => v.url)
+
+  return (
+    <div className="p-6 border-t border-border bg-secondary/30">
+      <div className="flex gap-6">
+        <div className="flex-shrink-0">
+          <div className="w-32 h-32 bg-secondary rounded-lg flex items-center justify-center overflow-hidden">
+            {media.fileType.startsWith('image') ? (
+              <img
+                src={previewUrl}
+                alt={media.altText || media.fileName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <FileIcon className="w-12 h-12 text-muted-foreground" />
+            )}
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-sm font-semibold text-card-foreground mb-1">Selected Media</h4>
+          <p className="text-sm text-muted-foreground truncate">{media.fileName}</p>
+          <p className="text-xs text-muted-foreground mb-3">
+            {formatFileSize(media.fileSize)}
+          </p>
+          {media.fileType.startsWith('image') && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-card-foreground">Select version:</p>
+              <div className="flex flex-wrap gap-2">
+                {availableVariants.map((v) => (
+                  <button
+                    key={v.variant}
+                    type="button"
+                    onClick={() => onVariantChange(v.variant)}
+                    className={`px-3 py-1.5 rounded transition-colors text-xs font-medium ${
+                      selectedVariant === v.variant
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-background border border-border hover:border-primary/50'
+                    }`}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+              <div className="text-xs">
+                <VariantDimensions url={previewUrl} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

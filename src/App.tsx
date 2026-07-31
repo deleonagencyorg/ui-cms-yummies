@@ -206,6 +206,15 @@ function App() {
         }
       />
 
+      <Route
+        path="/api-tokens"
+        element={
+          <ProtectedRoute>
+            <ApiTokens />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Catch all - redirect based on auth state */}
       <Route
         path="*"

@@ -79,6 +79,7 @@ export default function Brands() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<BrandResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {
@@ -246,13 +247,13 @@ export default function Brands() {
   }
 
   // Handle brand logo selection from media picker
-  const handleBrandLogoSelect = (media: MultimediaResponse) => {
+  const handleBrandLogoSelect = (media: MultimediaResponse, _variant?: string) => {
     setFormData((prev) => ({ ...prev, logoUrl: media.originalUrl }))
     setIsBrandLogoPickerOpen(false)
   }
 
   // Handle brand language logo selection from media picker
-  const handleBrandLanguageLogoSelect = (media: MultimediaResponse) => {
+  const handleBrandLanguageLogoSelect = (media: MultimediaResponse, _variant?: string) => {
     if (brandLanguageLogoIndex !== null) {
       updateBrandLanguage(brandLanguageLogoIndex, 'logoUrl', media.originalUrl)
       setBrandLanguageLogoIndex(null)

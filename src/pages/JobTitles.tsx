@@ -53,6 +53,7 @@ export default function JobTitles() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<JobTitleResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {
