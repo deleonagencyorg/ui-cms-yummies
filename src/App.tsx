@@ -25,6 +25,7 @@ import Sites from '@/pages/Sites'
 import Pages from '@/pages/Pages'
 import ChangePassword from '@/pages/ChangePassword'
 import Health from './pages/Health'
+import Descubrenos from './pages/Descubrenos'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -202,6 +203,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Health />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/descubrenos"
+        element={
+          <ProtectedRoute>
+            <Descubrenos />
           </ProtectedRoute>
         }
       />

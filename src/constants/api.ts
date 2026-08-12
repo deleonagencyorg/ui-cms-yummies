@@ -83,7 +83,12 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/news/${id}`,
   },
   HEALTH: {
-    CONFIG: '/health/config',
+    BASE: '/health',
+    BY_ID: (id: string) => `/health/${id}`,
+  },
+  DESCUBRENOS: {
+    BASE: '/descubrenos',
+    BY_ID: (id: string) => `/descubrenos/${id}`,
   },
 } as const
 
