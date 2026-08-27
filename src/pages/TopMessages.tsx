@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
-import { useTranslation } from 'react-i18next'
 import { useLanguages } from '@/queries/languages'
 import { useBrands } from '@/queries/brands'
 import { useTopMessages } from '@/queries/top-messages'
@@ -33,7 +32,6 @@ const initialFormData: TopMessageFormData = {
 }
 
 export default function TopMessages() {
-  const { t } = useTranslation()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)

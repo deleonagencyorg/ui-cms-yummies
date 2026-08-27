@@ -14,9 +14,9 @@ export const useCreateTopMessage = (
 
   return useMutation<TopMessageResponse, Error, CreateTopMessageRequest>({
     mutationFn: topMessageActions.create,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.lists() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
@@ -29,24 +29,24 @@ export const useUpdateTopMessage = (
 
   return useMutation<TopMessageResponse, Error, { id: string; data: UpdateTopMessageRequest }>({
     mutationFn: ({ id, data }) => topMessageActions.update(id, data),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.lists() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
 }
 
 export const useDeleteTopMessage = (
-  options?: Omit<UseMutationOptions<void, Error, number | string>, 'mutationFn'>
+  options?: Omit<UseMutationOptions<void, Error, string>, 'mutationFn'>
 ) => {
   const queryClient = useQueryClient()
 
-  return useMutation<void, Error, number | string>({
+  return useMutation<void, Error, string>({
     mutationFn: topMessageActions.delete,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, context, mutation) => {
       queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.lists() })
-      options?.onSuccess?.(data, variables, context)
+      options?.onSuccess?.(data, variables, context, mutation)
     },
     ...options,
   })
