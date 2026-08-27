@@ -1,33 +1,47 @@
 import axiosInstance from '@/lib/axios'
 
 export interface TopMessageResponse {
-  id: number
-  text: string
-  sort_order: number
-  brand_id: number
-  language_id: number
-  created_at: string
-  updated_at: string
+  id: string
+  title: string
+  link?: string
+  order?: number
+  languageCode: string
+  brandId: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface CreateTopMessageRequest {
-  text: string
-  sort_order: number
-  brand_id: number
-  language_id: number
+  title: string
+  link?: string
+  order?: number
+  languageCode: string
+  brandId: string
 }
 
 export interface UpdateTopMessageRequest {
-  text?: string
-  sort_order?: number
-  brand_id?: number
-  language_id?: number
+  title: string
+  link?: string
+  order?: number
+  languageCode: string
+  brandId: string
+}
+
+export interface TopMessageFiltersRequest {
+  brandId?: string
+  languageCode?: string
+}
+
+export interface TopMessageListResponse {
+  data: TopMessageResponse[]
 }
 
 export const topMessageActions = {
-  getAll: async () => {
-    const response = await axiosInstance.get<TopMessageResponse[]>('/top-messages')
-    return response.data
+  getAll: async (filters?: TopMessageFiltersRequest) => {
+    const response = await axiosInstance.get<TopMessageListResponse>('/top-messages', {
+      params: filters,
+    })
+    return response.data?.data || []
   },
 
   create: async (data: CreateTopMessageRequest) => {
@@ -35,7 +49,12 @@ export const topMessageActions = {
     return response.data
   },
 
-  delete: async (id: number | string) => {
+  update: async (id: string, data: UpdateTopMessageRequest) => {
+    const response = await axiosInstance.put<TopMessageResponse>(`/top-messages/${id}`, data)
+    return response.data
+  },
+
+  delete: async (id: string) => {
     await axiosInstance.delete(`/top-messages/${id}`)
   },
 }

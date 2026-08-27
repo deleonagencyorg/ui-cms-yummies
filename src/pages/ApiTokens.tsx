@@ -13,7 +13,7 @@ import {
   type ColumnDef,
 } from '@tanstack/react-table'
 
-const AVAILABLE_SCOPES = ['brands', 'products', 'recipes', 'news', 'sites', 'pages'] as const
+const AVAILABLE_SCOPES = ['brands', 'products', 'recipes', 'news', 'sites', 'pages', 'top_messages'] as const
 
 const columnHelper = createColumnHelper<ApiTokenResponse>()
 
@@ -82,7 +82,7 @@ export default function ApiTokens() {
                       : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                   }`}
                 >
-                  {key}: {value}
+                  {key.replace('_', ' ')}: {value}
                 </span>
               ))}
             </div>
@@ -379,7 +379,7 @@ export default function ApiTokens() {
                   return (
                     <div key={scope} className="flex items-center justify-between py-2 px-3 bg-secondary/50 rounded-lg">
                       <span className="text-sm font-medium text-card-foreground capitalize">
-                        {scope}
+                        {scope.replace('_', ' ')}
                       </span>
                       <div className="flex gap-2">
                         <button

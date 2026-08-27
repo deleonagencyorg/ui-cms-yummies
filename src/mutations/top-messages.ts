@@ -2,6 +2,7 @@ import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/
 import {
   topMessageActions,
   type CreateTopMessageRequest,
+  type UpdateTopMessageRequest,
   type TopMessageResponse
 } from '@/actions/top-messages'
 import { TOP_MESSAGE_KEYS } from '@/queries/top-messages'
@@ -13,6 +14,21 @@ export const useCreateTopMessage = (
 
   return useMutation<TopMessageResponse, Error, CreateTopMessageRequest>({
     mutationFn: topMessageActions.create,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.lists() })
+      options?.onSuccess?.(data, variables, context)
+    },
+    ...options,
+  })
+}
+
+export const useUpdateTopMessage = (
+  options?: Omit<UseMutationOptions<TopMessageResponse, Error, { id: string; data: UpdateTopMessageRequest }>, 'mutationFn'>
+) => {
+  const queryClient = useQueryClient()
+
+  return useMutation<TopMessageResponse, Error, { id: string; data: UpdateTopMessageRequest }>({
+    mutationFn: ({ id, data }) => topMessageActions.update(id, data),
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.lists() })
       options?.onSuccess?.(data, variables, context)
