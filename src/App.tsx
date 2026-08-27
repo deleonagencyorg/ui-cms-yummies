@@ -24,7 +24,11 @@ import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
 import Pages from '@/pages/Pages'
 import ChangePassword from '@/pages/ChangePassword'
-import ApiTokens from '@/pages/ApiTokens'
+import Health from './pages/Health'
+import Descubrenos from './pages/Descubrenos'
+import Contact from './pages/Contact'
+import Footer from './pages/Footer'
+import ApiTokens from './pages/ApiTokens'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -194,6 +198,38 @@ function App() {
         element={
           <ProtectedRoute>
             <News />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/health"
+        element={
+          <ProtectedRoute>
+            <Health />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/descubrenos"
+        element={
+          <ProtectedRoute>
+            <Descubrenos />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <ProtectedRoute>
+            <Contact />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/footer"
+        element={
+          <ProtectedRoute>
+            <Footer />
           </ProtectedRoute>
         }
       />
