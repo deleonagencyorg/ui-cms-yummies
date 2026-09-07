@@ -1228,14 +1228,14 @@ function PageBannerCard({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <MediaField
-              label={banner.type === 'video' ? 'Desktop Video' : 'Desktop Image'}
+              label={banner.type === 'video' ? 'Desktop media' : 'Desktop media'}
               media={banner.desktop}
               video={banner.type === 'video'}
               onSelect={() => onOpenMediaPicker({ index, field: 'desktop' })}
               onClear={() => onChange(index, { desktop: null })}
             />
             <MediaField
-              label={banner.type === 'video' ? 'Mobile Video' : 'Mobile Image'}
+              label={banner.type === 'video' ? 'Mobile media' : 'Mobile media'}
               media={banner.mobile}
               video={banner.type === 'video'}
               onSelect={() => onOpenMediaPicker({ index, field: 'mobile' })}

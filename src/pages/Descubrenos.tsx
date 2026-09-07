@@ -128,6 +128,26 @@ function formDataToPayload(
   }
 }
 
+function toInstagramEmbedUrl(url: string): string {
+  if (!url) return ''
+
+  try {
+    const parsed = new URL(url)
+    if (!parsed.hostname.includes('instagram.com')) return url
+
+    parsed.search = ''
+    parsed.hash = ''
+    const path = parsed.pathname.replace(/\/+$/, '')
+    if (path.endsWith('/embed')) {
+      return `${parsed.origin}${path}/`
+    }
+
+    return `${parsed.origin}${path}/embed/`
+  } catch {
+    return url
+  }
+}
+
 function visibilityLabel(item: Descubrenos): string {
   const pages: string[] = []
   if (item.showOnHome) pages.push('Home')
@@ -265,9 +285,21 @@ export default function DescubrenosPage() {
   ) => {
     setFormData((prev) => ({
       ...prev,
-      posts: prev.posts.map((post, i) =>
-        i === index ? { ...post, [field]: value } : post
-      ),
+      posts: prev.posts.map((post, i) => {
+        if (i !== index) return post
+        if (field !== 'postUrl') return { ...post, [field]: value }
+
+        const nextEmbed = toInstagramEmbedUrl(value)
+        const previousAutoEmbed = toInstagramEmbedUrl(post.postUrl)
+        const shouldSyncEmbed =
+          !post.embedUrl || post.embedUrl === previousAutoEmbed
+
+        return {
+          ...post,
+          postUrl: value,
+          embedUrl: shouldSyncEmbed ? nextEmbed : post.embedUrl,
+        }
+      }),
     }))
   }
 
@@ -370,7 +402,7 @@ export default function DescubrenosPage() {
             <div>
               <h2 className="text-2xl font-bold text-card-foreground">Descúbrenos</h2>
               <p className="text-muted-foreground mt-1">
-                Manage Instagram gallery content and where it appears per site
+                Manage Instagram gallery content
               </p>
             </div>
             <button
@@ -391,7 +423,7 @@ export default function DescubrenosPage() {
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search by title..."
+              placeholder="Search descubrenos..."
               value={searchTitle}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
@@ -405,7 +437,7 @@ export default function DescubrenosPage() {
                 setFilterLanguage(e.target.value)
                 setPage(1)
               }}
-              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All languages</option>
               {(languagesData?.data || []).map((lang) => (
@@ -417,10 +449,17 @@ export default function DescubrenosPage() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading descubrenos...</p>
+            </div>
           ) : error ? (
-            <div className="text-center py-12 text-red-600">
-              Failed to load descubrenos content
+            <div className="text-center py-12">
+              <p className="text-red-500">Failed to load descubrenos</p>
+            </div>
+          ) : !data?.data.length ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No descubrenos content found</p>
             </div>
           ) : (
             <>
@@ -434,57 +473,46 @@ export default function DescubrenosPage() {
                             key={header.id}
                             className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                           >
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
                           </th>
                         ))}
                       </tr>
                     ))}
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {table.getRowModel().rows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={columns.length}
-                          className="px-6 py-8 text-center text-sm text-muted-foreground"
-                        >
-                          No descubrenos content found
-                        </td>
+                    {table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-secondary/50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        ))}
                       </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/50">
-                          {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-6 py-4">
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
 
-              {data?.pagination && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    pageCount={data.pagination.pageCount}
-                    pageSize={pageSize}
-                    totalItems={data.pagination.total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size)
-                      setPage(1)
-                    }}
-                  />
-                </div>
+              {data.pagination && data.pagination.pageCount > 1 && (
+                <Pagination
+                  currentPage={data.pagination.page}
+                  pageCount={data.pagination.pageCount}
+                  pageSize={pageSize}
+                  totalItems={data.pagination.total}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize)
+                    setPage(1)
+                  }}
+                />
               )}
             </>
           )}
@@ -819,8 +847,11 @@ function DescubrenosFormModal({
                           onUpdatePostField(index, 'postUrl', e.target.value)
                         }
                         className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="https://www.instagram.com/p/..."
+                        placeholder="https://www.instagram.com/reel/..."
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Paste the Instagram reel or post link. The embed URL is generated automatically.
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-card-foreground mb-2">

@@ -73,6 +73,7 @@ export interface CreateFooterConfigRequest {
 export type UpdateFooterConfigRequest = Partial<CreateFooterConfigRequest>
 
 export interface FooterFiltersRequest {
+  mainText?: string
   languageCode?: string
   siteId?: string
   page?: number

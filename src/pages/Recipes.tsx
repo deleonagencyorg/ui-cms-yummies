@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
@@ -89,6 +89,15 @@ export default function Recipes() {
   const createMutation = useCreateRecipe()
   const updateMutation = useUpdateRecipe()
   const deleteMutation = useDeleteRecipe()
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return
+    const brands = brandsData?.data ?? []
+    if (brands.length !== 1) return
+    setFormData((prev) =>
+      prev.brandIds.length > 0 ? prev : { ...prev, brandIds: [brands[0].id] }
+    )
+  }, [isCreateModalOpen, brandsData])
 
   const openEditModal = (recipe: RecipeResponse) => {
     setSelectedRecipe(recipe)
@@ -226,6 +235,10 @@ export default function Recipes() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (formData.brandIds.length === 0) {
+      window.alert('Select at least one brand so the recipe can appear on the site.')
+      return
+    }
     try {
       await createMutation.mutateAsync({
         title: formData.title,
@@ -241,7 +254,7 @@ export default function Recipes() {
         category: formData.category || undefined,
         instructions: formData.instructions.length > 0 ? formData.instructions : undefined,
         languageCode: formData.languageCode,
-        brandIds: formData.brandIds.length > 0 ? formData.brandIds : undefined,
+        brandIds: formData.brandIds,
         productIds: formData.productIds.length > 0 ? formData.productIds : undefined,
       })
       setIsCreateModalOpen(false)
@@ -254,6 +267,10 @@ export default function Recipes() {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedRecipe) return
+    if (formData.brandIds.length === 0) {
+      window.alert('Select at least one brand so the recipe can appear on the site.')
+      return
+    }
     try {
       await updateMutation.mutateAsync({
         id: selectedRecipe.id,
@@ -1008,8 +1025,11 @@ function RecipeFormModal({
           {/* Brands Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Related Brands
+              Related Brands *
             </h4>
+            <p className="text-xs text-muted-foreground">
+              Required. Yummi Nuts only shows recipes linked to its brand.
+            </p>
             {brands.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">No brands available</p>
             ) : (

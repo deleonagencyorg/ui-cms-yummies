@@ -248,6 +248,7 @@ export default function ContactPage() {
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [searchTitle, setSearchTitle] = useState('')
   const [filterLanguage, setFilterLanguage] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -264,6 +265,7 @@ export default function ContactPage() {
   const { data, isLoading, error } = useContactList({
     page,
     pageSize,
+    title: searchTitle || undefined,
     languageCode: filterLanguage || undefined,
     siteId: selectedSiteId || undefined,
   })
@@ -453,7 +455,7 @@ export default function ContactPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-card-foreground">Contact</h2>
-              <p className="text-muted-foreground mt-1">Manage contact page content per site</p>
+              <p className="text-muted-foreground mt-1">Manage contact page content</p>
             </div>
             <button
               onClick={() => {
@@ -471,13 +473,23 @@ export default function ContactPage() {
           </div>
 
           <div className="mb-6 flex flex-wrap gap-4">
+            <input
+              type="text"
+              placeholder="Search contact..."
+              value={searchTitle}
+              onChange={(e) => {
+                setSearchTitle(e.target.value)
+                setPage(1)
+              }}
+              className="flex-1 min-w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
             <select
               value={filterLanguage}
               onChange={(e) => {
                 setFilterLanguage(e.target.value)
                 setPage(1)
               }}
-              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All languages</option>
               {(languagesData?.data || []).map((lang) => (
@@ -489,9 +501,18 @@ export default function ContactPage() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading contact...</p>
+            </div>
           ) : error ? (
-            <div className="text-center py-12 text-red-600">Failed to load contact content</div>
+            <div className="text-center py-12">
+              <p className="text-red-500">Failed to load contact</p>
+            </div>
+          ) : !data?.data.length ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No contact content found</p>
+            </div>
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -504,51 +525,40 @@ export default function ContactPage() {
                             key={header.id}
                             className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                           >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(header.column.columnDef.header, header.getContext())}
                           </th>
                         ))}
                       </tr>
                     ))}
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {table.getRowModel().rows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={columns.length}
-                          className="px-6 py-8 text-center text-sm text-muted-foreground"
-                        >
-                          No contact content found
-                        </td>
+                    {table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-secondary/50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        ))}
                       </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/50">
-                          {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-6 py-4">
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
 
-              {data?.pagination && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    pageCount={data.pagination.pageCount}
-                    pageSize={pageSize}
-                    totalItems={data.pagination.total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size)
-                      setPage(1)
-                    }}
-                  />
-                </div>
+              {data.pagination && data.pagination.pageCount > 1 && (
+                <Pagination
+                  currentPage={data.pagination.page}
+                  pageCount={data.pagination.pageCount}
+                  pageSize={pageSize}
+                  totalItems={data.pagination.total}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize)
+                    setPage(1)
+                  }}
+                />
               )}
             </>
           )}
@@ -599,9 +609,14 @@ export default function ContactPage() {
       )}
 
       {isDeleteModalOpen && selectedItem && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-card-foreground">Delete Contact</h3>
+        <Modal
+          title="Delete Contact"
+          onClose={() => {
+            setIsDeleteModalOpen(false)
+            setSelectedItem(null)
+          }}
+        >
+          <div className="space-y-4">
             <p className="text-card-foreground">
               Are you sure you want to delete the contact config "
               <strong>{selectedItem.title || 'Untitled'}</strong>"? This action cannot be undone.
@@ -625,7 +640,7 @@ export default function ContactPage() {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </Layout>
   )
@@ -1098,6 +1113,30 @@ function ContactFormModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+function Modal({
+  title,
+  children,
+  onClose,
+}: {
+  title: string
+  children: React.ReactNode
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   )

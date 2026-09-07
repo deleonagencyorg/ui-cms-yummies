@@ -90,6 +90,23 @@ export const API_ENDPOINTS = {
     BASE: '/descubrenos',
     BY_ID: (id: string) => `/descubrenos/${id}`,
   },
+  CONTACT: {
+    BASE: '/contact',
+    BY_ID: (id: string) => `/contact/${id}`,
+  },
+  FOOTER: {
+    BASE: '/footer',
+    BY_ID: (id: string) => `/footer/${id}`,
+  },
+  TOP_MESSAGES: {
+    BASE: '/top-messages',
+    BY_ID: (id: string) => `/top-messages/${id}`,
+  },
+  API_TOKENS: {
+    BASE: '/api-tokens',
+    BY_ID: (id: string) => `/api-tokens/${id}`,
+    REVOKE: (id: string) => `/api-tokens/${id}/revoke`,
+  },
 } as const
 
 export const TOKEN_STORAGE_KEY = 'access_token'

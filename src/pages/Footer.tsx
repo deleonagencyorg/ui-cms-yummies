@@ -127,6 +127,7 @@ export default function FooterPage() {
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [searchMainText, setSearchMainText] = useState('')
   const [filterLanguage, setFilterLanguage] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -143,6 +144,7 @@ export default function FooterPage() {
   const { data, isLoading, error } = useFooterList({
     page,
     pageSize,
+    mainText: searchMainText || undefined,
     languageCode: filterLanguage || undefined,
     siteId: selectedSiteId || undefined,
   })
@@ -265,7 +267,7 @@ export default function FooterPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-card-foreground">Footer</h2>
-              <p className="text-muted-foreground mt-1">Manage footer content per site</p>
+              <p className="text-muted-foreground mt-1">Manage footer content</p>
             </div>
             <button
               onClick={() => {
@@ -283,13 +285,23 @@ export default function FooterPage() {
           </div>
 
           <div className="mb-6 flex flex-wrap gap-4">
+            <input
+              type="text"
+              placeholder="Search footer..."
+              value={searchMainText}
+              onChange={(e) => {
+                setSearchMainText(e.target.value)
+                setPage(1)
+              }}
+              className="flex-1 min-w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
             <select
               value={filterLanguage}
               onChange={(e) => {
                 setFilterLanguage(e.target.value)
                 setPage(1)
               }}
-              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All languages</option>
               {(languagesData?.data || []).map((lang) => (
@@ -301,9 +313,18 @@ export default function FooterPage() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading footer...</p>
+            </div>
           ) : error ? (
-            <div className="text-center py-12 text-red-600">Failed to load footer content</div>
+            <div className="text-center py-12">
+              <p className="text-red-500">Failed to load footer</p>
+            </div>
+          ) : !data?.data.length ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No footer content found</p>
+            </div>
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -316,48 +337,40 @@ export default function FooterPage() {
                             key={header.id}
                             className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                           >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(header.column.columnDef.header, header.getContext())}
                           </th>
                         ))}
                       </tr>
                     ))}
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {table.getRowModel().rows.length === 0 ? (
-                      <tr>
-                        <td colSpan={columns.length} className="px-6 py-8 text-center text-sm text-muted-foreground">
-                          No footer content found
-                        </td>
+                    {table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-secondary/50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        ))}
                       </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/50">
-                          {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-6 py-4">
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
 
-              {data?.pagination && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    pageCount={data.pagination.pageCount}
-                    pageSize={pageSize}
-                    totalItems={data.pagination.total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size)
-                      setPage(1)
-                    }}
-                  />
-                </div>
+              {data.pagination && data.pagination.pageCount > 1 && (
+                <Pagination
+                  currentPage={data.pagination.page}
+                  pageCount={data.pagination.pageCount}
+                  pageSize={pageSize}
+                  totalItems={data.pagination.total}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize)
+                    setPage(1)
+                  }}
+                />
               )}
             </>
           )}
@@ -400,9 +413,14 @@ export default function FooterPage() {
       )}
 
       {isDeleteModalOpen && selectedItem && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-card-foreground">Delete Footer</h3>
+        <Modal
+          title="Delete Footer"
+          onClose={() => {
+            setIsDeleteModalOpen(false)
+            setSelectedItem(null)
+          }}
+        >
+          <div className="space-y-4">
             <p className="text-card-foreground">
               Are you sure you want to delete this footer config? This action cannot be undone.
             </p>
@@ -425,7 +443,7 @@ export default function FooterPage() {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </Layout>
   )
@@ -668,6 +686,30 @@ function FooterFormModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+function Modal({
+  title,
+  children,
+  onClose,
+}: {
+  title: string
+  children: React.ReactNode
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   )

@@ -29,17 +29,6 @@ import 'lite-youtube-embed/src/lite-yt-embed.css'
 
 const columnHelper = createColumnHelper<HealthConfig>()
 
-interface HealthSlideFormItem {
-  key: string
-  alt: string
-  title: string
-  description: string
-  link: string
-  order: number
-  desktop: MultimediaResponse | null
-  mobile: MultimediaResponse | null
-}
-
 interface HealthVideoFormItem {
   key: string
   title: string
@@ -54,7 +43,6 @@ interface HealthFormData {
   title: string
   description: string
   image: MultimediaResponse | null
-  slider: HealthSlideFormItem[]
   videosSectionTitle: string
   videosSectionDescription: string
   videos: HealthVideoFormItem[]
@@ -66,7 +54,6 @@ const createInitialFormData = (siteId = ''): HealthFormData => ({
   title: '',
   description: '',
   image: null,
-  slider: [],
   videosSectionTitle: '',
   videosSectionDescription: '',
   videos: [],
@@ -74,8 +61,6 @@ const createInitialFormData = (siteId = ''): HealthFormData => ({
 
 type MediaPickerTarget =
   | { type: 'image' }
-  | { type: 'slideDesktop'; index: number }
-  | { type: 'slideMobile'; index: number }
   | { type: 'video'; index: number }
   | { type: 'thumbnail'; index: number }
 
@@ -86,19 +71,6 @@ function configToFormData(config: HealthConfig): HealthFormData {
     title: config.title ?? '',
     description: config.description ?? '',
     image: config.image ?? null,
-    slider: (config.slider ?? [])
-      .slice()
-      .sort((a, b) => a.order - b.order)
-      .map((slide, index) => ({
-        key: slide.id || `${Date.now()}-${index}`,
-        alt: slide.alt ?? '',
-        title: slide.title ?? '',
-        description: slide.description ?? '',
-        link: slide.link ?? '',
-        order: slide.order ?? index,
-        desktop: slide.desktop ?? null,
-        mobile: slide.mobile ?? null,
-      })),
     videosSectionTitle: config.videosSectionTitle ?? '',
     videosSectionDescription: config.videosSectionDescription ?? '',
     videos: (config.videos ?? [])
@@ -123,15 +95,7 @@ function formDataToPayload(
     title: formData.title,
     description: formData.description,
     imageId: formData.image?.id ?? null,
-    slider: formData.slider.map((slide, index) => ({
-      desktopImageId: slide.desktop?.id ?? null,
-      mobileImageId: slide.mobile?.id ?? null,
-      alt: slide.alt,
-      title: slide.title,
-      description: slide.description,
-      link: slide.link,
-      order: index,
-    })),
+    slider: [],
     videosSectionTitle: formData.videosSectionTitle,
     videosSectionDescription: formData.videosSectionDescription,
     videos: formData.videos.map((video, index) => ({
@@ -200,22 +164,6 @@ export default function Health() {
 
     if (mediaPickerTarget.type === 'image') {
       setFormData((prev) => ({ ...prev, image: media }))
-    } else if (mediaPickerTarget.type === 'slideDesktop') {
-      const index = mediaPickerTarget.index
-      setFormData((prev) => ({
-        ...prev,
-        slider: prev.slider.map((item, i) =>
-          i === index ? { ...item, desktop: media } : item
-        ),
-      }))
-    } else if (mediaPickerTarget.type === 'slideMobile') {
-      const index = mediaPickerTarget.index
-      setFormData((prev) => ({
-        ...prev,
-        slider: prev.slider.map((item, i) =>
-          i === index ? { ...item, mobile: media } : item
-        ),
-      }))
     } else if (mediaPickerTarget.type === 'video') {
       const index = mediaPickerTarget.index
       setFormData((prev) => ({
@@ -273,56 +221,6 @@ export default function Health() {
     } catch (err) {
       console.error('Failed to delete health content:', err)
     }
-  }
-
-  const addSlide = () => {
-    setFormData((prev) => ({
-      ...prev,
-      slider: [
-        ...prev.slider,
-        {
-          key: `new-slide-${Date.now()}`,
-          alt: '',
-          title: '',
-          description: '',
-          link: '',
-          order: prev.slider.length,
-          desktop: null,
-          mobile: null,
-        },
-      ],
-    }))
-  }
-
-  const removeSlide = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      slider: prev.slider.filter((_, i) => i !== index),
-    }))
-  }
-
-  const moveSlide = (index: number, direction: -1 | 1) => {
-    setFormData((prev) => {
-      const nextIndex = index + direction
-      if (nextIndex < 0 || nextIndex >= prev.slider.length) return prev
-      const slider = [...prev.slider]
-      const [item] = slider.splice(index, 1)
-      slider.splice(nextIndex, 0, item)
-      return { ...prev, slider }
-    })
-  }
-
-  const updateSlideField = (
-    index: number,
-    field: 'alt' | 'title' | 'description' | 'link',
-    value: string
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      slider: prev.slider.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      ),
-    }))
   }
 
   const addVideo = () => {
@@ -399,15 +297,6 @@ export default function Health() {
         ),
       }),
       columnHelper.display({
-        id: 'sliderCount',
-        header: 'Slides',
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.slider?.length ?? 0}
-          </span>
-        ),
-      }),
-      columnHelper.display({
         id: 'videosCount',
         header: 'Videos',
         cell: ({ row }) => (
@@ -473,7 +362,7 @@ export default function Health() {
             <div>
               <h2 className="text-2xl font-bold text-card-foreground">Health</h2>
               <p className="text-muted-foreground mt-1">
-                Manage health page content
+                Manage health content and videos
               </p>
             </div>
             <button
@@ -494,7 +383,7 @@ export default function Health() {
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search by title..."
+              placeholder="Search health..."
               value={searchTitle}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
@@ -508,7 +397,7 @@ export default function Health() {
                 setFilterLanguage(e.target.value)
                 setPage(1)
               }}
-              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All languages</option>
               {(languagesData?.data || []).map((lang) => (
@@ -520,10 +409,17 @@ export default function Health() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading health...</p>
+            </div>
           ) : error ? (
-            <div className="text-center py-12 text-red-600">
-              Failed to load health content
+            <div className="text-center py-12">
+              <p className="text-red-500">Failed to load health</p>
+            </div>
+          ) : !data?.data.length ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No health content found</p>
             </div>
           ) : (
             <>
@@ -537,57 +433,46 @@ export default function Health() {
                             key={header.id}
                             className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                           >
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
                           </th>
                         ))}
                       </tr>
                     ))}
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {table.getRowModel().rows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={columns.length}
-                          className="px-6 py-8 text-center text-sm text-muted-foreground"
-                        >
-                          No health content found
-                        </td>
+                    {table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-secondary/50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        ))}
                       </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/50">
-                          {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-6 py-4">
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
 
-              {data?.pagination && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    pageCount={data.pagination.pageCount}
-                    pageSize={pageSize}
-                    totalItems={data.pagination.total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size)
-                      setPage(1)
-                    }}
-                  />
-                </div>
+              {data.pagination && data.pagination.pageCount > 1 && (
+                <Pagination
+                  currentPage={data.pagination.page}
+                  pageCount={data.pagination.pageCount}
+                  pageSize={pageSize}
+                  totalItems={data.pagination.total}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize)
+                    setPage(1)
+                  }}
+                />
               )}
             </>
           )}
@@ -609,10 +494,6 @@ export default function Health() {
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
-          onAddSlide={addSlide}
-          onRemoveSlide={removeSlide}
-          onMoveSlide={moveSlide}
-          onUpdateSlideField={updateSlideField}
           onAddVideo={addVideo}
           onRemoveVideo={removeVideo}
           onMoveVideo={moveVideo}
@@ -636,10 +517,6 @@ export default function Health() {
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
-          onAddSlide={addSlide}
-          onRemoveSlide={removeSlide}
-          onMoveSlide={moveSlide}
-          onUpdateSlideField={updateSlideField}
           onAddVideo={addVideo}
           onRemoveVideo={removeVideo}
           onMoveVideo={moveVideo}
@@ -704,14 +581,6 @@ interface HealthFormModalProps {
   languages: { code: string; name: string; nativeName: string }[]
   sites: { id: string; name: string }[]
   onOpenMediaPicker: (target: MediaPickerTarget) => void
-  onAddSlide: () => void
-  onRemoveSlide: (index: number) => void
-  onMoveSlide: (index: number, direction: -1 | 1) => void
-  onUpdateSlideField: (
-    index: number,
-    field: 'alt' | 'title' | 'description' | 'link',
-    value: string
-  ) => void
   onAddVideo: () => void
   onRemoveVideo: (index: number) => void
   onMoveVideo: (index: number, direction: -1 | 1) => void
@@ -729,10 +598,6 @@ function HealthFormModal({
   languages,
   sites,
   onOpenMediaPicker,
-  onAddSlide,
-  onRemoveSlide,
-  onMoveSlide,
-  onUpdateSlideField,
   onAddVideo,
   onRemoveVideo,
   onMoveVideo,
@@ -878,222 +743,12 @@ function HealthFormModal({
             </div>
           </div>
 
-          {/* Slider Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <h4 className="text-sm font-semibold text-card-foreground">
-                Slider
-              </h4>
-              <button
-                type="button"
-                onClick={onAddSlide}
-                className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
-              >
-                <PlusIcon className="w-4 h-4" />
-                Add Slide
-              </button>
-            </div>
-
-            {formData.slider.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-                No slides added
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {formData.slider.map((item, index) => {
-                  const desktopUrl = mediaPreviewUrl(item.desktop)
-                  const mobileUrl = mediaPreviewUrl(item.mobile)
-                  return (
-                    <div
-                      key={item.key}
-                      className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium text-card-foreground">
-                          Slide {index + 1}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => onMoveSlide(index, -1)}
-                            disabled={index === 0}
-                            className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                            title="Move up"
-                          >
-                            <ChevronUpIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onMoveSlide(index, 1)}
-                            disabled={index === formData.slider.length - 1}
-                            className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                            title="Move down"
-                          >
-                            <ChevronDownIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onRemoveSlide(index)}
-                            className="p-1.5 text-red-600 hover:text-red-800"
-                            title="Remove"
-                          >
-                            <XIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Title
-                          </label>
-                          <input
-                            type="text"
-                            value={item.title}
-                            onChange={(e) =>
-                              onUpdateSlideField(index, 'title', e.target.value)
-                            }
-                            className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Slide title"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Alt
-                          </label>
-                          <input
-                            type="text"
-                            value={item.alt}
-                            onChange={(e) =>
-                              onUpdateSlideField(index, 'alt', e.target.value)
-                            }
-                            className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Alt text"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-card-foreground mb-2">
-                          Description
-                        </label>
-                        <textarea
-                          value={item.description}
-                          onChange={(e) =>
-                            onUpdateSlideField(index, 'description', e.target.value)
-                          }
-                          rows={2}
-                          className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="Slide description"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-card-foreground mb-2">
-                          Link
-                        </label>
-                        <input
-                          type="text"
-                          value={item.link}
-                          onChange={(e) =>
-                            onUpdateSlideField(index, 'link', e.target.value)
-                          }
-                          className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="https://..."
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Desktop Image
-                          </label>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onOpenMediaPicker({ type: 'slideDesktop', index })
-                              }
-                              className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
-                            >
-                              <PhotoIcon className="w-5 h-5" />
-                              Select
-                            </button>
-                            {item.desktop && (
-                              <>
-                                {desktopUrl && (
-                                  <img
-                                    src={desktopUrl}
-                                    alt="Desktop"
-                                    className="w-12 h-12 object-cover rounded border border-border"
-                                  />
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      slider: prev.slider.map((s, i) =>
-                                        i === index ? { ...s, desktop: null } : s
-                                      ),
-                                    }))
-                                  }
-                                  className="p-2 text-red-600 hover:text-red-800"
-                                >
-                                  <XIcon className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Mobile Image
-                          </label>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onOpenMediaPicker({ type: 'slideMobile', index })
-                              }
-                              className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
-                            >
-                              <PhotoIcon className="w-5 h-5" />
-                              Select
-                            </button>
-                            {item.mobile && (
-                              <>
-                                {mobileUrl && (
-                                  <img
-                                    src={mobileUrl}
-                                    alt="Mobile"
-                                    className="w-12 h-12 object-cover rounded border border-border"
-                                  />
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      slider: prev.slider.map((s, i) =>
-                                        i === index ? { ...s, mobile: null } : s
-                                      ),
-                                    }))
-                                  }
-                                  className="p-2 text-red-600 hover:text-red-800"
-                                >
-                                  <XIcon className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+          <div className="rounded-lg border border-dashed border-border bg-secondary/20 p-4">
+            <p className="text-sm text-card-foreground font-medium">Page banner</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              The hero banner for Salud / Health is managed in Pages. Open the page with slug
+              <span className="font-mono"> salud</span> or <span className="font-mono">health</span> and add the banner there.
+            </p>
           </div>
 
           {/* Videos Section */}

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useApiTokens } from '@/queries/apiTokens'
 import { useCreateApiToken, useRevokeApiToken, useDeleteApiToken } from '@/mutations/apiTokens'
 import type { ApiTokenResponse, ApiTokenScopes } from '@/actions/apiTokens'
+import axios from 'axios'
 import {
   useReactTable,
   getCoreRowModel,
@@ -13,7 +14,19 @@ import {
   type ColumnDef,
 } from '@tanstack/react-table'
 
-const AVAILABLE_SCOPES = ['brands', 'products', 'recipes', 'news', 'sites', 'pages'] as const
+const AVAILABLE_SCOPES = [
+  'brands',
+  'products',
+  'recipes',
+  'top_messages',
+  'news',
+  'health',
+  'descubrenos',
+  'contact',
+  'footer',
+  'sites',
+  'pages',
+] as const
 
 const columnHelper = createColumnHelper<ApiTokenResponse>()
 
@@ -28,6 +41,7 @@ export default function ApiTokens() {
   const [selectedToken, setSelectedToken] = useState<ApiTokenResponse | null>(null)
   const [createdTokenValue, setCreatedTokenValue] = useState('')
   const [copied, setCopied] = useState(false)
+  const [formError, setFormError] = useState('')
   const [formData, setFormData] = useState<{
     name: string
     scopes: ApiTokenScopes
@@ -55,6 +69,62 @@ export default function ApiTokens() {
 
   const resetForm = () => {
     setFormData({ name: '', scopes: {}, expiresAt: '' })
+    setFormError('')
+    createMutation.reset()
+  }
+
+  const openCreateModal = () => {
+    resetForm()
+    setIsCreateModalOpen(true)
+  }
+
+  const getApiErrorMessage = (err: unknown) => {
+    if (axios.isAxiosError(err)) {
+      const data = err.response?.data as { error?: string } | undefined
+      return data?.error || err.message
+    }
+    if (err instanceof Error) return err.message
+    return t('apiTokens.form.createFailed')
+  }
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError('')
+
+    const name = formData.name.trim()
+    if (!name) {
+      setFormError(t('apiTokens.form.nameRequired'))
+      return
+    }
+    if (!formData.expiresAt) {
+      setFormError(t('apiTokens.form.expiresRequired'))
+      return
+    }
+    if (Object.keys(formData.scopes).length === 0) {
+      setFormError(t('apiTokens.form.scopesRequired'))
+      return
+    }
+
+    const expiresAt = new Date(`${formData.expiresAt}T23:59:59.000Z`)
+    if (Number.isNaN(expiresAt.getTime())) {
+      setFormError(t('apiTokens.form.expiresRequired'))
+      return
+    }
+
+    try {
+      const result = await createMutation.mutateAsync({
+        name,
+        scopes: formData.scopes,
+        expiresAt: expiresAt.toISOString(),
+      })
+      setIsCreateModalOpen(false)
+      resetForm()
+      setCreatedTokenValue(result.token)
+      setIsTokenDisplayModalOpen(true)
+    } catch (err) {
+      console.error('Failed to create API token:', err)
+      setFormError(getApiErrorMessage(err))
+    }
   }
 
   const columns = useMemo<ColumnDef<ApiTokenResponse, any>[]>(
@@ -82,7 +152,7 @@ export default function ApiTokens() {
                       : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                   }`}
                 >
-                  {key}: {value}
+                  {t(`apiTokens.resources.${key}`, { defaultValue: key.replace('_', ' ') })}: {value}
                 </span>
               ))}
             </div>
@@ -177,23 +247,6 @@ export default function ApiTokens() {
     pageCount: data?.pagination.pageCount ?? 0,
   })
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const result = await createMutation.mutateAsync({
-        name: formData.name,
-        scopes: formData.scopes,
-        expiresAt: new Date(formData.expiresAt).toISOString(),
-      })
-      setIsCreateModalOpen(false)
-      resetForm()
-      setCreatedTokenValue(result.token)
-      setIsTokenDisplayModalOpen(true)
-    } catch (err) {
-      console.error('Failed to create API token:', err)
-    }
-  }
-
   const handleRevoke = async () => {
     if (!selectedToken) return
     try {
@@ -249,7 +302,7 @@ export default function ApiTokens() {
               </p>
             </div>
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={openCreateModal}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
@@ -336,50 +389,51 @@ export default function ApiTokens() {
             resetForm()
           }}
         >
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">
-                {t('apiTokens.form.name')}
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                maxLength={100}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder={t('apiTokens.form.namePlaceholder')}
-              />
+          <form onSubmit={handleCreate} className="flex flex-col min-h-0">
+            <div className="space-y-4 shrink-0">
+              <div>
+                <label className="block text-sm font-medium text-card-foreground mb-2">
+                  {t('apiTokens.form.name')} *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  autoFocus
+                  maxLength={100}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder={t('apiTokens.form.namePlaceholder')}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-card-foreground mb-2">
+                  {t('apiTokens.form.expiresAt')} *
+                </label>
+                <input
+                  type="date"
+                  value={formData.expiresAt}
+                  onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">
-                {t('apiTokens.form.expiresAt')}
-              </label>
-              <input
-                type="date"
-                value={formData.expiresAt}
-                onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                required
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-
-            <div>
+            <div className="mt-4 min-h-0 flex-1">
               <label className="block text-sm font-medium text-card-foreground mb-2">
                 {t('apiTokens.form.scopes')}
               </label>
               <p className="text-xs text-muted-foreground mb-3">
                 {t('apiTokens.form.scopesHint')}
               </p>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[36vh] overflow-y-auto pr-1">
                 {AVAILABLE_SCOPES.map((scope) => {
                   const currentValue = formData.scopes[scope as keyof ApiTokenScopes]
                   return (
                     <div key={scope} className="flex items-center justify-between py-2 px-3 bg-secondary/50 rounded-lg">
-                      <span className="text-sm font-medium text-card-foreground capitalize">
-                        {scope}
+                      <span className="text-sm font-medium text-card-foreground">
+                        {t(`apiTokens.resources.${scope}`)}
                       </span>
                       <div className="flex gap-2">
                         <button
@@ -411,7 +465,11 @@ export default function ApiTokens() {
               </div>
             </div>
 
-            <div className="flex gap-3 justify-end pt-2">
+            {formError && (
+              <p className="mt-3 text-sm text-red-500">{formError}</p>
+            )}
+
+            <div className="flex gap-3 justify-end pt-4 shrink-0">
               <button
                 type="button"
                 onClick={() => {
@@ -424,7 +482,12 @@ export default function ApiTokens() {
               </button>
               <button
                 type="submit"
-                disabled={createMutation.isPending || Object.keys(formData.scopes).length === 0}
+                disabled={
+                  createMutation.isPending ||
+                  !formData.name.trim() ||
+                  !formData.expiresAt ||
+                  Object.keys(formData.scopes).length === 0
+                }
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
                 {createMutation.isPending ? t('apiTokens.form.creating') : t('apiTokens.form.create')}
@@ -579,8 +642,8 @@ function Modal({ title, children, onClose }: { title: string; children: React.Re
 function LargeModal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-card rounded-lg shadow-xl max-w-lg w-full border border-border max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-card z-10">
+      <div className="bg-card rounded-lg shadow-xl max-w-lg w-full border border-border max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-border shrink-0">
           <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
           <button
             onClick={onClose}
@@ -589,7 +652,7 @@ function LargeModal({ title, children, onClose }: { title: string; children: Rea
             <XIcon className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-6 flex-1 min-h-0 overflow-y-auto">
           {children}
         </div>
       </div>
