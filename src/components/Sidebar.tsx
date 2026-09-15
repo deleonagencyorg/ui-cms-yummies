@@ -44,6 +44,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t('nav.descubrenos'), path: '/descubrenos', icon: DescubrenosIcon },
     { name: t('nav.contact'), path: '/contact', icon: ContactIcon },
     { name: t('nav.footer'), path: '/footer', icon: FooterIcon },
+    { name: t('nav.navigation'), path: '/navigation', icon: NavigationIcon },
+    { name: t('nav.socialMedia'), path: '/social-media', icon: SocialMediaIcon },
+    { name: t('nav.modals'), path: '/modals', icon: ModalsIcon },
+    { name: t('nav.contentLists'), path: '/content-lists', icon: ContentListsIcon },
+    { name: t('nav.siteTexts'), path: '/site-texts', icon: SiteTextsIcon },
+    { name: t('nav.zambosTruck'), path: '/zambos-truck', icon: ZambosTruckIcon },
+    { name: t('nav.productCategories'), path: '/product-categories', icon: ProductCategoriesIcon },
     { name: t('nav.multimedia'), path: '/multimedia', icon: MultimediaIcon },
     { name: t('nav.sites'), path: '/sites', icon: SitesIcon },
     { name: t('nav.pages'), path: '/pages', icon: PagesIcon },
@@ -636,6 +643,63 @@ function HealthIcon({ className }: { className?: string }) {
       />
     </svg>
   );
+}
+
+function NavigationIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+    </svg>
+  )
+}
+
+function SocialMediaIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+    </svg>
+  )
+}
+
+function ModalsIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <rect x="4" y="5" width="16" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9.75h6M9 13.5h4" />
+    </svg>
+  )
+}
+
+function ContentListsIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+  )
+}
+
+function SiteTextsIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077l1.41-.513m14.095-5.13l1.41-.513M5.106 17.785l1.15-.964m11.49-9.642l1.149-.964M7.501 19.795l.75-1.3m7.5-12.99l.75-1.3m-6.063 16.658l.26-1.477m2.605-14.772l.26-1.477m0 17.726l-.26-1.477M10.698 4.614l-.26-1.477" />
+    </svg>
+  )
+}
+
+function ZambosTruckIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25h-6a1.125 1.125 0 00-1.125 1.125v9.375m6-10.5V18.75m0 0h6" />
+    </svg>
+  )
+}
+
+function ProductCategoriesIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+    </svg>
+  )
 }
 
 function DescubrenosIcon({ className }: { className?: string }) {

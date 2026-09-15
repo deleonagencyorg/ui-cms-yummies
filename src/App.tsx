@@ -30,6 +30,13 @@ import Descubrenos from './pages/Descubrenos'
 import Contact from './pages/Contact'
 import Footer from './pages/Footer'
 import ApiTokens from './pages/ApiTokens'
+import Navigation from './pages/Navigation'
+import SocialMedia from './pages/SocialMedia'
+import Modals from './pages/Modals'
+import ContentLists from './pages/ContentLists'
+import SiteTexts from './pages/SiteTexts'
+import ZambosTruck from './pages/ZambosTruck'
+import ProductCategories from './pages/ProductCategories'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -248,6 +255,62 @@ function App() {
         element={
           <ProtectedRoute>
             <ApiTokens />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/navigation"
+        element={
+          <ProtectedRoute>
+            <Navigation />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/social-media"
+        element={
+          <ProtectedRoute>
+            <SocialMedia />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/modals"
+        element={
+          <ProtectedRoute>
+            <Modals />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/content-lists"
+        element={
+          <ProtectedRoute>
+            <ContentLists />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/site-texts"
+        element={
+          <ProtectedRoute>
+            <SiteTexts />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/zambos-truck"
+        element={
+          <ProtectedRoute>
+            <ZambosTruck />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/product-categories"
+        element={
+          <ProtectedRoute>
+            <ProductCategories />
           </ProtectedRoute>
         }
       />

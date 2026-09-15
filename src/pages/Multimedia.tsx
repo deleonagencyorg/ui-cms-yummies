@@ -83,69 +83,45 @@ export default function Multimedia() {
 
   const updateMutation = useUpdateMultimedia({
     onSuccess: () => {
-      toast.success('Media updated successfully!')
       setIsEditModalOpen(false)
       setSelectedMedia(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to update media')
     },
   })
 
   const deleteMutation = useDeleteMultimedia({
     onSuccess: () => {
-      toast.success('Media deleted successfully!')
       setIsDeleteModalOpen(false)
       setSelectedMedia(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete media')
     },
   })
 
   const moveMutation = useMoveMultimedia({
     onSuccess: () => {
-      toast.success('Media moved successfully!')
       setIsMoveModalOpen(false)
       setSelectedMedia(null)
       setMoveTargetFolderId(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to move media')
     },
   })
 
   const createFolderMutation = useCreateFolder({
     onSuccess: () => {
-      toast.success('Folder created successfully!')
       setIsFolderModalOpen(false)
       setNewFolderName('')
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create folder')
     },
   })
 
   const updateFolderMutation = useUpdateFolder({
     onSuccess: () => {
-      toast.success('Folder renamed successfully!')
       setIsRenameFolderModalOpen(false)
       setSelectedFolder(null)
       setRenameFolderName('')
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to rename folder')
     },
   })
 
   const deleteFolderMutation = useDeleteFolder({
     onSuccess: () => {
-      toast.success('Folder deleted successfully!')
       setIsDeleteFolderModalOpen(false)
       setSelectedFolder(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete folder. Make sure the folder is empty.')
     },
   })
 
@@ -228,16 +204,7 @@ export default function Multimedia() {
       payload.folderId = currentFolderId;
     }
 
-    try {
-      await uploadMutation.mutateAsync(payload);
-      toast.success('Video agregado')
-      setExternalUrl('')
-      setIsUploadModalOpen(false)
-      setUploadData({ file: null, altText: '', caption: '' })
-    } catch (error: any) {
-      console.error('Error subiendo URL:', error)
-      toast.error(error.response?.data?.error || 'Error al agregar el video')
-    }
+    await uploadMutation.mutateAsync(payload);
   }
 
   const queryClient = useQueryClient()

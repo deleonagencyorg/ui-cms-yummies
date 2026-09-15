@@ -3,7 +3,6 @@ import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import { useSite } from '@/contexts/SiteContext'
-import { toast } from 'sonner'
 import { usePages } from '@/queries/pages'
 import { useSites } from '@/queries/sites'
 import { useLanguages } from '@/queries/languages'
@@ -197,35 +196,23 @@ export default function Pages() {
 
   const createMutation = useCreatePage({
     onSuccess: () => {
-      toast.success('Page created successfully!')
       setIsCreateModalOpen(false)
       resetForm()
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create page')
     },
   })
 
   const updateMutation = useUpdatePage({
     onSuccess: () => {
-      toast.success('Page updated successfully!')
       setIsEditModalOpen(false)
       setSelectedPage(null)
       resetForm()
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to update page')
     },
   })
 
   const deleteMutation = useDeletePage({
     onSuccess: () => {
-      toast.success('Page deleted successfully!')
       setIsDeleteModalOpen(false)
       setSelectedPage(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete page')
     },
   })
 

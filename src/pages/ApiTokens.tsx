@@ -26,6 +26,12 @@ const AVAILABLE_SCOPES = [
   'footer',
   'sites',
   'pages',
+  'navigation',
+  'social_media',
+  'modals',
+  'content_lists',
+  'site_texts',
+  'zambos_truck',
 ] as const
 
 const columnHelper = createColumnHelper<ApiTokenResponse>()

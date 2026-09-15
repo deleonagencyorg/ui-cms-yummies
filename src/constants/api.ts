@@ -102,6 +102,41 @@ export const API_ENDPOINTS = {
     BASE: '/top-messages',
     BY_ID: (id: string) => `/top-messages/${id}`,
   },
+  NAVIGATION: {
+    BASE: '/navigation',
+    BY_ID: (id: string) => `/navigation/${id}`,
+    BY_LANGUAGE: (languageCode: string) => `/navigation/language/${languageCode}`,
+  },
+  SOCIAL_MEDIA: {
+    BASE: '/social-media',
+    BY_ID: (id: string) => `/social-media/${id}`,
+    BY_LANGUAGE: (languageCode: string) => `/social-media/language/${languageCode}`,
+  },
+  MODALS: {
+    BASE: '/modals',
+    BY_ID: (id: string) => `/modals/${id}`,
+    BY_LANGUAGE: (languageCode: string) => `/modals/language/${languageCode}`,
+  },
+  CONTENT_LISTS: {
+    BASE: '/content-lists',
+    BY_ID: (id: string) => `/content-lists/${id}`,
+    BY_LANGUAGE: (languageCode: string) => `/content-lists/language/${languageCode}`,
+  },
+  SITE_TEXTS: {
+    BASE: '/site-texts',
+    BY_ID: (id: string) => `/site-texts/${id}`,
+    BY_LANGUAGE: (languageCode: string) => `/site-texts/language/${languageCode}`,
+  },
+  ZAMBOS_TRUCK: {
+    BASE: '/zambos-truck',
+    BY_ID: (id: string) => `/zambos-truck/${id}`,
+    BY_LANGUAGE: (languageCode: string) => `/zambos-truck/language/${languageCode}`,
+  },
+  PRODUCT_CATEGORIES: {
+    BASE: '/product-categories',
+    BY_ID: (id: string) => `/product-categories/${id}`,
+    BY_LANGUAGE: (languageCode: string) => `/product-categories/language/${languageCode}`,
+  },
   API_TOKENS: {
     BASE: '/api-tokens',
     BY_ID: (id: string) => `/api-tokens/${id}`,
