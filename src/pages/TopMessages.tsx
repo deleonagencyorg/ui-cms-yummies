@@ -31,7 +31,7 @@ const initialFormData: TopMessageFormData = {
   languageCode: '',
 }
 
-export default function TopMessages() {
+export function TopMessagesContent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -238,7 +238,7 @@ export default function TopMessages() {
   const hasActiveFilters = Boolean(filterBrandId || filterLanguageCode)
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -608,6 +608,14 @@ export default function TopMessages() {
           </div>
         </div>
       )}
+    </>
+  )
+}
+
+export default function TopMessagesPage() {
+  return (
+    <Layout>
+      <TopMessagesContent />
     </Layout>
   )
 }

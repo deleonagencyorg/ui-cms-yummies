@@ -37,6 +37,8 @@ import ContentLists from './pages/ContentLists'
 import SiteTexts from './pages/SiteTexts'
 import ZambosTruck from './pages/ZambosTruck'
 import ProductCategories from './pages/ProductCategories'
+import SiteSettings from './pages/SiteSettings'
+import Gallery from './pages/Gallery'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -311,6 +313,22 @@ function App() {
         element={
           <ProtectedRoute>
             <ProductCategories />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/site-settings"
+        element={
+          <ProtectedRoute>
+            <SiteSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gallery"
+        element={
+          <ProtectedRoute>
+            <Gallery />
           </ProtectedRoute>
         }
       />

@@ -10,6 +10,10 @@ export interface SiteText {
   value: string
   createdAt: string
   updatedAt: string
+  section?: string
+  page?: string
+  field?: string
+  label?: string
 }
 
 export interface SiteTextListResponse {
@@ -20,7 +24,10 @@ export interface SiteTextListResponse {
 export interface CreateSiteTextRequest {
   siteId: string
   languageCode: string
-  key: string
+  key?: string
+  section?: string
+  page?: string
+  field?: string
   value?: string
 }
 

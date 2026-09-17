@@ -112,6 +112,10 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/social-media/${id}`,
     BY_LANGUAGE: (languageCode: string) => `/social-media/language/${languageCode}`,
   },
+  GALLERY: {
+    BASE: '/gallery',
+    BY_ID: (id: string) => `/gallery/${id}`,
+  },
   MODALS: {
     BASE: '/modals',
     BY_ID: (id: string) => `/modals/${id}`,

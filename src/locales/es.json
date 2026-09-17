@@ -9,7 +9,7 @@
     "brands": "Marcas",
     "products": "Productos",
     "recipes": "Recetas",
-    "topMessages": "Cintiños",
+    "topMessages": "Cintillos",
     "news": "Noticias",
     "health": "Salud",
     "descubrenos": "Descúbrenos",
@@ -20,6 +20,9 @@
     "modals": "Modales",
     "contentLists": "Bloques de Contenido",
     "siteTexts": "Textos del Sitio",
+    "siteContent": "Contenido del sitio",
+    "gallery": "Galería",
+    "siteSettings": "Configuración del Sitio",
     "zambosTruck": "Zambos Truck",
     "productCategories": "Categorías de Producto",
     "multimedia": "Biblioteca de Medios",
@@ -29,6 +32,9 @@
     "selectSite": "Seleccionar Sitio",
     "noSiteSelected": "Ningún sitio seleccionado",
     "selectSiteFirst": "Por favor selecciona un sitio primero"
+  },
+  "siteSettings": {
+    "description": "Administra contenido compartido, SEO y meta por página, y la experiencia de página no encontrada para cada marca."
   },
   "menu": {
     "settings": "Configuración",
@@ -113,6 +119,27 @@
       "cancel": "Cancelar",
       "create": "Crear",
       "creating": "Creando..."
+    },
+    "resources": {
+      "sites": "Sitios",
+      "pages": "Páginas",
+      "brands": "Marcas",
+      "products": "Productos",
+      "recipes": "Recetas",
+      "news": "Noticias",
+      "health": "Salud",
+      "descubrenos": "Descúbrenos",
+      "contact": "Contacto",
+      "footer": "Footer",
+      "top_messages": "Mensajes superiores",
+      "navigation": "Navegación",
+      "social_media": "Redes sociales",
+      "modals": "Modales",
+      "content_lists": "Bloques de contenido",
+      "site_texts": "Textos del sitio",
+      "product_categories": "Categorías de producto",
+      "zambos_truck": "Zambos Truck",
+      "gallery": "Galería"
     },
     "actions": {
       "revoke": "Revocar",

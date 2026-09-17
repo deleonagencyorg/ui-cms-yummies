@@ -20,6 +20,9 @@
     "modals": "Modals",
     "contentLists": "Content Blocks",
     "siteTexts": "Site Texts",
+    "siteContent": "Site content",
+    "gallery": "Gallery",
+    "siteSettings": "Site Settings",
     "zambosTruck": "Zambos Truck",
     "productCategories": "Product Categories",
     "multimedia": "Media Library",
@@ -29,6 +32,9 @@
     "selectSite": "Select Site",
     "noSiteSelected": "No site selected",
     "selectSiteFirst": "Please select a site first"
+  },
+  "siteSettings": {
+    "description": "Manage shared content, page-level SEO and metadata, and the not-found experience for each brand."
   },
   "menu": {
     "settings": "Settings",
@@ -113,6 +119,27 @@
       "cancel": "Cancel",
       "create": "Create",
       "creating": "Creating..."
+    },
+    "resources": {
+      "sites": "Sites",
+      "pages": "Pages",
+      "brands": "Brands",
+      "products": "Products",
+      "recipes": "Recipes",
+      "news": "News",
+      "health": "Health",
+      "descubrenos": "Discover us",
+      "contact": "Contact",
+      "footer": "Footer",
+      "top_messages": "Top messages",
+      "navigation": "Navigation",
+      "social_media": "Social media",
+      "modals": "Modals",
+      "content_lists": "Content blocks",
+      "site_texts": "Site texts",
+      "product_categories": "Product categories",
+      "zambos_truck": "Zambos Truck",
+      "gallery": "Gallery"
     },
     "actions": {
       "revoke": "Revoke",

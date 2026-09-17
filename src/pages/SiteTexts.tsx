@@ -27,6 +27,9 @@ interface SiteTextFormData {
   siteId: string
   languageCode: string
   key: string
+  section: string
+  page: string
+  field: string
   value: string
 }
 
@@ -34,6 +37,9 @@ const createInitialFormData = (siteId = ''): SiteTextFormData => ({
   siteId,
   languageCode: '',
   key: '',
+  section: 'Identidad del sitio',
+  page: 'inicio',
+  field: 'title',
   value: '',
 })
 
@@ -42,6 +48,9 @@ function itemToFormData(item: SiteText): SiteTextFormData {
     siteId: item.siteId ?? '',
     languageCode: item.languageCode ?? '',
     key: item.key ?? '',
+    section: item.section ?? 'Contenido del sitio',
+    page: item.page ?? '',
+    field: item.field ?? 'content',
     value: item.value ?? '',
   }
 }
@@ -49,10 +58,17 @@ function itemToFormData(item: SiteText): SiteTextFormData {
 function formDataToPayload(
   formData: SiteTextFormData
 ): CreateSiteTextRequest & UpdateSiteTextRequest {
-  return { ...formData }
+  const key = formData.key || (
+    formData.section === 'SEO y meta'
+      ? `meta.${formData.page || 'home'}.${formData.field}`
+      : formData.section === 'Página no encontrada'
+        ? `not_found.${formData.field}`
+        : `site.${formData.field}`
+  )
+  return { ...formData, key }
 }
 
-export default function SiteTexts() {
+export function SiteTextsContent() {
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -136,10 +152,13 @@ export default function SiteTexts() {
   const columns = useMemo<ColumnDef<SiteText, any>[]>(
     () => [
       columnHelper.accessor('key', {
-        header: 'Key',
+        header: 'Contenido',
         cell: (info) => (
-          <span className="text-sm font-medium text-card-foreground font-mono">
-            {info.getValue()}
+          <span className="text-sm font-medium text-card-foreground">
+            {info.row.original.label || 'Contenido administrable'}
+            <small className="block text-muted-foreground font-normal">
+              {info.row.original.section}{info.row.original.page ? ` · ${info.row.original.page}` : ''}
+            </small>
           </span>
         ),
       }),
@@ -154,7 +173,7 @@ export default function SiteTexts() {
       columnHelper.accessor('languageCode', {
         header: 'Language',
         cell: (info) => (
-          <span className="text-sm text-muted-foreground font-mono">{info.getValue()}</span>
+          <span className="text-sm text-muted-foreground">{info.getValue()}</span>
         ),
       }),
       columnHelper.accessor('createdAt', {
@@ -192,14 +211,14 @@ export default function SiteTexts() {
   })
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Site Texts</h2>
+              <h2 className="text-2xl font-bold text-card-foreground">Contenido del sitio</h2>
               <p className="text-muted-foreground mt-1">
-                Manage miscellaneous key/value text strings
+                Administra mensajes, SEO y la página “No encontramos esa página” por marca e idioma.
               </p>
             </div>
             <button
@@ -213,14 +232,13 @@ export default function SiteTexts() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Site Text
+              Agregar contenido
             </button>
           </div>
-
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search by key..."
+              placeholder="Buscar contenido..."
               value={searchKey}
               onChange={(e) => {
                 setSearchKey(e.target.value)
@@ -248,15 +266,15 @@ export default function SiteTexts() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading site texts...</p>
+              <p className="mt-4 text-muted-foreground">Cargando contenido...</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load site texts</p>
+              <p className="text-red-500">No se pudo cargar el contenido</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No site texts found</p>
+              <p className="text-muted-foreground">No hay contenido configurado</p>
             </div>
           ) : (
             <>
@@ -312,7 +330,7 @@ export default function SiteTexts() {
 
       {isCreateModalOpen && (
         <SiteTextFormModal
-          title="Create Site Text"
+          title="Agregar contenido"
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -321,7 +339,7 @@ export default function SiteTexts() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel="Guardar"
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
         />
@@ -329,7 +347,7 @@ export default function SiteTexts() {
 
       {isEditModalOpen && selectedItem && (
         <SiteTextFormModal
-          title="Edit Site Text"
+          title="Editar contenido"
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -339,7 +357,7 @@ export default function SiteTexts() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel="Guardar cambios"
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
         />
@@ -347,7 +365,7 @@ export default function SiteTexts() {
 
       {isDeleteModalOpen && selectedItem && (
         <Modal
-          title="Delete Site Text"
+          title="Eliminar contenido"
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedItem(null)
@@ -355,8 +373,8 @@ export default function SiteTexts() {
         >
           <div className="p-6 space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedItem.key}</strong>"? This action
-              cannot be undone.
+            ¿Quieres eliminar "<strong>{selectedItem.label || 'este contenido'}</strong>"? Esta acción
+            no se puede deshacer.
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -373,12 +391,20 @@ export default function SiteTexts() {
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar'}
               </button>
             </div>
           </div>
         </Modal>
       )}
+    </>
+  )
+}
+
+export default function SiteTextsPage() {
+  return (
+    <Layout>
+      <SiteTextsContent />
     </Layout>
   )
 }
@@ -444,15 +470,65 @@ function SiteTextFormModal({
             </select>
           </div>
         </div>
+        <div className="rounded-lg border border-border bg-secondary/40 p-4 space-y-4">
+          <div>
+            <h3 className="font-semibold text-card-foreground">Contenido administrable</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              El sistema identifica el contenido automáticamente. No necesitas escribir claves técnicas.
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-card-foreground mb-2">Área</label>
+            <select
+              value={formData.section}
+              onChange={(e) => set('section', e.target.value)}
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg"
+            >
+              <option>Identidad del sitio</option>
+              <option>SEO y meta</option>
+              <option>Página no encontrada</option>
+              <option>Contenido del sitio</option>
+            </select>
+          </div>
+          {formData.section === 'SEO y meta' && (
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">Página</label>
+              <select
+                value={formData.page}
+                onChange={(e) => set('page', e.target.value)}
+                required
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg"
+              >
+                <option value="home">Inicio</option>
+                <option value="products">Productos</option>
+                <option value="recipes">Recetas</option>
+                <option value="news">Noticias</option>
+                <option value="health">Salud</option>
+                <option value="contact">Contacto</option>
+                <option value="about_us">Nosotros</option>
+                <option value="not_found">Página no encontrada</option>
+              </select>
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-card-foreground mb-2">Campo</label>
+            <select
+              value={formData.field}
+              onChange={(e) => set('field', e.target.value)}
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg"
+            >
+              <option value="title">Título</option>
+              <option value="description">Descripción</option>
+              <option value="keywords">Palabras clave</option>
+              <option value="image">Imagen social</option>
+              <option value="heading">Encabezado</option>
+              <option value="message">Mensaje</option>
+              <option value="button">Texto del botón</option>
+            </select>
+          </div>
+        </div>
         <TextField
-          label="Key"
-          value={formData.key}
-          onChange={(v) => set('key', v)}
-          required
-          placeholder="e.g. not_found.title"
-        />
-        <TextField
-          label="Value"
+          label="Texto o contenido"
           value={formData.value}
           onChange={(v) => set('value', v)}
           textarea

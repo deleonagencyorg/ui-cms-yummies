@@ -32,6 +32,8 @@ const AVAILABLE_SCOPES = [
   'content_lists',
   'site_texts',
   'zambos_truck',
+  'gallery',
+  'product_categories',
 ] as const
 
 const columnHelper = createColumnHelper<ApiTokenResponse>()

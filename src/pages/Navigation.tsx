@@ -103,7 +103,7 @@ function formDataToPayload(
   }
 }
 
-export default function NavigationPage() {
+export function NavigationPageContent() {
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -278,7 +278,7 @@ export default function NavigationPage() {
   })
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
@@ -460,6 +460,14 @@ export default function NavigationPage() {
           </div>
         </Modal>
       )}
+    </>
+  )
+}
+
+export default function NavigationPage() {
+  return (
+    <Layout>
+      <NavigationPageContent />
     </Layout>
   )
 }

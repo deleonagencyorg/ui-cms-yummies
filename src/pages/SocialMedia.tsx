@@ -84,7 +84,7 @@ function formDataToPayload(
   }
 }
 
-export default function SocialMediaPage() {
+export function SocialMediaContent() {
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -245,7 +245,7 @@ export default function SocialMediaPage() {
   })
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
@@ -444,6 +444,14 @@ export default function SocialMediaPage() {
         onSelect={handleMediaSelect}
         title="Select Icon"
       />
+    </>
+  )
+}
+
+export default function SocialMediaPage() {
+  return (
+    <Layout>
+      <SocialMediaContent />
     </Layout>
   )
 }
