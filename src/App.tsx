@@ -19,12 +19,25 @@ import JobTitles from '@/pages/JobTitles'
 import Brands from '@/pages/Brands'
 import Products from '@/pages/Products'
 import Recipes from '@/pages/Recipes'
+import TopMessages from '@/pages/TopMessages'
 import News from '@/pages/News'
 import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
 import Pages from '@/pages/Pages'
 import ChangePassword from '@/pages/ChangePassword'
-import ApiTokens from '@/pages/ApiTokens'
+import Health from './pages/Health'
+import Descubrenos from './pages/Descubrenos'
+import Contact from './pages/Contact'
+import Footer from './pages/Footer'
+import ApiTokens from './pages/ApiTokens'
+import Navigation from './pages/Navigation'
+import SocialMedia from './pages/SocialMedia'
+import Modals from './pages/Modals'
+import ContentLists from './pages/ContentLists'
+import ZambosTruck from './pages/ZambosTruck'
+import ProductCategories from './pages/ProductCategories'
+import SiteSettings from './pages/SiteSettings'
+import Gallery from './pages/Gallery'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -158,6 +171,14 @@ function App() {
         }
       />
       <Route
+        path="/top-messages"
+        element={
+          <ProtectedRoute>
+            <TopMessages />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/multimedia"
         element={
           <ProtectedRoute>
@@ -197,12 +218,108 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/health"
+        element={
+          <ProtectedRoute>
+            <Health />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/descubrenos"
+        element={
+          <ProtectedRoute>
+            <Descubrenos />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <ProtectedRoute>
+            <Contact />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/footer"
+        element={
+          <ProtectedRoute>
+            <Footer />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/api-tokens"
         element={
           <ProtectedRoute>
             <ApiTokens />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/navigation"
+        element={
+          <ProtectedRoute>
+            <Navigation />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/social-media"
+        element={
+          <ProtectedRoute>
+            <SocialMedia />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/modals"
+        element={
+          <ProtectedRoute>
+            <Modals />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/content-lists"
+        element={
+          <ProtectedRoute>
+            <ContentLists />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/zambos-truck"
+        element={
+          <ProtectedRoute>
+            <ZambosTruck />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/product-categories"
+        element={
+          <ProtectedRoute>
+            <ProductCategories />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/site-settings"
+        element={
+          <ProtectedRoute>
+            <SiteSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gallery"
+        element={
+          <ProtectedRoute>
+            <Gallery />
           </ProtectedRoute>
         }
       />

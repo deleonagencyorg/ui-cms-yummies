@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
@@ -27,6 +27,7 @@ interface RecipeFormData {
   people: string
   difficulty: string
   image: string
+  video?: MultimediaResponse | null
   gallery: string[]
   type: string
   preparationTime: number
@@ -45,6 +46,7 @@ const initialFormData: RecipeFormData = {
   people: '',
   difficulty: '',
   image: '',
+  video: null,
   gallery: [],
   type: '',
   preparationTime: 0,
@@ -87,6 +89,15 @@ export default function Recipes() {
   const createMutation = useCreateRecipe()
   const updateMutation = useUpdateRecipe()
   const deleteMutation = useDeleteRecipe()
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return
+    const brands = brandsData?.data ?? []
+    if (brands.length !== 1) return
+    setFormData((prev) =>
+      prev.brandIds.length > 0 ? prev : { ...prev, brandIds: [brands[0].id] }
+    )
+  }, [isCreateModalOpen, brandsData])
 
   const openEditModal = (recipe: RecipeResponse) => {
     setSelectedRecipe(recipe)
@@ -224,6 +235,10 @@ export default function Recipes() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (formData.brandIds.length === 0) {
+      window.alert('Select at least one brand so the recipe can appear on the site.')
+      return
+    }
     try {
       await createMutation.mutateAsync({
         title: formData.title,
@@ -239,7 +254,7 @@ export default function Recipes() {
         category: formData.category || undefined,
         instructions: formData.instructions.length > 0 ? formData.instructions : undefined,
         languageCode: formData.languageCode,
-        brandIds: formData.brandIds.length > 0 ? formData.brandIds : undefined,
+        brandIds: formData.brandIds,
         productIds: formData.productIds.length > 0 ? formData.productIds : undefined,
       })
       setIsCreateModalOpen(false)
@@ -252,6 +267,10 @@ export default function Recipes() {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedRecipe) return
+    if (formData.brandIds.length === 0) {
+      window.alert('Select at least one brand so the recipe can appear on the site.')
+      return
+    }
     try {
       await updateMutation.mutateAsync({
         id: selectedRecipe.id,
@@ -298,7 +317,11 @@ export default function Recipes() {
 
     if (mediaPickerTarget.type === 'image') {
       setFormData((prev) => ({ ...prev, image: media.originalUrl }))
-    } else if (mediaPickerTarget.type === 'gallery') {
+    } 
+    else if (mediaPickerTarget.type === 'video' || mediaPickerTarget.type === 'all') {
+      setFormData((prev) => ({ ...prev, video: media }))
+    } 
+    else if (mediaPickerTarget.type === 'gallery') {
       if (mediaPickerTarget.index !== undefined) {
         // Update existing gallery image
         setFormData((prev) => ({
@@ -841,6 +864,40 @@ function RecipeFormModal({
               </div>
             </div>
 
+            {/* Video Section */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Video
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onOpenMediaPicker({ type: 'all' })}
+                  className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
+                >
+                  <VideoIcon className="w-5 h-5" />
+                  Select
+                </button>
+                {formData.video && (
+                  <>
+                    <div className="flex items-center gap-2 bg-secondary px-3 py-1 rounded border border-border">
+                      <VideoIcon className="w-4 h-4" />
+                      <span className="text-sm text-foreground truncate max-w-[200px]">
+                        {formData.video.fileName}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, video: null })}
+                      className="p-2 text-red-600 hover:text-red-800"
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
             {/* Gallery */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -968,8 +1025,11 @@ function RecipeFormModal({
           {/* Brands Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Related Brands
+              Related Brands *
             </h4>
+            <p className="text-xs text-muted-foreground">
+              Required. Yummi Nuts only shows recipes linked to its brand.
+            </p>
             {brands.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">No brands available</p>
             ) : (
@@ -1104,6 +1164,14 @@ function PhotoIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+  )
+}
+
+function VideoIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
     </svg>
   )
 }

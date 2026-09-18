@@ -4,7 +4,6 @@ import Pagination from '@/components/Pagination'
 import MediaPicker, { type MediaUrlVariant } from '@/components/MediaPicker'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
 import { useSites } from '@/queries/sites'
 import { useCreateSite, useUpdateSite, useDeleteSite } from '@/mutations/sites'
 import type { SiteResponse, CreateSiteRequest } from '@/actions/sites'
@@ -50,35 +49,23 @@ export default function Sites() {
 
   const createMutation = useCreateSite({
     onSuccess: () => {
-      toast.success('Site created successfully!')
       setIsCreateModalOpen(false)
       resetForm()
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create site')
     },
   })
 
   const updateMutation = useUpdateSite({
     onSuccess: () => {
-      toast.success('Site updated successfully!')
       setIsEditModalOpen(false)
       setSelectedSite(null)
       resetForm()
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to update site')
     },
   })
 
   const deleteMutation = useDeleteSite({
     onSuccess: () => {
-      toast.success('Site deleted successfully!')
       setIsDeleteModalOpen(false)
       setSelectedSite(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete site')
     },
   })
 
