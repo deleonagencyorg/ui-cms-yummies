@@ -19,8 +19,6 @@
     "socialMedia": "Redes Sociales",
     "modals": "Modales",
     "contentLists": "Bloques de Contenido",
-    "siteTexts": "Textos del Sitio",
-    "siteContent": "Contenido del sitio",
     "gallery": "Galería",
     "siteSettings": "Configuración del Sitio",
     "zambosTruck": "Zambos Truck",
@@ -34,7 +32,7 @@
     "selectSiteFirst": "Por favor selecciona un sitio primero"
   },
   "siteSettings": {
-    "description": "Administra contenido compartido, SEO y meta por página, y la experiencia de página no encontrada para cada marca."
+    "description": "Administra footer, navegación, redes sociales, contacto, meta, validaciones, suscripción y página no encontrada para cada sitio."
   },
   "menu": {
     "settings": "Configuración",
@@ -136,7 +134,6 @@
       "social_media": "Redes sociales",
       "modals": "Modales",
       "content_lists": "Bloques de contenido",
-      "site_texts": "Textos del sitio",
       "product_categories": "Categorías de producto",
       "zambos_truck": "Zambos Truck",
       "gallery": "Galería"

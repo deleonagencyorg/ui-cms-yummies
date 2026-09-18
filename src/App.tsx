@@ -34,7 +34,6 @@ import Navigation from './pages/Navigation'
 import SocialMedia from './pages/SocialMedia'
 import Modals from './pages/Modals'
 import ContentLists from './pages/ContentLists'
-import SiteTexts from './pages/SiteTexts'
 import ZambosTruck from './pages/ZambosTruck'
 import ProductCategories from './pages/ProductCategories'
 import SiteSettings from './pages/SiteSettings'
@@ -289,14 +288,6 @@ function App() {
         element={
           <ProtectedRoute>
             <ContentLists />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/site-texts"
-        element={
-          <ProtectedRoute>
-            <SiteTexts />
           </ProtectedRoute>
         }
       />
