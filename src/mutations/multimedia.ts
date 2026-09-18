@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import {
   multimediaActions,
   type MultimediaResponse,
-  type UploadMultimediaRequest,
+  type CreateMultimediaRequest,
   type UpdateMultimediaRequest,
   type MoveMultimediaRequest,
 } from '@/actions/multimedia'
@@ -15,13 +15,13 @@ function extractError(error: unknown, fallback: string): string {
 }
 
 export const useUploadMultimedia = (
-  options?: Omit<UseMutationOptions<MultimediaResponse, Error, UploadMultimediaRequest>, 'mutationFn'>
+  options?: Omit<UseMutationOptions<MultimediaResponse, Error, CreateMultimediaRequest>, 'mutationFn'>
 ) => {
   const queryClient = useQueryClient()
 
-  return useMutation<MultimediaResponse, Error, UploadMultimediaRequest>({
+  return useMutation<MultimediaResponse, Error, CreateMultimediaRequest>({
     ...options,
-    mutationFn: multimediaActions.upload,
+    mutationFn: multimediaActions.create,
     onSuccess: async (data, variables, context, mutation) => {
       await queryClient.invalidateQueries({ queryKey: MULTIMEDIA_KEYS.lists() })
       await queryClient.invalidateQueries({ queryKey: FOLDER_KEYS.contents() })

@@ -44,12 +44,12 @@ export default function SiteSettings() {
     { key: 'contact', label: t('nav.contact'), content: <ContactPageContent /> },
     {
       key: 'home',
-      label: 'Inicio',
+      label: t('siteSettingsEditor.tabs.home'),
       content: (
         <>
           <StructuredSiteTextSection
-            title="Contenido de Inicio"
-            description="Administra los textos dinámicos que se muestran junto a las recetas en la página de inicio."
+            title={t('siteSettingsEditor.home.recipesTitle')}
+            description={t('siteSettingsEditor.home.recipesDescription')}
             prefix="recipes.home"
             fields={[
               { key: 'title', label: 'Título de recetas', textarea: true },
@@ -57,8 +57,8 @@ export default function SiteSettings() {
             ]}
           />
           <StructuredSiteTextSection
-            title="Formulario de suscripción en Inicio"
-            description="Administra los textos del formulario de suscripción que aparece en Inicio."
+            title={t('siteSettingsEditor.home.newsletterTitle')}
+            description={t('siteSettingsEditor.home.newsletterDescription')}
             prefix="home.newsletter"
             fields={[
               { key: 'title', label: 'Título', textarea: true },
@@ -71,11 +71,11 @@ export default function SiteSettings() {
     },
     {
       key: 'about-us',
-      label: 'Nosotros',
+      label: t('siteSettingsEditor.tabs.aboutUs'),
       content: (
         <StructuredSiteTextSection
-          title="Contenido de Nosotros"
-          description="Administra los textos de la sección."
+          title={t('siteSettingsEditor.aboutUs.title')}
+          description={t('siteSettingsEditor.aboutUs.description')}
           prefix="about_us"
           fields={[
             { key: 'title', label: 'Título' },
@@ -88,11 +88,11 @@ export default function SiteSettings() {
     },
     {
       key: 'meta',
-      label: 'Meta',
+      label: t('siteSettingsEditor.tabs.meta'),
       content: (
         <StructuredSiteTextSection
-          title="Meta de las páginas"
-          description="Administra títulos y descripciones SEO por página e idioma."
+          title={t('siteSettingsEditor.meta.title')}
+          description={t('siteSettingsEditor.meta.description')}
           prefix="meta"
           fields={[
             { key: 'home.title', label: 'Título de Inicio', textarea: true },
@@ -121,11 +121,11 @@ export default function SiteSettings() {
     },
     {
       key: 'form-validation',
-      label: 'Validación de formularios',
+      label: t('siteSettingsEditor.tabs.formValidation'),
       content: (
         <StructuredSiteTextSection
-          title="Mensajes de validación"
-          description="Administra los mensajes que aparecen cuando un formulario tiene errores."
+          title={t('siteSettingsEditor.formValidation.title')}
+          description={t('siteSettingsEditor.formValidation.description')}
           prefix="form_validation"
           fields={[
             { key: 'required', label: 'Campo obligatorio' },
@@ -138,11 +138,11 @@ export default function SiteSettings() {
     },
     {
       key: 'subscribe',
-      label: 'Suscripción',
+      label: t('siteSettingsEditor.tabs.subscribe'),
       content: (
         <StructuredSiteTextSection
-          title="Mensajes de suscripción"
-          description="Administra el mensaje que se muestra después de una suscripción."
+          title={t('siteSettingsEditor.subscribe.title')}
+          description={t('siteSettingsEditor.subscribe.description')}
           prefix="subscribe"
           fields={[{ key: 'success', label: 'Suscripción exitosa', textarea: true }]}
         />
@@ -150,11 +150,11 @@ export default function SiteSettings() {
     },
     {
       key: 'not-found',
-      label: 'Página no encontrada',
+      label: t('siteSettingsEditor.tabs.notFound'),
       content: (
         <StructuredSiteTextSection
-          title="Página no encontrada (404)"
-          description="Administra los textos que aparecen cuando una página no existe."
+          title={t('siteSettingsEditor.notFound.title')}
+          description={t('siteSettingsEditor.notFound.description')}
           prefix="not_found"
           fields={[
             { key: 'code', label: 'Código de error' },
@@ -169,11 +169,11 @@ export default function SiteSettings() {
     },
     {
       key: 'errors',
-      label: 'Mensajes de error',
+      label: t('siteSettingsEditor.tabs.errors'),
       content: (
         <StructuredSiteTextSection
-          title="Mensajes de error"
-          description="Administra los mensajes de error que el sitio muestra al usuario."
+          title={t('siteSettingsEditor.errors.title')}
+          description={t('siteSettingsEditor.errors.description')}
           prefix="errors"
           fields={[{ key: 'product_not_found', label: 'Producto no encontrado', textarea: true }]}
         />

@@ -5,33 +5,6 @@ import type { FolderResponse } from '@/actions/folders'
 
 export type MediaUrlVariant = 'original' | 'thumbnail' | 'seo'
 
-interface ImageDimensions {
-  width: number
-  height: number
-}
-
-function useImageDimensions(url: string | undefined | null): ImageDimensions | null {
-  const [dimensions, setDimensions] = useState<ImageDimensions | null>(null)
-
-  useEffect(() => {
-    if (!url) {
-      setDimensions(null)
-      return
-    }
-
-    const img = new Image()
-    img.onload = () => {
-      setDimensions({ width: img.naturalWidth, height: img.naturalHeight })
-    }
-    img.onerror = () => {
-      setDimensions(null)
-    }
-    img.src = url
-  }, [url])
-
-  return dimensions
-}
-
 interface MediaPickerProps {
   isOpen: boolean
   onClose: () => void
@@ -377,97 +350,6 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
           >
             Select
           </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function VariantDimensions({ url }: { url: string }) {
-  const dims = useImageDimensions(url)
-  if (!dims) return null
-  return (
-    <span className="text-muted-foreground">
-      {dims.width} x {dims.height}px
-    </span>
-  )
-}
-
-function getVariantUrl(media: MultimediaResponse, variant: MediaUrlVariant): string {
-  switch (variant) {
-    case 'thumbnail': return media.thumbnailUrl || media.originalUrl
-    case 'seo': return media.seoUrl || media.originalUrl
-    default: return media.originalUrl
-  }
-}
-
-function MediaPreviewPanel({
-  media,
-  selectedVariant,
-  onVariantChange,
-  formatFileSize,
-}: {
-  media: MultimediaResponse
-  selectedVariant: MediaUrlVariant
-  onVariantChange: (v: MediaUrlVariant) => void
-  formatFileSize: (bytes: number) => string
-}) {
-  const previewUrl = getVariantUrl(media, selectedVariant)
-
-  const variants: { label: string; variant: MediaUrlVariant; url: string | undefined }[] = [
-    { label: 'Original', variant: 'original', url: media.originalUrl },
-    { label: 'Thumbnail', variant: 'thumbnail', url: media.thumbnailUrl },
-    { label: 'SEO', variant: 'seo', url: media.seoUrl },
-  ]
-
-  const availableVariants = variants.filter((v) => v.url)
-
-  return (
-    <div className="p-6 border-t border-border bg-secondary/30">
-      <div className="flex gap-6">
-        <div className="flex-shrink-0">
-          <div className="w-32 h-32 bg-secondary rounded-lg flex items-center justify-center overflow-hidden">
-            {media.fileType.startsWith('image') ? (
-              <img
-                src={previewUrl}
-                alt={media.altText || media.fileName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <FileIcon className="w-12 h-12 text-muted-foreground" />
-            )}
-          </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-semibold text-card-foreground mb-1">Selected Media</h4>
-          <p className="text-sm text-muted-foreground truncate">{media.fileName}</p>
-          <p className="text-xs text-muted-foreground mb-3">
-            {formatFileSize(media.fileSize)}
-          </p>
-          {media.fileType.startsWith('image') && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-card-foreground">Select version:</p>
-              <div className="flex flex-wrap gap-2">
-                {availableVariants.map((v) => (
-                  <button
-                    key={v.variant}
-                    type="button"
-                    onClick={() => onVariantChange(v.variant)}
-                    className={`px-3 py-1.5 rounded transition-colors text-xs font-medium ${
-                      selectedVariant === v.variant
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-background border border-border hover:border-primary/50'
-                    }`}
-                  >
-                    {v.label}
-                  </button>
-                ))}
-              </div>
-              <div className="text-xs">
-                <VariantDimensions url={previewUrl} />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

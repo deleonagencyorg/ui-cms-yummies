@@ -34,6 +34,63 @@
   "siteSettings": {
     "description": "Manage footer, navigation, social media, contact, metadata, validation, subscription and not-found settings for each site."
   },
+  "siteSettingsEditor": {
+    "tabs": {
+      "home": "Home",
+      "aboutUs": "About Us",
+      "meta": "Meta",
+      "formValidation": "Form validation",
+      "subscribe": "Subscription",
+      "notFound": "Not found page",
+      "errors": "Error messages"
+    },
+    "home": {
+      "recipesTitle": "Home content",
+      "recipesDescription": "Manage the dynamic texts shown with recipes on the home page.",
+      "newsletterTitle": "Home subscription form",
+      "newsletterDescription": "Manage the subscription form texts shown on the home page."
+    },
+    "aboutUs": {
+      "title": "About Us content",
+      "description": "Manage the texts for this section."
+    },
+    "meta": {
+      "title": "Page metadata",
+      "description": "Manage SEO titles and descriptions by page and language."
+    },
+    "formValidation": {
+      "title": "Validation messages",
+      "description": "Manage messages shown when a form has errors."
+    },
+    "subscribe": {
+      "title": "Subscription messages",
+      "description": "Manage the message shown after a subscription."
+    },
+    "notFound": {
+      "title": "Not found page (404)",
+      "description": "Manage the texts shown when a page does not exist."
+    },
+    "errors": {
+      "title": "Error messages",
+      "description": "Manage error messages shown to site visitors."
+    },
+    "fields": {
+      "language": "Language",
+      "save": "Save",
+      "loading": "Loading configuration...",
+      "loadError": "Could not load this configuration.",
+      "required": "Required field",
+      "invalidEmail": "Invalid email",
+      "passwordMin": "Password too short",
+      "passwordsNotMatch": "Passwords do not match",
+      "success": "Successful subscription",
+      "notFoundCode": "Error code",
+      "goHome": "Back to home button",
+      "exploreProducts": "Explore products button",
+      "productsTitle": "Products title",
+      "productNotFound": "Product not found"
+    }
+  },
   "menu": {
     "settings": "Settings",
     "profile": "Profile",

@@ -5,7 +5,7 @@ import Pagination from '@/components/Pagination'
 import { toast } from 'sonner'
 import { useFolderContents, useFolderById } from '@/queries/folders'
 import { useCreateFolder, useUpdateFolder, useDeleteFolder } from '@/mutations/folders'
-import { useUploadMultimedia, useDeleteMultimedia, useUpdateMultimedia, useMoveMultimedia } from '@/mutations/multimedia'
+import { useDeleteMultimedia, useUpdateMultimedia, useMoveMultimedia } from '@/mutations/multimedia'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import type { FolderResponse } from '@/actions/folders'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -662,7 +662,7 @@ export default function Multimedia() {
                                 />
                               ) : (
                                 <div className="text-muted-foreground">
-                                  {getFileIcon(media.fileType)}
+                                  {getFileIcon(media)}
                                 </div>
                               )}
                             </div>

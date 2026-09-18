@@ -60,6 +60,7 @@ const initialFormData: RecipeFormData = {
 
 type MediaPickerTarget =
   | { type: 'image' }
+  | { type: 'video' | 'all' }
   | { type: 'gallery'; index?: number }
 
 export default function Recipes() {

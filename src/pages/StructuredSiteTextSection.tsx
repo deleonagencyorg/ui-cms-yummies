@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import TextField from '@/components/TextField'
 import { useSite } from '@/contexts/SiteContext'
 import { useLanguages } from '@/queries/languages'
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export function StructuredSiteTextSection({ title, description, prefix, fields }: Props) {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const { data: languagesData } = useLanguages({ page: 1, pageSize: 100, isActive: true })
   const languages = languagesData?.data ?? []
@@ -81,7 +83,9 @@ export function StructuredSiteTextSection({ title, description, prefix, fields }
       </div>
 
       <div className="max-w-xs">
-        <label className="block text-sm font-medium text-card-foreground mb-2">Idioma</label>
+        <label className="block text-sm font-medium text-card-foreground mb-2">
+          {t('siteSettingsEditor.fields.language')}
+        </label>
         <select
           value={languageCode}
           onChange={(event) => setLanguageCode(event.target.value)}
@@ -96,9 +100,9 @@ export function StructuredSiteTextSection({ title, description, prefix, fields }
       </div>
 
       {isLoading ? (
-        <p className="text-muted-foreground">Cargando configuración...</p>
+        <p className="text-muted-foreground">{t('siteSettingsEditor.fields.loading')}</p>
       ) : error ? (
-        <p className="text-red-500">No se pudo cargar esta configuración.</p>
+        <p className="text-red-500">{t('siteSettingsEditor.fields.loadError')}</p>
       ) : (
         <div className="space-y-5">
           {displayFields.map((field) => (
@@ -118,7 +122,7 @@ export function StructuredSiteTextSection({ title, description, prefix, fields }
                 disabled={!selectedSiteId || !languageCode || createMutation.isPending || updateMutation.isPending}
                 className="mt-3 px-4 py-2 bg-primary text-primary-foreground rounded-lg disabled:opacity-50"
               >
-                Guardar
+                {t('siteSettingsEditor.fields.save')}
               </button>
             </div>
           ))}

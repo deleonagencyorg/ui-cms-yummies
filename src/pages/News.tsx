@@ -63,6 +63,7 @@ const initialFormData: NewsFormData = {
 type MediaPickerTarget =
   | { type: 'image' }
   | { type: 'imageMobile' }
+  | { type: 'video' | 'all' }
   | { type: 'gallery'; index?: number }
 
 export default function News() {
@@ -310,7 +311,9 @@ export default function News() {
 
     if (mediaPickerTarget.type === 'image') {
       setFormData((prev) => ({ ...prev, image: media.originalUrl }))
-    } 
+    } else if (mediaPickerTarget.type === 'imageMobile') {
+      setFormData((prev) => ({ ...prev, imageMobile: media.originalUrl }))
+    }
     else if (mediaPickerTarget.type === 'video' || mediaPickerTarget.type === 'all') {
       setFormData((prev) => ({ ...prev, video: media }))
     } 

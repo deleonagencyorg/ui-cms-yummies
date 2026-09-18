@@ -34,6 +34,63 @@
   "siteSettings": {
     "description": "Administra footer, navegación, redes sociales, contacto, meta, validaciones, suscripción y página no encontrada para cada sitio."
   },
+  "siteSettingsEditor": {
+    "tabs": {
+      "home": "Inicio",
+      "aboutUs": "Nosotros",
+      "meta": "Meta",
+      "formValidation": "Validación de formularios",
+      "subscribe": "Suscripción",
+      "notFound": "Página no encontrada",
+      "errors": "Mensajes de error"
+    },
+    "home": {
+      "recipesTitle": "Contenido de Inicio",
+      "recipesDescription": "Administra los textos dinámicos que se muestran junto a las recetas en la página de inicio.",
+      "newsletterTitle": "Formulario de suscripción en Inicio",
+      "newsletterDescription": "Administra los textos del formulario de suscripción que aparece en Inicio."
+    },
+    "aboutUs": {
+      "title": "Contenido de Nosotros",
+      "description": "Administra los textos de la sección."
+    },
+    "meta": {
+      "title": "Meta de las páginas",
+      "description": "Administra títulos y descripciones SEO por página e idioma."
+    },
+    "formValidation": {
+      "title": "Mensajes de validación",
+      "description": "Administra los mensajes que aparecen cuando un formulario tiene errores."
+    },
+    "subscribe": {
+      "title": "Mensajes de suscripción",
+      "description": "Administra el mensaje que se muestra después de una suscripción."
+    },
+    "notFound": {
+      "title": "Página no encontrada (404)",
+      "description": "Administra los textos que aparecen cuando una página no existe."
+    },
+    "errors": {
+      "title": "Mensajes de error",
+      "description": "Administra los mensajes de error que el sitio muestra al usuario."
+    },
+    "fields": {
+      "language": "Idioma",
+      "save": "Guardar",
+      "loading": "Cargando configuración...",
+      "loadError": "No se pudo cargar esta configuración.",
+      "required": "Campo obligatorio",
+      "invalidEmail": "Correo electrónico inválido",
+      "passwordMin": "Contraseña demasiado corta",
+      "passwordsNotMatch": "Las contraseñas no coinciden",
+      "success": "Suscripción exitosa",
+      "notFoundCode": "Código de error",
+      "goHome": "Botón volver al inicio",
+      "exploreProducts": "Botón explorar productos",
+      "productsTitle": "Título de productos",
+      "productNotFound": "Producto no encontrado"
+    }
+  },
   "menu": {
     "settings": "Configuración",
     "profile": "Perfil",
