@@ -31,6 +31,11 @@ export interface FooterConfig {
   termsConditions: string
   complaintsBook: string
   help: string
+  contactTitle: string
+  address: string
+  hours: string
+  phone: string
+  newsletterButton: string
   createdAt: string
   updatedAt: string
 }
@@ -68,11 +73,17 @@ export interface CreateFooterConfigRequest {
   termsConditions?: string
   complaintsBook?: string
   help?: string
+  contactTitle?: string
+  address?: string
+  hours?: string
+  phone?: string
+  newsletterButton?: string
 }
 
 export type UpdateFooterConfigRequest = Partial<CreateFooterConfigRequest>
 
 export interface FooterFiltersRequest {
+  mainText?: string
   languageCode?: string
   siteId?: string
   page?: number

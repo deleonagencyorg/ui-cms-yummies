@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
@@ -128,6 +129,26 @@ function formDataToPayload(
   }
 }
 
+function toInstagramEmbedUrl(url: string): string {
+  if (!url) return ''
+
+  try {
+    const parsed = new URL(url)
+    if (!parsed.hostname.includes('instagram.com')) return url
+
+    parsed.search = ''
+    parsed.hash = ''
+    const path = parsed.pathname.replace(/\/+$/, '')
+    if (path.endsWith('/embed')) {
+      return `${parsed.origin}${path}/`
+    }
+
+    return `${parsed.origin}${path}/embed/`
+  } catch {
+    return url
+  }
+}
+
 function visibilityLabel(item: Descubrenos): string {
   const pages: string[] = []
   if (item.showOnHome) pages.push('Home')
@@ -137,6 +158,7 @@ function visibilityLabel(item: Descubrenos): string {
 }
 
 export default function DescubrenosPage() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -265,16 +287,28 @@ export default function DescubrenosPage() {
   ) => {
     setFormData((prev) => ({
       ...prev,
-      posts: prev.posts.map((post, i) =>
-        i === index ? { ...post, [field]: value } : post
-      ),
+      posts: prev.posts.map((post, i) => {
+        if (i !== index) return post
+        if (field !== 'postUrl') return { ...post, [field]: value }
+
+        const nextEmbed = toInstagramEmbedUrl(value)
+        const previousAutoEmbed = toInstagramEmbedUrl(post.postUrl)
+        const shouldSyncEmbed =
+          !post.embedUrl || post.embedUrl === previousAutoEmbed
+
+        return {
+          ...post,
+          postUrl: value,
+          embedUrl: shouldSyncEmbed ? nextEmbed : post.embedUrl,
+        }
+      }),
     }))
   }
 
   const columns = useMemo<ColumnDef<Descubrenos, any>[]>(
     () => [
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t("Title"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue() || '-'}
@@ -282,7 +316,7 @@ export default function DescubrenosPage() {
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             {info.getValue()}
@@ -291,7 +325,7 @@ export default function DescubrenosPage() {
       }),
       columnHelper.display({
         id: 'visibility',
-        header: 'Visible On',
+        header: t("Visible On"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {visibilityLabel(row.original)}
@@ -300,7 +334,7 @@ export default function DescubrenosPage() {
       }),
       columnHelper.display({
         id: 'postsCount',
-        header: 'Posts',
+        header: t("Posts"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {row.original.posts?.length ?? 0}
@@ -309,19 +343,19 @@ export default function DescubrenosPage() {
       }),
       columnHelper.display({
         id: 'preview',
-        header: 'Preview',
+        header: t("Preview"),
         cell: ({ row }) => {
           const first = row.original.posts?.[0]
           const url = first?.imageUrl || first?.fallbackImage
           return url ? (
-            <img src={url} alt={first?.alt || 'Post'} className="h-10 w-10 object-cover rounded" />
+            <img src={url} alt={first?.alt || t("Post")} className="h-10 w-10 object-cover rounded" />
           ) : (
             <span className="text-sm text-muted-foreground">-</span>
           )
         },
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -330,20 +364,20 @@ export default function DescubrenosPage() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -351,7 +385,7 @@ export default function DescubrenosPage() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -368,9 +402,9 @@ export default function DescubrenosPage() {
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Descúbrenos</h2>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Descúbrenos")}</h2>
               <p className="text-muted-foreground mt-1">
-                Manage Instagram gallery content and where it appears per site
+                {t("Manage Instagram gallery content")}
               </p>
             </div>
             <button
@@ -380,18 +414,18 @@ export default function DescubrenosPage() {
                 setIsCreateModalOpen(true)
               }}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? 'Select a site in the sidebar first' : undefined}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Descúbrenos
+              {t("Create Descúbrenos")}
             </button>
           </div>
 
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search by title..."
+              placeholder={t("Search descubrenos...")}
               value={searchTitle}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
@@ -405,9 +439,9 @@ export default function DescubrenosPage() {
                 setFilterLanguage(e.target.value)
                 setPage(1)
               }}
-              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All languages</option>
+              <option value="">{t("All languages")}</option>
               {(languagesData?.data || []).map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -417,10 +451,17 @@ export default function DescubrenosPage() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">{t("Loading descubrenos...")}</p>
+            </div>
           ) : error ? (
-            <div className="text-center py-12 text-red-600">
-              Failed to load descubrenos content
+            <div className="text-center py-12">
+              <p className="text-red-500">{t("Failed to load descubrenos")}</p>
+            </div>
+          ) : !data?.data.length ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">{t("No descubrenos content found")}</p>
             </div>
           ) : (
             <>
@@ -434,57 +475,46 @@ export default function DescubrenosPage() {
                             key={header.id}
                             className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                           >
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
                           </th>
                         ))}
                       </tr>
                     ))}
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {table.getRowModel().rows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={columns.length}
-                          className="px-6 py-8 text-center text-sm text-muted-foreground"
-                        >
-                          No descubrenos content found
-                        </td>
+                    {table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-secondary/50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        ))}
                       </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/50">
-                          {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-6 py-4">
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
 
-              {data?.pagination && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    pageCount={data.pagination.pageCount}
-                    pageSize={pageSize}
-                    totalItems={data.pagination.total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size)
-                      setPage(1)
-                    }}
-                  />
-                </div>
+              {data.pagination && data.pagination.pageCount > 1 && (
+                <Pagination
+                  currentPage={data.pagination.page}
+                  pageCount={data.pagination.pageCount}
+                  pageSize={pageSize}
+                  totalItems={data.pagination.total}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize)
+                    setPage(1)
+                  }}
+                />
               )}
             </>
           )}
@@ -493,7 +523,7 @@ export default function DescubrenosPage() {
 
       {isCreateModalOpen && (
         <DescubrenosFormModal
-          title="Create Descúbrenos"
+          title={t("Create Descúbrenos")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -502,7 +532,7 @@ export default function DescubrenosPage() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
@@ -515,7 +545,7 @@ export default function DescubrenosPage() {
 
       {isEditModalOpen && selectedItem && (
         <DescubrenosFormModal
-          title="Edit Descúbrenos"
+          title={t("Edit Descúbrenos")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -525,7 +555,7 @@ export default function DescubrenosPage() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
@@ -538,7 +568,7 @@ export default function DescubrenosPage() {
 
       {isDeleteModalOpen && selectedItem && (
         <Modal
-          title="Delete Descúbrenos"
+          title={t("Delete Descúbrenos")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedItem(null)
@@ -546,9 +576,8 @@ export default function DescubrenosPage() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "
-              <strong>{selectedItem.title || 'Untitled'}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete \"")}
+              <strong>{selectedItem.title || t("Untitled")}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -558,14 +587,14 @@ export default function DescubrenosPage() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -576,7 +605,7 @@ export default function DescubrenosPage() {
         isOpen={mediaPickerTarget !== null}
         onClose={() => setMediaPickerTarget(null)}
         onSelect={handleMediaSelect}
-        title="Select Image"
+        title={t("Select Image")}
       />
     </Layout>
   )
@@ -619,6 +648,7 @@ function DescubrenosFormModal({
   onMovePost,
   onUpdatePostField,
 }: DescubrenosFormModalProps) {
+  const { t } = useTranslation()
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full border border-border max-h-[90vh] overflow-y-auto">
@@ -636,12 +666,12 @@ function DescubrenosFormModal({
         <form onSubmit={onSubmit} className="p-6 space-y-6">
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Basic Information
+              {t("Basic Information")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Site *
+                  {t("Site *")}
                 </label>
                 <select
                   value={formData.siteId}
@@ -652,7 +682,7 @@ function DescubrenosFormModal({
                   disabled
                   className="w-full px-4 py-2 bg-secondary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary cursor-not-allowed opacity-75"
                 >
-                  <option value="">Select a site</option>
+                  <option value="">{t("Select a site")}</option>
                   {sites.map((site) => (
                     <option key={site.id} value={site.id}>
                       {site.name}
@@ -660,12 +690,12 @@ function DescubrenosFormModal({
                   ))}
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Site is automatically set from the sidebar selector
+                  {t("Site is automatically set from the sidebar selector")}
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Language *
+                  {t("Language *")}
                 </label>
                 <select
                   value={formData.languageCode}
@@ -675,7 +705,7 @@ function DescubrenosFormModal({
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Select language</option>
+                  <option value="">{t("Select language")}</option>
                   {languages.map((lang) => (
                     <option key={lang.code} value={lang.code}>
                       {lang.name} ({lang.nativeName})
@@ -686,7 +716,7 @@ function DescubrenosFormModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Title *
+                {t("Title *")}
               </label>
               <input
                 type="text"
@@ -697,17 +727,17 @@ function DescubrenosFormModal({
                 required
                 maxLength={255}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Section title"
+                placeholder={t("Section title")}
               />
             </div>
           </div>
 
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Visibility
+              {t("Visibility")}
             </h4>
             <p className="text-xs text-muted-foreground">
-              Choose where this Descúbrenos section should appear for this site.
+              {t("Choose where this Descúbrenos section should appear for this site.")}
             </p>
             <div className="flex flex-wrap gap-6">
               <label className="flex items-center gap-2 text-sm text-card-foreground cursor-pointer">
@@ -719,7 +749,7 @@ function DescubrenosFormModal({
                   }
                   className="rounded border-border text-primary focus:ring-primary"
                 />
-                Show on Home
+                {t("Show on Home")}
               </label>
               <label className="flex items-center gap-2 text-sm text-card-foreground cursor-pointer">
                 <input
@@ -730,7 +760,7 @@ function DescubrenosFormModal({
                   }
                   className="rounded border-border text-primary focus:ring-primary"
                 />
-                Show on Products
+                {t("Show on Products")}
               </label>
               <label className="flex items-center gap-2 text-sm text-card-foreground cursor-pointer">
                 <input
@@ -741,7 +771,7 @@ function DescubrenosFormModal({
                   }
                   className="rounded border-border text-primary focus:ring-primary"
                 />
-                Show on Health
+                {t("Show on Health")}
               </label>
             </div>
           </div>
@@ -750,10 +780,10 @@ function DescubrenosFormModal({
             <div className="flex items-center justify-between border-b border-border pb-2">
               <div>
                 <h4 className="text-sm font-semibold text-card-foreground">
-                  Instagram Posts
+                  {t("Instagram Posts")}
                 </h4>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Minimum {MIN_POSTS} posts required ({formData.posts.length} added)
+                  {t("Minimum")} {MIN_POSTS} {t("posts required (")}{formData.posts.length} {t("added)")}
                 </p>
               </div>
               <button
@@ -762,7 +792,7 @@ function DescubrenosFormModal({
                 className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Post
+                {t("Add Post")}
               </button>
             </div>
 
@@ -774,7 +804,7 @@ function DescubrenosFormModal({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-card-foreground">
-                      Post {index + 1}
+                      {t("Post")} {index + 1}
                     </span>
                     <div className="flex items-center gap-1">
                       <button
@@ -782,7 +812,7 @@ function DescubrenosFormModal({
                         onClick={() => onMovePost(index, -1)}
                         disabled={index === 0}
                         className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                        title="Move up"
+                        title={t("Move up")}
                       >
                         <ChevronUpIcon className="w-4 h-4" />
                       </button>
@@ -791,7 +821,7 @@ function DescubrenosFormModal({
                         onClick={() => onMovePost(index, 1)}
                         disabled={index === formData.posts.length - 1}
                         className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                        title="Move down"
+                        title={t("Move down")}
                       >
                         <ChevronDownIcon className="w-4 h-4" />
                       </button>
@@ -800,7 +830,7 @@ function DescubrenosFormModal({
                         onClick={() => onRemovePost(index)}
                         disabled={formData.posts.length <= MIN_POSTS}
                         className="p-1.5 text-red-600 hover:text-red-800 disabled:opacity-30"
-                        title="Remove"
+                        title={t("Remove")}
                       >
                         <XIcon className="w-4 h-4" />
                       </button>
@@ -810,7 +840,7 @@ function DescubrenosFormModal({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-card-foreground mb-2">
-                        Post URL
+                        {t("Post URL")}
                       </label>
                       <input
                         type="url"
@@ -819,12 +849,15 @@ function DescubrenosFormModal({
                           onUpdatePostField(index, 'postUrl', e.target.value)
                         }
                         className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="https://www.instagram.com/p/..."
+                        placeholder="https://www.instagram.com/reel/..."
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t("Paste the Instagram reel or post link. The embed URL is generated automatically.")}
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-card-foreground mb-2">
-                        Embed URL
+                        {t("Embed URL")}
                       </label>
                       <input
                         type="url"
@@ -840,7 +873,7 @@ function DescubrenosFormModal({
 
                   <div>
                     <label className="block text-sm font-medium text-card-foreground mb-2">
-                      Alt Text
+                      {t("Alt Text")}
                     </label>
                     <input
                       type="text"
@@ -850,14 +883,14 @@ function DescubrenosFormModal({
                       }
                       maxLength={255}
                       className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Image description"
+                      placeholder={t("Image description")}
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-card-foreground mb-2">
-                        Image
+                        {t("Image")}
                       </label>
                       <div className="flex items-center gap-3">
                         <button
@@ -868,13 +901,13 @@ function DescubrenosFormModal({
                           className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                         >
                           <PhotoIcon className="w-5 h-5" />
-                          Select Image
+                          {t("Select Image")}
                         </button>
                         {post.imageUrl && (
                           <>
                             <img
                               src={post.imageUrl}
-                              alt={post.alt || 'Post'}
+                              alt={post.alt || t("Post")}
                               className="w-12 h-12 object-cover rounded border border-border"
                             />
                             <button
@@ -892,7 +925,7 @@ function DescubrenosFormModal({
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-card-foreground mb-2">
-                        Fallback Image
+                        {t("Fallback Image")}
                       </label>
                       <div className="flex items-center gap-3">
                         <button
@@ -903,13 +936,13 @@ function DescubrenosFormModal({
                           className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                         >
                           <PhotoIcon className="w-5 h-5" />
-                          Select Image
+                          {t("Select Image")}
                         </button>
                         {post.fallbackImage && (
                           <>
                             <img
                               src={post.fallbackImage}
-                              alt={post.alt || 'Fallback'}
+                              alt={post.alt || t("Fallback")}
                               className="w-12 h-12 object-cover rounded border border-border"
                             />
                             <button
@@ -937,14 +970,14 @@ function DescubrenosFormModal({
               onClick={onClose}
               className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !formData.siteId || formData.posts.length < MIN_POSTS}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving...' : submitLabel}
+              {isSubmitting ? t("Saving...") : submitLabel}
             </button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
@@ -244,10 +245,12 @@ function formDataToPayload(
   }
 }
 
-export default function ContactPage() {
+export function ContactPageContent() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [searchTitle, setSearchTitle] = useState('')
   const [filterLanguage, setFilterLanguage] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -264,6 +267,7 @@ export default function ContactPage() {
   const { data, isLoading, error } = useContactList({
     page,
     pageSize,
+    title: searchTitle || undefined,
     languageCode: filterLanguage || undefined,
     siteId: selectedSiteId || undefined,
   })
@@ -376,7 +380,7 @@ export default function ContactPage() {
   const columns = useMemo<ColumnDef<ContactConfig, any>[]>(
     () => [
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t("Title"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground line-clamp-1">
             {info.getValue() || '-'}
@@ -384,14 +388,14 @@ export default function ContactPage() {
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">{info.getValue()}</span>
         ),
       }),
       columnHelper.display({
         id: 'officesCount',
-        header: 'Offices',
+        header: t("Offices"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {row.original.offices?.locations?.length ?? 0}
@@ -399,13 +403,13 @@ export default function ContactPage() {
         ),
       }),
       columnHelper.accessor('email', {
-        header: 'Email',
+        header: t("Email"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">{info.getValue() || '-'}</span>
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -414,20 +418,20 @@ export default function ContactPage() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -435,7 +439,7 @@ export default function ContactPage() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -447,13 +451,13 @@ export default function ContactPage() {
   })
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Contact</h2>
-              <p className="text-muted-foreground mt-1">Manage contact page content per site</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Contact")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage contact page content")}</p>
             </div>
             <button
               onClick={() => {
@@ -462,24 +466,34 @@ export default function ContactPage() {
                 setIsCreateModalOpen(true)
               }}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? 'Select a site in the sidebar first' : undefined}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Contact
+              {t("Create Contact")}
             </button>
           </div>
 
           <div className="mb-6 flex flex-wrap gap-4">
+            <input
+              type="text"
+              placeholder={t("Search contact...")}
+              value={searchTitle}
+              onChange={(e) => {
+                setSearchTitle(e.target.value)
+                setPage(1)
+              }}
+              className="flex-1 min-w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
             <select
               value={filterLanguage}
               onChange={(e) => {
                 setFilterLanguage(e.target.value)
                 setPage(1)
               }}
-              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All languages</option>
+              <option value="">{t("All languages")}</option>
               {(languagesData?.data || []).map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -489,9 +503,18 @@ export default function ContactPage() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">{t("Loading contact...")}</p>
+            </div>
           ) : error ? (
-            <div className="text-center py-12 text-red-600">Failed to load contact content</div>
+            <div className="text-center py-12">
+              <p className="text-red-500">{t("Failed to load contact")}</p>
+            </div>
+          ) : !data?.data.length ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">{t("No contact content found")}</p>
+            </div>
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -504,51 +527,40 @@ export default function ContactPage() {
                             key={header.id}
                             className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                           >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(header.column.columnDef.header, header.getContext())}
                           </th>
                         ))}
                       </tr>
                     ))}
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {table.getRowModel().rows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={columns.length}
-                          className="px-6 py-8 text-center text-sm text-muted-foreground"
-                        >
-                          No contact content found
-                        </td>
+                    {table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-secondary/50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        ))}
                       </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/50">
-                          {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-6 py-4">
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
 
-              {data?.pagination && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    pageCount={data.pagination.pageCount}
-                    pageSize={pageSize}
-                    totalItems={data.pagination.total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size)
-                      setPage(1)
-                    }}
-                  />
-                </div>
+              {data.pagination && data.pagination.pageCount > 1 && (
+                <Pagination
+                  currentPage={data.pagination.page}
+                  pageCount={data.pagination.pageCount}
+                  pageSize={pageSize}
+                  totalItems={data.pagination.total}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize)
+                    setPage(1)
+                  }}
+                />
               )}
             </>
           )}
@@ -557,7 +569,7 @@ export default function ContactPage() {
 
       {isCreateModalOpen && (
         <ContactFormModal
-          title="Create Contact"
+          title={t("Create Contact")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -566,7 +578,7 @@ export default function ContactPage() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onAddOffice={addOffice}
@@ -578,7 +590,7 @@ export default function ContactPage() {
 
       {isEditModalOpen && selectedItem && (
         <ContactFormModal
-          title="Edit Contact"
+          title={t("Edit Contact")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -588,7 +600,7 @@ export default function ContactPage() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onAddOffice={addOffice}
@@ -599,12 +611,17 @@ export default function ContactPage() {
       )}
 
       {isDeleteModalOpen && selectedItem && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-card-foreground">Delete Contact</h3>
+        <Modal
+          title={t("Delete Contact")}
+          onClose={() => {
+            setIsDeleteModalOpen(false)
+            setSelectedItem(null)
+          }}
+        >
+          <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the contact config "
-              <strong>{selectedItem.title || 'Untitled'}</strong>"? This action cannot be undone.
+              {t("Are you sure you want to delete the contact config \"")}
+              <strong>{selectedItem.title || t("Untitled")}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -614,19 +631,27 @@ export default function ContactPage() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
+    </>
+  )
+}
+
+export default function ContactPage() {
+  return (
+    <Layout>
+      <ContactPageContent />
     </Layout>
   )
 }
@@ -684,17 +709,18 @@ function FormFieldEditor({
   field: FormFieldData
   onChange: (field: FormFieldData) => void
 }) {
+  const { t } = useTranslation()
   return (
     <div className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3">
       <h5 className="text-sm font-medium text-card-foreground">{title}</h5>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <TextField
-          label="Label"
+          label={t("Label")}
           value={field.label}
           onChange={(value) => onChange({ ...field, label: value })}
         />
         <TextField
-          label="Placeholder"
+          label={t("Placeholder")}
           value={field.placeholder}
           onChange={(value) => onChange({ ...field, placeholder: value })}
         />
@@ -706,7 +732,7 @@ function FormFieldEditor({
           onChange={(e) => onChange({ ...field, required: e.target.checked })}
           className="rounded border-border text-primary focus:ring-primary"
         />
-        Required
+        {t("Required")}
       </label>
     </div>
   )
@@ -747,6 +773,7 @@ function ContactFormModal({
   onMoveOffice,
   onUpdateOfficeField,
 }: ContactFormModalProps) {
+  const { t } = useTranslation()
   const setTop = (key: 'title' | 'subtitle' | 'description' | 'email' | 'phone' | 'languageCode', value: string) =>
     setFormData({ ...formData, [key]: value })
 
@@ -773,18 +800,18 @@ function ContactFormModal({
         <form onSubmit={onSubmit} className="p-6 space-y-6">
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Basic Information
+              {t("Basic Information")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Site *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Site *")}</label>
                 <select
                   value={formData.siteId}
                   required
                   disabled
                   className="w-full px-4 py-2 bg-secondary border border-border rounded-lg cursor-not-allowed opacity-75"
                 >
-                  <option value="">Select a site</option>
+                  <option value="">{t("Select a site")}</option>
                   {sites.map((site) => (
                     <option key={site.id} value={site.id}>
                       {site.name}
@@ -792,18 +819,18 @@ function ContactFormModal({
                   ))}
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Site is automatically set from the sidebar selector
+                  {t("Site is automatically set from the sidebar selector")}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Language *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Language *")}</label>
                 <select
                   value={formData.languageCode}
                   onChange={(e) => setTop('languageCode', e.target.value)}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Select language</option>
+                  <option value="">{t("Select language")}</option>
                   {languages.map((lang) => (
                     <option key={lang.code} value={lang.code}>
                       {lang.name} ({lang.nativeName})
@@ -813,17 +840,17 @@ function ContactFormModal({
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TextField label="Title" value={formData.title} onChange={(v) => setTop('title', v)} />
+              <TextField label={t("Title")} value={formData.title} onChange={(v) => setTop('title', v)} />
               <TextField
-                label="Subtitle"
+                label={t("Subtitle")}
                 value={formData.subtitle}
                 onChange={(v) => setTop('subtitle', v)}
               />
-              <TextField label="Email" value={formData.email} onChange={(v) => setTop('email', v)} />
-              <TextField label="Phone" value={formData.phone} onChange={(v) => setTop('phone', v)} />
+              <TextField label={t("Email")} value={formData.email} onChange={(v) => setTop('email', v)} />
+              <TextField label={t("Phone")} value={formData.phone} onChange={(v) => setTop('phone', v)} />
             </div>
             <TextField
-              label="Description"
+              label={t("Description")}
               value={formData.description}
               onChange={(v) => setTop('description', v)}
               textarea
@@ -832,26 +859,26 @@ function ContactFormModal({
 
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Contact Form
+              {t("Contact Form")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <TextField
-                label="Form Title"
+                label={t("Form Title")}
                 value={formData.form.title}
                 onChange={(v) => setFormField('title', v)}
               />
               <TextField
-                label="Submit Button"
+                label={t("Submit Button")}
                 value={formData.form.submit}
                 onChange={(v) => setFormField('submit', v)}
               />
             </div>
 
             <div className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3">
-              <h5 className="text-sm font-medium text-card-foreground">Contact Reason</h5>
+              <h5 className="text-sm font-medium text-card-foreground">{t("Contact Reason")}</h5>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <TextField
-                  label="Label"
+                  label={t("Label")}
                   value={formData.form.contactReason.label}
                   onChange={(value) =>
                     setFormField('contactReason', {
@@ -861,7 +888,7 @@ function ContactFormModal({
                   }
                 />
                 <TextField
-                  label="Placeholder"
+                  label={t("Placeholder")}
                   value={formData.form.contactReason.placeholder}
                   onChange={(value) =>
                     setFormField('contactReason', {
@@ -883,11 +910,11 @@ function ContactFormModal({
                   }
                   className="rounded border-border text-primary focus:ring-primary"
                 />
-                Required
+                {t("Required")}
               </label>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Options (one per line)
+                  {t("Options (one per line)")}
                 </label>
                 <textarea
                   value={formData.form.contactReason.options.join('\n')}
@@ -899,28 +926,28 @@ function ContactFormModal({
                   }
                   rows={4}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder={'Option 1\nOption 2\nOption 3'}
+                  placeholder={t("Option 1\nOption 2\nOption 3")}
                 />
               </div>
             </div>
 
             <FormFieldEditor
-              title="Full Name"
+              title={t("Full Name")}
               field={formData.form.fullName}
               onChange={(field) => setFormField('fullName', field)}
             />
             <FormFieldEditor
-              title="Email Field"
+              title={t("Email Field")}
               field={formData.form.email}
               onChange={(field) => setFormField('email', field)}
             />
             <FormFieldEditor
-              title="Phone Field"
+              title={t("Phone Field")}
               field={formData.form.phone}
               onChange={(field) => setFormField('phone', field)}
             />
             <FormFieldEditor
-              title="Message"
+              title={t("Message")}
               field={formData.form.message}
               onChange={(field) => setFormField('message', field)}
             />
@@ -929,7 +956,7 @@ function ContactFormModal({
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-2">
               <div>
-                <h4 className="text-sm font-semibold text-card-foreground">Offices</h4>
+                <h4 className="text-sm font-semibold text-card-foreground">{t("Offices")}</h4>
                 <p className="text-xs text-muted-foreground mt-1">
                   {formData.offices.locations.length} location
                   {formData.offices.locations.length === 1 ? '' : 's'} added
@@ -941,12 +968,12 @@ function ContactFormModal({
                 className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Office
+                {t("Add Office")}
               </button>
             </div>
 
             <TextField
-              label="Offices Section Title"
+              label={t("Offices Section Title")}
               value={formData.offices.title}
               onChange={(value) =>
                 setFormData({
@@ -958,7 +985,7 @@ function ContactFormModal({
 
             {formData.offices.locations.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-                No offices added
+                {t("No offices added")}
               </p>
             ) : (
               <div className="space-y-4">
@@ -969,7 +996,7 @@ function ContactFormModal({
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-medium text-card-foreground">
-                        Office {index + 1}
+                        {t("Office")} {index + 1}
                       </span>
                       <div className="flex items-center gap-1">
                         <button
@@ -977,7 +1004,7 @@ function ContactFormModal({
                           onClick={() => onMoveOffice(index, -1)}
                           disabled={index === 0}
                           className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                          title="Move up"
+                          title={t("Move up")}
                         >
                           <ChevronUpIcon className="w-4 h-4" />
                         </button>
@@ -986,7 +1013,7 @@ function ContactFormModal({
                           onClick={() => onMoveOffice(index, 1)}
                           disabled={index === formData.offices.locations.length - 1}
                           className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                          title="Move down"
+                          title={t("Move down")}
                         >
                           <ChevronDownIcon className="w-4 h-4" />
                         </button>
@@ -994,7 +1021,7 @@ function ContactFormModal({
                           type="button"
                           onClick={() => onRemoveOffice(index)}
                           className="p-1.5 text-red-600 hover:text-red-800"
-                          title="Remove"
+                          title={t("Remove")}
                         >
                           <XIcon className="w-4 h-4" />
                         </button>
@@ -1003,46 +1030,46 @@ function ContactFormModal({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <TextField
-                        label="Country Code"
+                        label={t("Country Code")}
                         value={office.countryCode}
                         onChange={(value) => onUpdateOfficeField(index, 'countryCode', value)}
                         required
                       />
                       <TextField
-                        label="Tab"
+                        label={t("Tab")}
                         value={office.tab}
                         onChange={(value) => onUpdateOfficeField(index, 'tab', value)}
                       />
                       <TextField
-                        label="Name"
+                        label={t("Name")}
                         value={office.name}
                         onChange={(value) => onUpdateOfficeField(index, 'name', value)}
                       />
                       <TextField
-                        label="Email"
+                        label={t("Email")}
                         value={office.email}
                         onChange={(value) => onUpdateOfficeField(index, 'email', value)}
                       />
                       <TextField
-                        label="Phones (comma-separated)"
+                        label={t("Phones (comma-separated)")}
                         value={office.phones}
                         onChange={(value) => onUpdateOfficeField(index, 'phones', value)}
                       />
                       <TextField
-                        label="Fax"
+                        label={t("Fax")}
                         value={office.fax}
                         onChange={(value) => onUpdateOfficeField(index, 'fax', value)}
                       />
                     </div>
                     <TextField
-                      label="Address"
+                      label={t("Address")}
                       value={office.address}
                       onChange={(value) => onUpdateOfficeField(index, 'address', value)}
                       textarea
                       rows={2}
                     />
                     <TextField
-                      label="Map Embed"
+                      label={t("Map Embed")}
                       value={office.mapEmbed}
                       onChange={(value) => onUpdateOfficeField(index, 'mapEmbed', value)}
                       textarea
@@ -1056,10 +1083,10 @@ function ContactFormModal({
 
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Map Section
+              {t("Map Section")}
             </h4>
             <TextField
-              label="Map Title"
+              label={t("Map Title")}
               value={formData.map.title}
               onChange={(value) =>
                 setFormData({
@@ -1069,7 +1096,7 @@ function ContactFormModal({
               }
             />
             <TextField
-              label="Map Description"
+              label={t("Map Description")}
               value={formData.map.description}
               onChange={(value) =>
                 setFormData({
@@ -1087,17 +1114,41 @@ function ContactFormModal({
               onClick={onClose}
               className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !formData.siteId}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving...' : submitLabel}
+              {isSubmitting ? t("Saving...") : submitLabel}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+function Modal({
+  title,
+  children,
+  onClose,
+}: {
+  title: string
+  children: React.ReactNode
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   )

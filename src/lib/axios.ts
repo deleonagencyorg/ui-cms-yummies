@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { API_BASE_URL, API_ENDPOINTS, TOKEN_STORAGE_KEY, REFRESH_TOKEN_STORAGE_KEY } from '@/constants/api'
 import type { AuthResponse, RefreshTokenRequest } from '@/types/auth.types'
+import { getActiveSiteId, setActiveSiteId } from '@/lib/activeSite'
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -14,6 +15,33 @@ let failedQueue: Array<{
   resolve: (value?: unknown) => void
   reject: (reason?: unknown) => void
 }> = []
+
+const SITE_SCOPED_PREFIXES = ['/multimedia', '/folders', '/products', '/recipes', '/news']
+
+const attachActiveSite = (config: InternalAxiosRequestConfig) => {
+  const siteId = getActiveSiteId()
+  const path = config.url?.split('?')[0] ?? ''
+  if (!siteId || !SITE_SCOPED_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
+    return config
+  }
+
+  if (!config.params?.siteId) {
+    config.params = { ...config.params, siteId }
+  }
+
+  const isMediaLibrary = path.startsWith('/multimedia') || path.startsWith('/folders')
+  if (config.method?.toLowerCase() === 'post' && isMediaLibrary) {
+    if (config.data instanceof FormData) {
+      if (!config.data.has('siteId')) config.data.append('siteId', siteId)
+    } else if (config.data && typeof config.data === 'object' && !('siteId' in config.data)) {
+      config.data = { ...config.data, siteId }
+    } else if (!config.data) {
+      config.data = { siteId }
+    }
+  }
+
+  return config
+}
 
 const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
@@ -34,7 +62,7 @@ axiosInstance.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    return config
+    return attachActiveSite(config)
   },
   (error) => {
     return Promise.reject(error)
@@ -83,6 +111,7 @@ axiosInstance.interceptors.response.use(
         // No refresh token, logout user
         localStorage.removeItem(TOKEN_STORAGE_KEY)
         localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
+        setActiveSiteId(null)
         window.location.href = '/login'
         return Promise.reject(error)
       }
@@ -108,6 +137,7 @@ axiosInstance.interceptors.response.use(
         processQueue(refreshError as Error, null)
         localStorage.removeItem(TOKEN_STORAGE_KEY)
         localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
+        setActiveSiteId(null)
         window.location.href = '/login'
         return Promise.reject(refreshError)
       } finally {

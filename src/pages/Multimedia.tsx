@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '@/components/Layout'
@@ -5,7 +6,7 @@ import Pagination from '@/components/Pagination'
 import { toast } from 'sonner'
 import { useFolderContents, useFolderById } from '@/queries/folders'
 import { useCreateFolder, useUpdateFolder, useDeleteFolder } from '@/mutations/folders'
-import { useUploadMultimedia, useDeleteMultimedia, useUpdateMultimedia, useMoveMultimedia } from '@/mutations/multimedia'
+import { useDeleteMultimedia, useUpdateMultimedia, useMoveMultimedia } from '@/mutations/multimedia'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import type { FolderResponse } from '@/actions/folders'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -19,6 +20,7 @@ interface BreadcrumbItem {
 }
 
 export default function Multimedia() {
+  const { t } = useTranslation()
   const { folderId } = useParams<{ folderId: string }>()
   const navigate = useNavigate()
 
@@ -83,69 +85,45 @@ export default function Multimedia() {
 
   const updateMutation = useUpdateMultimedia({
     onSuccess: () => {
-      toast.success('Media updated successfully!')
       setIsEditModalOpen(false)
       setSelectedMedia(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to update media')
     },
   })
 
   const deleteMutation = useDeleteMultimedia({
     onSuccess: () => {
-      toast.success('Media deleted successfully!')
       setIsDeleteModalOpen(false)
       setSelectedMedia(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete media')
     },
   })
 
   const moveMutation = useMoveMultimedia({
     onSuccess: () => {
-      toast.success('Media moved successfully!')
       setIsMoveModalOpen(false)
       setSelectedMedia(null)
       setMoveTargetFolderId(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to move media')
     },
   })
 
   const createFolderMutation = useCreateFolder({
     onSuccess: () => {
-      toast.success('Folder created successfully!')
       setIsFolderModalOpen(false)
       setNewFolderName('')
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create folder')
     },
   })
 
   const updateFolderMutation = useUpdateFolder({
     onSuccess: () => {
-      toast.success('Folder renamed successfully!')
       setIsRenameFolderModalOpen(false)
       setSelectedFolder(null)
       setRenameFolderName('')
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to rename folder')
     },
   })
 
   const deleteFolderMutation = useDeleteFolder({
     onSuccess: () => {
-      toast.success('Folder deleted successfully!')
       setIsDeleteFolderModalOpen(false)
       setSelectedFolder(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete folder. Make sure the folder is empty.')
     },
   })
 
@@ -193,7 +171,7 @@ export default function Multimedia() {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!uploadData.file) {
-      toast.error('Please select a file')
+      toast.error(t("Please select a file"))
       return
     }
 
@@ -214,7 +192,7 @@ export default function Multimedia() {
     e.preventDefault()
     
     if (!externalUrl?.trim()) {
-      toast.error('Enter a valid URL.')
+      toast.error(t("Enter a valid URL."))
       return
     }
 
@@ -228,16 +206,7 @@ export default function Multimedia() {
       payload.folderId = currentFolderId;
     }
 
-    try {
-      await uploadMutation.mutateAsync(payload);
-      toast.success('Video agregado')
-      setExternalUrl('')
-      setIsUploadModalOpen(false)
-      setUploadData({ file: null, altText: '', caption: '' })
-    } catch (error: any) {
-      console.error('Error subiendo URL:', error)
-      toast.error(error.response?.data?.error || 'Error al agregar el video')
-    }
+    await uploadMutation.mutateAsync(payload);
   }
 
   const queryClient = useQueryClient()
@@ -245,7 +214,7 @@ export default function Multimedia() {
   const uploadMutation = useMutation({
     mutationFn: multimediaActions.create,
     onSuccess: () => {
-      toast.success('File uploaded successfully!')
+      toast.success(t("File uploaded successfully!"))
       setIsUploadModalOpen(false)
       setExternalUrl('')
       setUploadData({ file: null, altText: '', caption: '' })
@@ -253,7 +222,7 @@ export default function Multimedia() {
     },
     onError: (error: any) => {
       console.error('Error subiendo:', error)
-      toast.error(error.response?.data?.error || 'Failed to upload file.')
+      toast.error(error.response?.data?.error || t("Failed to upload file."))
     }
   })
 
@@ -283,7 +252,7 @@ export default function Multimedia() {
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newFolderName.trim()) {
-      toast.error('Please enter a folder name')
+      toast.error(t("Please enter a folder name"))
       return
     }
 
@@ -372,8 +341,8 @@ export default function Multimedia() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Media Library</h2>
-              <p className="text-muted-foreground mt-1">Manage your files and media</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Media Library")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage your files and media")}</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -381,14 +350,14 @@ export default function Multimedia() {
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors flex items-center gap-2"
               >
                 <FolderPlusIcon className="w-5 h-5" />
-                New Folder
+                {t("New Folder")}
               </button>
               <button
                 onClick={() => setIsUploadModalOpen(true)}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
               >
                 <UploadIcon className="w-5 h-5" />
-                Upload File
+                {t("Upload File")}
               </button>
             </div>
           </div>
@@ -416,7 +385,7 @@ export default function Multimedia() {
           <div className="mb-6 flex gap-4 flex-wrap items-center">
             <input
               type="text"
-              placeholder="Search by filename..."
+              placeholder={t("Search by filename...")}
               value={searchFileName}
               onChange={(e) => {
                 setSearchFileName(e.target.value)
@@ -432,11 +401,11 @@ export default function Multimedia() {
               }}
               className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Types</option>
-              <option value="image">Images</option>
-              <option value="video">Videos</option>
-              <option value="audio">Audio</option>
-              <option value="document">Documents</option>
+              <option value="">{t("All Types")}</option>
+              <option value="image">{t("Images")}</option>
+              <option value="video">{t("Videos")}</option>
+              <option value="audio">{t("Audio")}</option>
+              <option value="document">{t("Documents")}</option>
             </select>
 
             {/* View Toggle */}
@@ -448,7 +417,7 @@ export default function Multimedia() {
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-secondary'
                 }`}
-                title="Grid View"
+                title={t("Grid View")}
               >
                 <GridIcon className="w-5 h-5" />
               </button>
@@ -459,7 +428,7 @@ export default function Multimedia() {
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-secondary'
                 }`}
-                title="List View"
+                title={t("List View")}
               >
                 <ListIcon className="w-5 h-5" />
               </button>
@@ -470,15 +439,15 @@ export default function Multimedia() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading media...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading media...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load media</p>
+              <p className="text-red-500">{t("Failed to load media")}</p>
             </div>
           ) : !data?.folders?.length && !data?.multimedia?.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">This folder is empty</p>
+              <p className="text-muted-foreground">{t("This folder is empty")}</p>
             </div>
           ) : (
             <>
@@ -501,28 +470,28 @@ export default function Multimedia() {
                         <p className="text-xs font-medium text-card-foreground truncate" title={folder.name}>
                           {folder.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">Folder</p>
+                        <p className="text-xs text-muted-foreground">{t("Folder")}</p>
                       </div>
                       {/* Actions Overlay */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <button
                           onClick={() => navigateToFolder(folder)}
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
-                          title="Open"
+                          title={t("Open")}
                         >
                           <FolderOpenIcon className="w-4 h-4 text-gray-700" />
                         </button>
                         <button
                           onClick={() => openRenameFolderModal(folder)}
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
-                          title="Rename"
+                          title={t("Rename")}
                         >
                           <EditIcon className="w-4 h-4 text-gray-700" />
                         </button>
                         <button
                           onClick={() => openDeleteFolderModal(folder)}
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
-                          title="Delete"
+                          title={t("Delete")}
                         >
                           <DeleteIcon className="w-4 h-4 text-red-600" />
                         </button>
@@ -568,21 +537,21 @@ export default function Multimedia() {
                         <button
                           onClick={() => openEditModal(media)}
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
-                          title="Edit"
+                          title={t("Edit")}
                         >
                           <EditIcon className="w-4 h-4 text-gray-700" />
                         </button>
                         <button
                           onClick={() => openMoveModal(media)}
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
-                          title="Move"
+                          title={t("Move")}
                         >
                           <MoveIcon className="w-4 h-4 text-gray-700" />
                         </button>
                         <button
                           onClick={() => openDeleteModal(media)}
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
-                          title="Delete"
+                          title={t("Delete")}
                         >
                           <DeleteIcon className="w-4 h-4 text-red-600" />
                         </button>
@@ -591,7 +560,7 @@ export default function Multimedia() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 bg-white rounded-full hover:bg-gray-100"
-                          title="View"
+                          title={t("View")}
                         >
                           <EyeIcon className="w-4 h-4 text-gray-700" />
                         </a> 
@@ -608,22 +577,22 @@ export default function Multimedia() {
                     <thead className="bg-secondary">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Preview
+                          {t("Preview")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Name
+                          {t("Name")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Type
+                          {t("Type")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Size
+                          {t("Size")}
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Date
+                          {t("Date")}
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          Actions
+                          {t("Actions")}
                         </th>
                       </tr>
                     </thead>
@@ -644,7 +613,7 @@ export default function Multimedia() {
                             <p className="text-sm font-medium text-card-foreground">{folder.name}</p>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-muted-foreground">Folder</span>
+                            <span className="text-sm text-muted-foreground">{t("Folder")}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="text-sm text-muted-foreground">-</span>
@@ -659,21 +628,21 @@ export default function Multimedia() {
                               <button
                                 onClick={() => navigateToFolder(folder)}
                                 className="text-primary hover:text-primary/80"
-                                title="Open"
+                                title={t("Open")}
                               >
                                 <FolderOpenIcon className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={() => openRenameFolderModal(folder)}
                                 className="text-primary hover:text-primary/80"
-                                title="Rename"
+                                title={t("Rename")}
                               >
                                 <EditIcon className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={() => openDeleteFolderModal(folder)}
                                 className="text-red-600 hover:text-red-800"
-                                title="Delete"
+                                title={t("Delete")}
                               >
                                 <DeleteIcon className="w-5 h-5" />
                               </button>
@@ -695,7 +664,7 @@ export default function Multimedia() {
                                 />
                               ) : (
                                 <div className="text-muted-foreground">
-                                  {getFileIcon(media.fileType)}
+                                  {getFileIcon(media)}
                                 </div>
                               )}
                             </div>
@@ -724,21 +693,21 @@ export default function Multimedia() {
                               <button
                                 onClick={() => openEditModal(media)}
                                 className="text-primary hover:text-primary/80"
-                                title="Edit"
+                                title={t("Edit")}
                               >
                                 <EditIcon className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={() => openMoveModal(media)}
                                 className="text-primary hover:text-primary/80"
-                                title="Move"
+                                title={t("Move")}
                               >
                                 <MoveIcon className="w-5 h-5" />
                               </button>
                               <button
                                 onClick={() => openDeleteModal(media)}
                                 className="text-red-600 hover:text-red-800"
-                                title="Delete"
+                                title={t("Delete")}
                               >
                                 <DeleteIcon className="w-5 h-5" />
                               </button>
@@ -747,7 +716,7 @@ export default function Multimedia() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:text-blue-800"
-                                title="View"
+                                title={t("View")}
                               >
                                 <EyeIcon className="w-5 h-5" />
                               </a>
@@ -783,7 +752,7 @@ export default function Multimedia() {
       {/* Upload Modal */}
       {isUploadModalOpen && (
         <Modal
-          title="Upload File or URL"
+          title={t("Upload File or URL")}
           onClose={() => {
             setIsUploadModalOpen(false)
             setUploadData({ file: null, altText: '', caption: '' })
@@ -800,7 +769,7 @@ export default function Multimedia() {
                   uploadType === 'file' ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'
                 }`}
               >
-                Subir Archivo
+                {t("Subir Archivo")}
               </button>
               <button
                 onClick={() => setUploadType('url')}
@@ -808,7 +777,7 @@ export default function Multimedia() {
                   uploadType === 'url' ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'
                 }`}
               >
-                Pegar URL
+                {t("Pegar URL")}
               </button>
             </div>
 
@@ -816,7 +785,7 @@ export default function Multimedia() {
               <form onSubmit={handleUpload} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    File *
+                    {t("File *")}
                   </label>
                   <input
                     ref={fileInputRef}
@@ -827,14 +796,14 @@ export default function Multimedia() {
                   />
                   {uploadData.file && (
                     <p className="text-sm text-muted-foreground mt-2">
-                      Selected: {uploadData.file.name} ({formatFileSize(uploadData.file.size)})
+                      {t("Selected:")} {uploadData.file.name} ({formatFileSize(uploadData.file.size)})
                     </p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Alt Text
+                    {t("Alt Text")}
                   </label>
                   <input
                     type="text"
@@ -842,13 +811,13 @@ export default function Multimedia() {
                     onChange={(e) => setUploadData({ ...uploadData, altText: e.target.value })}
                     maxLength={255}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Describe this image for accessibility"
+                    placeholder={t("Describe this image for accessibility")}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Caption
+                    {t("Caption")}
                   </label>
                   <textarea
                     value={uploadData.caption}
@@ -856,7 +825,7 @@ export default function Multimedia() {
                     maxLength={500}
                     rows={3}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Optional caption"
+                    placeholder={t("Optional caption")}
                   />
                 </div>
 
@@ -869,14 +838,14 @@ export default function Multimedia() {
                     }}
                     className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
                   >
-                    Cancel
+                    {t("Cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={uploadMutation.isPending}
                     className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                   >
-                    {uploadMutation.isPending ? 'Uploading...' : 'Upload'}
+                    {uploadMutation.isPending ? t("Uploading...") : t("Upload")}
                   </button>
                 </div>
               </form>
@@ -885,7 +854,7 @@ export default function Multimedia() {
               <form onSubmit={handleExternalUrlSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Video URL *
+                    {t("Video URL *")}
                   </label>
                   <input
                     type="url"
@@ -896,13 +865,13 @@ export default function Multimedia() {
                     required
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Ejemplo: https://youtu.be/AVOMZkoahhw
+                    {t("Ejemplo: https://youtu.be/AVOMZkoahhw")}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Alt Text
+                    {t("Alt Text")}
                   </label>
                   <input
                     type="text"
@@ -910,7 +879,7 @@ export default function Multimedia() {
                     onChange={(e) => setUploadData({ ...uploadData, altText: e.target.value })}
                     maxLength={255}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Describe this video"
+                    placeholder={t("Describe this video")}
                   />
                 </div>
 
@@ -924,14 +893,14 @@ export default function Multimedia() {
                     }}
                     className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
                   >
-                    Cancel
+                    {t("Cancel")}
                   </button>
                   <button
                     type="submit"
                     disabled={uploadMutation.isPending}
                     className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                   >
-                    {uploadMutation.isPending ? 'Adding...' : 'Add Video'}
+                    {uploadMutation.isPending ? t("Adding...") : t("Add Video")}
                   </button>
                 </div>
               </form>
@@ -943,7 +912,7 @@ export default function Multimedia() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedMedia && (
         <Modal
-          title="Edit Media"
+          title={t("Edit Media")}
           onClose={() => {
             setIsEditModalOpen(false)
             setSelectedMedia(null)
@@ -952,7 +921,7 @@ export default function Multimedia() {
           <form onSubmit={handleEdit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                File Name
+                {t("File Name")}
               </label>
               <input
                 type="text"
@@ -964,7 +933,7 @@ export default function Multimedia() {
 
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Alt Text
+                {t("Alt Text")}
               </label>
               <input
                 type="text"
@@ -977,7 +946,7 @@ export default function Multimedia() {
 
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Caption
+                {t("Caption")}
               </label>
               <textarea
                 value={editData.caption}
@@ -997,14 +966,14 @@ export default function Multimedia() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updateMutation.isPending ? 'Updating...' : 'Update'}
+                {updateMutation.isPending ? t("Updating...") : t("Update")}
               </button>
             </div>
           </form>
@@ -1014,7 +983,7 @@ export default function Multimedia() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedMedia && (
         <Modal
-          title="Delete Media"
+          title={t("Delete Media")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedMedia(null)
@@ -1022,8 +991,7 @@ export default function Multimedia() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedMedia.fileName}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete \"")}<strong>{selectedMedia.fileName}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -1033,14 +1001,14 @@ export default function Multimedia() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -1050,7 +1018,7 @@ export default function Multimedia() {
       {/* Move Modal */}
       {isMoveModalOpen && selectedMedia && (
         <Modal
-          title="Move Media"
+          title={t("Move Media")}
           onClose={() => {
             setIsMoveModalOpen(false)
             setSelectedMedia(null)
@@ -1059,7 +1027,7 @@ export default function Multimedia() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground mb-4">
-              Move "<strong>{selectedMedia.fileName}</strong>" to:
+              {t("Move \"")}<strong>{selectedMedia.fileName}</strong>{t("\" to:")}
             </p>
 
             <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -1072,7 +1040,7 @@ export default function Multimedia() {
                 }`}
               >
                 <FolderIcon className="w-5 h-5 text-yellow-500" />
-                <span>Root</span>
+                <span>{t("Root")}</span>
               </button>
 
               {rootFoldersData?.folders.map((folder) => (
@@ -1100,14 +1068,14 @@ export default function Multimedia() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleMove}
                 disabled={moveMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {moveMutation.isPending ? 'Moving...' : 'Move'}
+                {moveMutation.isPending ? t("Moving...") : t("Move")}
               </button>
             </div>
           </div>
@@ -1117,7 +1085,7 @@ export default function Multimedia() {
       {/* Create Folder Modal */}
       {isFolderModalOpen && (
         <Modal
-          title="Create Folder"
+          title={t("Create Folder")}
           onClose={() => {
             setIsFolderModalOpen(false)
             setNewFolderName('')
@@ -1126,7 +1094,7 @@ export default function Multimedia() {
           <form onSubmit={handleCreateFolder} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Folder Name *
+                {t("Folder Name *")}
               </label>
               <input
                 type="text"
@@ -1135,14 +1103,14 @@ export default function Multimedia() {
                 maxLength={255}
                 required
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter folder name"
+                placeholder={t("Enter folder name")}
                 autoFocus
               />
             </div>
 
             {currentFolderId && (
               <p className="text-sm text-muted-foreground">
-                Creating in: {breadcrumbs[breadcrumbs.length - 1]?.name}
+                {t("Creating in:")} {breadcrumbs[breadcrumbs.length - 1]?.name}
               </p>
             )}
 
@@ -1155,14 +1123,14 @@ export default function Multimedia() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={createFolderMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {createFolderMutation.isPending ? 'Creating...' : 'Create'}
+                {createFolderMutation.isPending ? t("Creating...") : t("Create")}
               </button>
             </div>
           </form>
@@ -1172,7 +1140,7 @@ export default function Multimedia() {
       {/* Rename Folder Modal */}
       {isRenameFolderModalOpen && selectedFolder && (
         <Modal
-          title="Rename Folder"
+          title={t("Rename Folder")}
           onClose={() => {
             setIsRenameFolderModalOpen(false)
             setSelectedFolder(null)
@@ -1182,7 +1150,7 @@ export default function Multimedia() {
           <form onSubmit={handleRenameFolder} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Folder Name *
+                {t("Folder Name *")}
               </label>
               <input
                 type="text"
@@ -1205,14 +1173,14 @@ export default function Multimedia() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={updateFolderMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updateFolderMutation.isPending ? 'Renaming...' : 'Rename'}
+                {updateFolderMutation.isPending ? t("Renaming...") : t("Rename")}
               </button>
             </div>
           </form>
@@ -1222,7 +1190,7 @@ export default function Multimedia() {
       {/* Delete Folder Modal */}
       {isDeleteFolderModalOpen && selectedFolder && (
         <Modal
-          title="Delete Folder"
+          title={t("Delete Folder")}
           onClose={() => {
             setIsDeleteFolderModalOpen(false)
             setSelectedFolder(null)
@@ -1230,10 +1198,10 @@ export default function Multimedia() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete folder "<strong>{selectedFolder.name}</strong>"?
+              {t("Are you sure you want to delete folder \"")}<strong>{selectedFolder.name}</strong>"?
             </p>
             <p className="text-sm text-muted-foreground">
-              Note: The folder must be empty to delete.
+              {t("Note: The folder must be empty to delete.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -1243,14 +1211,14 @@ export default function Multimedia() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDeleteFolder}
                 disabled={deleteFolderMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteFolderMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteFolderMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>

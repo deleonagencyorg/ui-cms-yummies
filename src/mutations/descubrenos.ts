@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   descubrenosActions,
   type Descubrenos,
@@ -6,6 +7,10 @@ import {
   type UpdateDescubrenosRequest,
 } from '@/actions/descubrenos'
 import { DESCUBRENOS_KEYS } from '@/queries/descubrenos'
+
+function extractError(error: unknown, fallback: string): string {
+  return (error as { response?: { data?: { error?: string } } }).response?.data?.error || fallback
+}
 
 export const useCreateDescubrenos = (
   options?: Omit<
@@ -20,7 +25,12 @@ export const useCreateDescubrenos = (
     mutationFn: descubrenosActions.create,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: DESCUBRENOS_KEYS.lists() })
+      toast.success('Descúbrenos created successfully!')
       options?.onSuccess?.(...args)
+    },
+    onError: (...args) => {
+      toast.error(extractError(args[0], 'Failed to create Descúbrenos'))
+      options?.onError?.(...args)
     },
   })
 }
@@ -40,7 +50,12 @@ export const useUpdateDescubrenos = (
       const [, variables] = args
       queryClient.invalidateQueries({ queryKey: DESCUBRENOS_KEYS.lists() })
       queryClient.invalidateQueries({ queryKey: DESCUBRENOS_KEYS.detail(variables.id) })
+      toast.success('Descúbrenos updated successfully!')
       options?.onSuccess?.(...args)
+    },
+    onError: (...args) => {
+      toast.error(extractError(args[0], 'Failed to update Descúbrenos'))
+      options?.onError?.(...args)
     },
   })
 }
@@ -57,7 +72,12 @@ export const useDeleteDescubrenos = (
       const [, id] = args
       queryClient.invalidateQueries({ queryKey: DESCUBRENOS_KEYS.lists() })
       queryClient.removeQueries({ queryKey: DESCUBRENOS_KEYS.detail(id) })
+      toast.success('Descúbrenos deleted successfully!')
       options?.onSuccess?.(...args)
+    },
+    onError: (...args) => {
+      toast.error(extractError(args[0], 'Failed to delete Descúbrenos'))
+      options?.onError?.(...args)
     },
   })
 }

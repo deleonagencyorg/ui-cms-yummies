@@ -1,5 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useSyncExternalStore, type ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { getActiveSiteId, setActiveSiteId, subscribeActiveSite } from '@/lib/activeSite'
 
 interface SiteContextType {
   selectedSiteId: string | null
@@ -8,23 +10,21 @@ interface SiteContextType {
 
 const SiteContext = createContext<SiteContextType | undefined>(undefined)
 
-const SELECTED_SITE_STORAGE_KEY = 'selected_site_id'
+const GLOBAL_QUERY_ROOTS = new Set([
+  'sites', 'brands', 'languages', 'api-tokens', 'departments', 'jobTitles', 'profiles',
+])
 
 export function SiteProvider({ children }: { children: ReactNode }) {
-  const [selectedSiteId, setSelectedSiteIdState] = useState<string | null>(() => {
-    // Load from localStorage on init
-    const stored = localStorage.getItem(SELECTED_SITE_STORAGE_KEY)
-    return stored || null
-  })
+  const queryClient = useQueryClient()
+  const selectedSiteId = useSyncExternalStore(subscribeActiveSite, getActiveSiteId)
 
-  const setSelectedSiteId = (siteId: string | null) => {
-    setSelectedSiteIdState(siteId)
-    if (siteId) {
-      localStorage.setItem(SELECTED_SITE_STORAGE_KEY, siteId)
-    } else {
-      localStorage.removeItem(SELECTED_SITE_STORAGE_KEY)
-    }
-  }
+  const setSelectedSiteId = useCallback((siteId: string | null) => {
+    if (siteId === getActiveSiteId()) return
+    setActiveSiteId(siteId)
+    queryClient.removeQueries({
+      predicate: (query) => !GLOBAL_QUERY_ROOTS.has(String(query.queryKey[0])),
+    })
+  }, [queryClient])
 
   return (
     <SiteContext.Provider value={{ selectedSiteId, setSelectedSiteId }}>

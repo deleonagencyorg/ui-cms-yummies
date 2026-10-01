@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import RequireSite from '@/components/RequireSite'
 
 // Public pages
 import Home from '@/pages/Home'
@@ -19,6 +20,7 @@ import JobTitles from '@/pages/JobTitles'
 import Brands from '@/pages/Brands'
 import Products from '@/pages/Products'
 import Recipes from '@/pages/Recipes'
+import TopMessages from '@/pages/TopMessages'
 import News from '@/pages/News'
 import Multimedia from '@/pages/Multimedia'
 import Sites from '@/pages/Sites'
@@ -29,6 +31,16 @@ import Descubrenos from './pages/Descubrenos'
 import Contact from './pages/Contact'
 import Footer from './pages/Footer'
 import ApiTokens from './pages/ApiTokens'
+import Navigation from './pages/Navigation'
+import SocialMedia from './pages/SocialMedia'
+import Modals from './pages/Modals'
+import HomeContent from './pages/HomeContent'
+import AboutUs from './pages/AboutUs'
+import Messages from './pages/Messages'
+import NotFoundTexts from './pages/NotFoundTexts'
+import ZambosTruck from './pages/ZambosTruck'
+import ProductCategories from './pages/ProductCategories'
+import Gallery from './pages/Gallery'
 
 function App() {
   const { isAuthenticated, loading } = useAuth()
@@ -149,7 +161,7 @@ function App() {
         path="/products"
         element={
           <ProtectedRoute>
-            <Products />
+            <RequireSite modules={['products']}><Products /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -157,7 +169,15 @@ function App() {
         path="/recipes"
         element={
           <ProtectedRoute>
-            <Recipes />
+            <RequireSite modules={['recipes']}><Recipes /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/top-messages"
+        element={
+          <ProtectedRoute>
+            <TopMessages />
           </ProtectedRoute>
         }
       />
@@ -165,7 +185,7 @@ function App() {
         path="/multimedia"
         element={
           <ProtectedRoute>
-            <Multimedia />
+            <RequireSite><Multimedia /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -173,7 +193,7 @@ function App() {
         path="/multimedia/folder/:folderId"
         element={
           <ProtectedRoute>
-            <Multimedia />
+            <RequireSite><Multimedia /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -189,7 +209,7 @@ function App() {
         path="/pages"
         element={
           <ProtectedRoute>
-            <Pages />
+            <RequireSite modules={['pages']}><Pages /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -197,7 +217,7 @@ function App() {
         path="/news"
         element={
           <ProtectedRoute>
-            <News />
+            <RequireSite modules={['news']}><News /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -205,7 +225,7 @@ function App() {
         path="/health"
         element={
           <ProtectedRoute>
-            <Health />
+            <RequireSite modules={['health']}><Health /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -213,7 +233,7 @@ function App() {
         path="/descubrenos"
         element={
           <ProtectedRoute>
-            <Descubrenos />
+            <RequireSite modules={['descubrenos']}><Descubrenos /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -221,7 +241,7 @@ function App() {
         path="/contact"
         element={
           <ProtectedRoute>
-            <Contact />
+            <RequireSite modules={['contact']}><Contact /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -229,7 +249,7 @@ function App() {
         path="/footer"
         element={
           <ProtectedRoute>
-            <Footer />
+            <RequireSite modules={['footer']}><Footer /></RequireSite>
           </ProtectedRoute>
         }
       />
@@ -239,6 +259,88 @@ function App() {
         element={
           <ProtectedRoute>
             <ApiTokens />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/navigation"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['navigation']}><Navigation /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/social-media"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['social_media']}><SocialMedia /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/modals"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['modals']}><Modals /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/home-content"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['home']}><HomeContent /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/about-us"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['about_us']}><AboutUs /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['messages']}><Messages /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/not-found-page"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['not_found']}><NotFoundTexts /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/zambos-truck"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['zambos_truck']}><ZambosTruck /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/product-categories"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['product_categories']}><ProductCategories /></RequireSite>
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/site-settings" element={<Navigate to="/footer" replace />} />
+      <Route path="/content-lists" element={<Navigate to="/" replace />} />
+      <Route
+        path="/gallery"
+        element={
+          <ProtectedRoute>
+            <RequireSite modules={['gallery']}><Gallery /></RequireSite>
           </ProtectedRoute>
         }
       />

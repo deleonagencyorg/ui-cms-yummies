@@ -1,9 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import { useSite } from '@/contexts/SiteContext'
-import { toast } from 'sonner'
 import { usePages } from '@/queries/pages'
 import { useSites } from '@/queries/sites'
 import { useLanguages } from '@/queries/languages'
@@ -146,6 +146,7 @@ function mediaPreviewUrl(media: MultimediaResponse | null | undefined): string |
 }
 
 export default function Pages() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -197,35 +198,23 @@ export default function Pages() {
 
   const createMutation = useCreatePage({
     onSuccess: () => {
-      toast.success('Page created successfully!')
       setIsCreateModalOpen(false)
       resetForm()
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create page')
     },
   })
 
   const updateMutation = useUpdatePage({
     onSuccess: () => {
-      toast.success('Page updated successfully!')
       setIsEditModalOpen(false)
       setSelectedPage(null)
       resetForm()
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to update page')
     },
   })
 
   const deleteMutation = useDeletePage({
     onSuccess: () => {
-      toast.success('Page deleted successfully!')
       setIsDeleteModalOpen(false)
       setSelectedPage(null)
-    },
-    onError: (err: unknown) => {
-      toast.error((err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to delete page')
     },
   })
 
@@ -281,7 +270,7 @@ export default function Pages() {
   const columns = useMemo<ColumnDef<PageResponse, any>[]>(
     () => [
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t("Title"),
         cell: (info) => (
           <div>
             <span className="text-sm font-medium text-card-foreground">
@@ -296,7 +285,7 @@ export default function Pages() {
         ),
       }),
       columnHelper.accessor('slug', {
-        header: 'Slug',
+        header: t("Slug"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             /{info.getValue()}
@@ -304,7 +293,7 @@ export default function Pages() {
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => {
           const languageCode = info.getValue()
           const language = info.row.original.language
@@ -317,7 +306,7 @@ export default function Pages() {
         },
       }),
       columnHelper.accessor('status', {
-        header: 'Status',
+        header: t("Status"),
         cell: (info) => {
           const status = info.getValue()
           const statusColors: { [key: string]: string } = {
@@ -335,7 +324,7 @@ export default function Pages() {
       }),
       columnHelper.display({
         id: 'banners',
-        header: 'Banners',
+        header: t("Banners"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {row.original.banners?.length ?? 0}
@@ -343,7 +332,7 @@ export default function Pages() {
         ),
       }),
       columnHelper.accessor('author', {
-        header: 'Author',
+        header: t("Author"),
         cell: (info) => {
           const author = info.getValue()
           return author ? (
@@ -356,7 +345,7 @@ export default function Pages() {
         },
       }),
       columnHelper.accessor('updatedAt', {
-        header: 'Last Updated',
+        header: t("Last Updated"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -365,20 +354,20 @@ export default function Pages() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -386,7 +375,7 @@ export default function Pages() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -505,8 +494,8 @@ export default function Pages() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Pages</h2>
-              <p className="text-muted-foreground mt-1">Manage your website pages</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Pages")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage your website pages")}</p>
             </div>
             <button
               onClick={() => {
@@ -516,7 +505,7 @@ export default function Pages() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Page
+              {t("Create Page")}
             </button>
           </div>
 
@@ -524,7 +513,7 @@ export default function Pages() {
           <div className="mb-6 flex gap-4 flex-wrap">
             <input
               type="text"
-              placeholder="Search by title..."
+              placeholder={t("Search by title...")}
               value={searchTitle}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
@@ -540,7 +529,7 @@ export default function Pages() {
               }}
               className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Statuses</option>
+              <option value="">{t("All Statuses")}</option>
               {PAGE_STATUSES.map((status) => (
                 <option key={status} value={status}>
                   {status}
@@ -553,15 +542,15 @@ export default function Pages() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading pages...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading pages...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load pages</p>
+              <p className="text-red-500">{t("Failed to load pages")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No pages found</p>
+              <p className="text-muted-foreground">{t("No pages found")}</p>
             </div>
           ) : (
             <>
@@ -622,7 +611,7 @@ export default function Pages() {
       {/* Create/Edit Modal */}
       {(isCreateModalOpen || isEditModalOpen) && (
         <LargeModal
-          title={isCreateModalOpen ? 'Create Page' : 'Edit Page'}
+          title={isCreateModalOpen ? t("Create Page") : t("Edit Page")}
           onClose={() => {
             if (isCreateModalOpen) { setIsCreateModalOpen(false) } else { setIsEditModalOpen(false) }
             setSelectedPage(null)
@@ -632,11 +621,11 @@ export default function Pages() {
           <form onSubmit={isCreateModalOpen ? handleCreate : handleEdit} className="space-y-6">
             {/* Basic Information */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Basic Information</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Basic Information")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Site *
+                    {t("Site *")}
                   </label>
                   <select
                     value={formData.siteId}
@@ -645,7 +634,7 @@ export default function Pages() {
                     disabled
                     className="w-full px-4 py-2 bg-secondary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary cursor-not-allowed opacity-75"
                   >
-                    <option value="">Select a site</option>
+                    <option value="">{t("Select a site")}</option>
                     {sitesData?.data.map((site) => (
                       <option key={site.id} value={site.id}>
                         {site.name}
@@ -653,12 +642,12 @@ export default function Pages() {
                     ))}
                   </select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Site is automatically set from the sidebar selector
+                    {t("Site is automatically set from the sidebar selector")}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Language *
+                    {t("Language *")}
                   </label>
                   <select
                     value={formData.languageCode}
@@ -675,7 +664,7 @@ export default function Pages() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Status
+                    {t("Status")}
                   </label>
                   <select
                     value={formData.status}
@@ -689,7 +678,7 @@ export default function Pages() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Title *
+                    {t("Title *")}
                   </label>
                   <input
                     type="text"
@@ -702,7 +691,7 @@ export default function Pages() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Slug *
+                    {t("Slug *")}
                   </label>
                   <input
                     type="text"
@@ -716,7 +705,7 @@ export default function Pages() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Excerpt
+                    {t("Excerpt")}
                   </label>
                   <textarea
                     value={formData.excerpt}
@@ -724,12 +713,12 @@ export default function Pages() {
                     rows={2}
                     maxLength={500}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Brief summary of the page"
+                    placeholder={t("Brief summary of the page")}
                   />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Content *
+                    {t("Content *")}
                   </label>
                   <textarea
                     value={formData.content}
@@ -737,7 +726,7 @@ export default function Pages() {
                     required
                     rows={8}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
-                    placeholder="Page content (HTML supported)"
+                    placeholder={t("Page content (HTML supported)")}
                   />
                 </div>
               </div>
@@ -747,9 +736,9 @@ export default function Pages() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h4 className="text-sm font-semibold text-card-foreground">Banners</h4>
+                  <h4 className="text-sm font-semibold text-card-foreground">{t("Banners")}</h4>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Add one or more banners. Choose image, video, or HTML hero for each slide.
+                    {t("Add one or more banners. Choose image, video, or HTML hero for each slide.")}
                   </p>
                 </div>
                 <button
@@ -758,13 +747,13 @@ export default function Pages() {
                   className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  Add Banner
+                  {t("Add Banner")}
                 </button>
               </div>
 
               {banners.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-                  No banners added
+                  {t("No banners added")}
                 </p>
               ) : (
                 <div className="space-y-4">
@@ -787,7 +776,7 @@ export default function Pages() {
 
             {/* Featured Image */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Featured Image</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Featured Image")}</h4>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -795,14 +784,14 @@ export default function Pages() {
                   className="px-4 py-2 bg-background border border-border rounded-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <PhotoIcon className="w-5 h-5 inline mr-2" />
-                  Select from Media
+                  {t("Select from Media")}
                 </button>
                 {formData.featuredImageId && (
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, featuredImageId: '' })}
                     className="px-3 py-2 text-red-600 border border-border rounded-lg hover:bg-red-50"
-                    title="Clear"
+                    title={t("Clear")}
                   >
                     <XIcon className="w-5 h-5" />
                   </button>
@@ -811,7 +800,7 @@ export default function Pages() {
               {formData.featuredImageId && (
                 <div className="mt-2 p-2 bg-secondary rounded border border-border">
                   <p className="text-xs text-muted-foreground">
-                    Image ID: {formData.featuredImageId}
+                    {t("Image ID:")} {formData.featuredImageId}
                   </p>
                 </div>
               )}
@@ -819,11 +808,11 @@ export default function Pages() {
 
             {/* SEO */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">SEO Settings</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("SEO Settings")}</h4>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Meta Title
+                    {t("Meta Title")}
                   </label>
                   <input
                     type="text"
@@ -835,7 +824,7 @@ export default function Pages() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Meta Description
+                    {t("Meta Description")}
                   </label>
                   <textarea
                     value={formData.metaDescription}
@@ -846,14 +835,14 @@ export default function Pages() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Meta Keywords
+                    {t("Meta Keywords")}
                   </label>
                   <input
                     type="text"
                     value={formData.metaKeywords}
                     onChange={(e) => setFormData({ ...formData, metaKeywords: e.target.value })}
                     maxLength={255}
-                    placeholder="keyword1, keyword2, keyword3"
+                    placeholder={t("keyword1, keyword2, keyword3")}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
@@ -862,42 +851,42 @@ export default function Pages() {
 
             {/* Open Graph / Social Media */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Open Graph / Social Media</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Open Graph / Social Media")}</h4>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    OG Title
+                    {t("OG Title")}
                   </label>
                   <input
                     type="text"
                     value={formData.ogTitle}
                     onChange={(e) => setFormData({ ...formData, ogTitle: e.target.value })}
                     maxLength={255}
-                    placeholder="How the page title appears when shared on social media"
+                    placeholder={t("How the page title appears when shared on social media")}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Recommended: 60-90 characters
+                    {t("Recommended: 60-90 characters")}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    OG Description
+                    {t("OG Description")}
                   </label>
                   <textarea
                     value={formData.ogDescription}
                     onChange={(e) => setFormData({ ...formData, ogDescription: e.target.value })}
                     rows={3}
-                    placeholder="Brief description for social media previews"
+                    placeholder={t("Brief description for social media previews")}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Recommended: 150-200 characters
+                    {t("Recommended: 150-200 characters")}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    OG Image
+                    {t("OG Image")}
                   </label>
                   <div className="flex gap-2">
                     <button
@@ -906,14 +895,14 @@ export default function Pages() {
                       className="px-4 py-2 bg-background border border-border rounded-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <PhotoIcon className="w-5 h-5 inline mr-2" />
-                      Select OG Image
+                      {t("Select OG Image")}
                     </button>
                     {formData.ogImageId && (
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, ogImageId: '' })}
                         className="px-3 py-2 text-red-600 border border-border rounded-lg hover:bg-red-50"
-                        title="Clear"
+                        title={t("Clear")}
                       >
                         <XIcon className="w-5 h-5" />
                       </button>
@@ -922,12 +911,12 @@ export default function Pages() {
                   {formData.ogImageId && (
                     <div className="mt-2 p-2 bg-secondary rounded border border-border">
                       <p className="text-xs text-muted-foreground">
-                        Image ID: {formData.ogImageId}
+                        {t("Image ID:")} {formData.ogImageId}
                       </p>
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    Recommended: 1200x630 pixels (1.91:1 ratio)
+                    {t("Recommended: 1200x630 pixels (1.91:1 ratio)")}
                   </p>
                 </div>
               </div>
@@ -943,7 +932,7 @@ export default function Pages() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
@@ -951,8 +940,8 @@ export default function Pages() {
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
                 {createMutation.isPending || updateMutation.isPending
-                  ? isCreateModalOpen ? 'Creating...' : 'Updating...'
-                  : isCreateModalOpen ? 'Create' : 'Update'}
+                  ? isCreateModalOpen ? t("Creating...") : t("Updating...")
+                  : isCreateModalOpen ? t("Create") : t("Update")}
               </button>
             </div>
           </form>
@@ -962,7 +951,7 @@ export default function Pages() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedPage && (
         <Modal
-          title="Delete Page"
+          title={t("Delete Page")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedPage(null)
@@ -970,8 +959,7 @@ export default function Pages() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedPage.title}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete \"")}<strong>{selectedPage.title}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -981,14 +969,14 @@ export default function Pages() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -1000,14 +988,14 @@ export default function Pages() {
         isOpen={isFeaturedImagePickerOpen}
         onClose={() => setIsFeaturedImagePickerOpen(false)}
         onSelect={(media, _variant) => setFormData({ ...formData, featuredImageId: media.id })}
-        title="Select Featured Image"
+        title={t("Select Featured Image")}
       />
 
       <MediaPicker
         isOpen={isOgImagePickerOpen}
         onClose={() => setIsOgImagePickerOpen(false)}
         onSelect={(media, _variant) => setFormData({ ...formData, ogImageId: media.id })}
-        title="Select Open Graph Image"
+        title={t("Select Open Graph Image")}
       />
 
       <MediaPicker
@@ -1017,9 +1005,9 @@ export default function Pages() {
         title={
           bannerMediaTarget?.field === 'desktop' || bannerMediaTarget?.field === 'mobile'
             ? banners[bannerMediaTarget.index]?.type === 'video'
-              ? 'Select Video'
-              : 'Select Image'
-            : 'Select Image'
+              ? t("Select Video")
+              : t("Select Image")
+            : t("Select Image")
         }
       />
     </Layout>
@@ -1050,6 +1038,7 @@ function MediaField({
   onClear: () => void
   video?: boolean
 }) {
+  const { t } = useTranslation()
   const previewUrl = mediaPreviewUrl(media)
 
   return (
@@ -1064,7 +1053,7 @@ function MediaField({
           className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
         >
           {video ? <VideoIcon className="w-5 h-5" /> : <PhotoIcon className="w-5 h-5" />}
-          Select
+          {t("Select")}
         </button>
         {media && (
           <>
@@ -1104,11 +1093,12 @@ function PageBannerCard({
   onChangeHtml,
   onOpenMediaPicker,
 }: PageBannerCardProps) {
+  const { t } = useTranslation()
   return (
     <div className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium text-card-foreground">
-          Banner {index + 1}
+          {t("Banner")} {index + 1}
         </span>
         <div className="flex items-center gap-1">
           <button
@@ -1116,7 +1106,7 @@ function PageBannerCard({
             onClick={() => onMove(index, -1)}
             disabled={index === 0}
             className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-            title="Move up"
+            title={t("Move up")}
           >
             <ChevronUpIcon className="w-4 h-4" />
           </button>
@@ -1125,7 +1115,7 @@ function PageBannerCard({
             onClick={() => onMove(index, 1)}
             disabled={index === total - 1}
             className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-            title="Move down"
+            title={t("Move down")}
           >
             <ChevronDownIcon className="w-4 h-4" />
           </button>
@@ -1133,7 +1123,7 @@ function PageBannerCard({
             type="button"
             onClick={() => onRemove(index)}
             className="p-1.5 text-red-600 hover:text-red-800"
-            title="Remove"
+            title={t("Remove")}
           >
             <XIcon className="w-4 h-4" />
           </button>
@@ -1142,7 +1132,7 @@ function PageBannerCard({
 
       <div>
         <label className="block text-sm font-medium text-card-foreground mb-2">
-          Type *
+          {t("Type *")}
         </label>
         <select
           value={banner.type}
@@ -1151,7 +1141,7 @@ function PageBannerCard({
         >
           {BANNER_TYPES.map((type) => (
             <option key={type} value={type}>
-              {type === 'html' ? 'HTML (hero)' : type === 'video' ? 'Video' : 'Image'}
+              {type === 'html' ? t("HTML (hero)") : type === 'video' ? t("Video") : t("Image")}
             </option>
           ))}
         </select>
@@ -1162,26 +1152,26 @@ function PageBannerCard({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Title
+                {t("Title")}
               </label>
               <input
                 type="text"
                 value={banner.title}
                 onChange={(e) => onChange(index, { title: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Banner title"
+                placeholder={t("Banner title")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Subtitle
+                {t("Subtitle")}
               </label>
               <input
                 type="text"
                 value={banner.subtitle}
                 onChange={(e) => onChange(index, { subtitle: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Banner subtitle"
+                placeholder={t("Banner subtitle")}
               />
             </div>
           </div>
@@ -1189,19 +1179,19 @@ function PageBannerCard({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Alt
+                {t("Alt")}
               </label>
               <input
                 type="text"
                 value={banner.alt}
                 onChange={(e) => onChange(index, { alt: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Alt text"
+                placeholder={t("Alt text")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Link
+                {t("Link")}
               </label>
               <input
                 type="text"
@@ -1215,27 +1205,27 @@ function PageBannerCard({
 
           <div>
             <label className="block text-sm font-medium text-card-foreground mb-2">
-              Description
+              {t("Description")}
             </label>
             <textarea
               value={banner.description}
               onChange={(e) => onChange(index, { description: e.target.value })}
               rows={2}
               className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Optional description"
+              placeholder={t("Optional description")}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <MediaField
-              label={banner.type === 'video' ? 'Desktop Video' : 'Desktop Image'}
+              label={banner.type === 'video' ? t("Desktop media") : t("Desktop media")}
               media={banner.desktop}
               video={banner.type === 'video'}
               onSelect={() => onOpenMediaPicker({ index, field: 'desktop' })}
               onClear={() => onChange(index, { desktop: null })}
             />
             <MediaField
-              label={banner.type === 'video' ? 'Mobile Video' : 'Mobile Image'}
+              label={banner.type === 'video' ? t("Mobile media") : t("Mobile media")}
               media={banner.mobile}
               video={banner.type === 'video'}
               onSelect={() => onOpenMediaPicker({ index, field: 'mobile' })}
@@ -1250,59 +1240,59 @@ function PageBannerCard({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Title
+                {t("Title")}
               </label>
               <input
                 type="text"
                 value={banner.html.title}
                 onChange={(e) => onChangeHtml(index, { title: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Hero title"
+                placeholder={t("Hero title")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Subtitle
+                {t("Subtitle")}
               </label>
               <input
                 type="text"
                 value={banner.html.subtitle}
                 onChange={(e) => onChangeHtml(index, { subtitle: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Hero subtitle"
+                placeholder={t("Hero subtitle")}
               />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-card-foreground mb-2">
-              Description
+              {t("Description")}
             </label>
             <textarea
               value={banner.html.description}
               onChange={(e) => onChangeHtml(index, { description: e.target.value })}
               rows={2}
               className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Hero description"
+              placeholder={t("Hero description")}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Button text
+                {t("Button text")}
               </label>
               <input
                 type="text"
                 value={banner.html.buttonText}
                 onChange={(e) => onChangeHtml(index, { buttonText: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Ver más"
+                placeholder={t("Ver más")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Button URL
+                {t("Button URL")}
               </label>
               <input
                 type="text"
@@ -1316,25 +1306,25 @@ function PageBannerCard({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <MediaField
-              label="Background (desktop)"
+              label={t("Background (desktop)")}
               media={banner.html.background}
               onSelect={() => onOpenMediaPicker({ index, field: 'htmlBackground' })}
               onClear={() => onChangeHtml(index, { background: null })}
             />
             <MediaField
-              label="Background (mobile)"
+              label={t("Background (mobile)")}
               media={banner.html.backgroundMobile}
               onSelect={() => onOpenMediaPicker({ index, field: 'htmlBackgroundMobile' })}
               onClear={() => onChangeHtml(index, { backgroundMobile: null })}
             />
             <MediaField
-              label="Overlay image (desktop)"
+              label={t("Overlay image (desktop)")}
               media={banner.html.image}
               onSelect={() => onOpenMediaPicker({ index, field: 'htmlImage' })}
               onClear={() => onChangeHtml(index, { image: null })}
             />
             <MediaField
-              label="Overlay image (mobile)"
+              label={t("Overlay image (mobile)")}
               media={banner.html.imageMobile}
               onSelect={() => onOpenMediaPicker({ index, field: 'htmlImageMobile' })}
               onClear={() => onChangeHtml(index, { imageMobile: null })}

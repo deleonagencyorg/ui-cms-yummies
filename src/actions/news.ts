@@ -10,6 +10,7 @@ export interface NewsBrandResponse {
 
 export interface NewsResponse {
   id: string
+  siteId: string | null
   title: string
   slug: string
   subtitle: string
@@ -35,6 +36,7 @@ export interface NewsListResponse {
 }
 
 export interface CreateNewsRequest {
+  siteId: string
   title: string
   slug: string
   subtitle?: string
@@ -73,6 +75,7 @@ export interface UpdateNewsRequest {
 }
 
 export interface NewsFiltersRequest {
+  siteId?: string
   title?: string
   slug?: string
   category?: string

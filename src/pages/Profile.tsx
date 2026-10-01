@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import Layout from '@/components/Layout'
 
 export default function Profile() {
+  const { t } = useTranslation()
   const { user } = useAuth()
 
   return (
@@ -23,38 +25,38 @@ export default function Profile() {
 
         {/* Profile Information */}
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
-          <h3 className="text-xl font-bold text-card-foreground mb-6">Profile Information</h3>
+          <h3 className="text-xl font-bold text-card-foreground mb-6">{t("Profile Information")}</h3>
 
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Full Name</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Full Name")}</label>
                 <div className="px-4 py-3 bg-secondary rounded-lg text-foreground">
                   {user?.name}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Email Address")}</label>
                 <div className="px-4 py-3 bg-secondary rounded-lg text-foreground">
                   {user?.email}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Account Type</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Account Type")}</label>
                 <div className="px-4 py-3 bg-secondary rounded-lg text-foreground flex items-center gap-2">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                    Premium
+                    {t("Premium")}
                   </span>
-                  Premium User
+                  {t("Premium User")}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Member Since</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Member Since")}</label>
                 <div className="px-4 py-3 bg-secondary rounded-lg text-foreground">
-                  January 2024
+                  {t("January 2024")}
                 </div>
               </div>
             </div>
@@ -62,23 +64,23 @@ export default function Profile() {
 
           <div className="mt-6 flex gap-3">
             <button className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-lg hover:shadow-xl">
-              Edit Profile
+              {t("Edit Profile")}
             </button>
             <button className="bg-secondary text-secondary-foreground px-6 py-2.5 rounded-lg hover:bg-secondary/80 transition-colors font-medium">
-              Change Password
+              {t("Change Password")}
             </button>
           </div>
         </div>
 
         {/* Account Settings */}
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
-          <h3 className="text-xl font-bold text-card-foreground mb-6">Account Settings</h3>
+          <h3 className="text-xl font-bold text-card-foreground mb-6">{t("Account Settings")}</h3>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
               <div>
-                <p className="font-medium text-card-foreground">Email Notifications</p>
-                <p className="text-sm text-muted-foreground">Receive email updates about your account</p>
+                <p className="font-medium text-card-foreground">{t("Email Notifications")}</p>
+                <p className="text-sm text-muted-foreground">{t("Receive email updates about your account")}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" defaultChecked />
@@ -88,10 +90,10 @@ export default function Profile() {
 
             <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
               <div>
-                <p className="font-medium text-card-foreground">Two-Factor Authentication</p>
-                <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
+                <p className="font-medium text-card-foreground">{t("Two-Factor Authentication")}</p>
+                <p className="text-sm text-muted-foreground">{t("Add an extra layer of security to your account")}</p>
               </div>
-              <button className="text-primary hover:underline font-medium">Enable</button>
+              <button className="text-primary hover:underline font-medium">{t("Enable")}</button>
             </div>
           </div>
         </div>

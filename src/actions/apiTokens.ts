@@ -15,6 +15,11 @@ export interface ApiTokenScopes {
   news?: 'r' | 'rw'
   sites?: 'r' | 'rw'
   pages?: 'r' | 'rw'
+  top_messages?: 'r' | 'rw'
+  health?: 'r' | 'rw'
+  descubrenos?: 'r' | 'rw'
+  contact?: 'r' | 'rw'
+  footer?: 'r' | 'rw'
 }
 
 export interface ApiTokenResponse {

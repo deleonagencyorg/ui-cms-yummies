@@ -16,6 +16,7 @@ import {
 const columnHelper = createColumnHelper<LanguageResponse>()
 
 export default function Languages() {
+  const { t } = useTranslation()
   useTranslation()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -71,7 +72,7 @@ export default function Languages() {
   const columns = useMemo<ColumnDef<LanguageResponse, any>[]>(
     () => [
       columnHelper.accessor('code', {
-        header: 'Code',
+        header: t("Code"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground font-mono">
             {info.getValue()}
@@ -79,7 +80,7 @@ export default function Languages() {
         ),
       }),
       columnHelper.accessor('name', {
-        header: 'Name',
+        header: t("Name"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -87,7 +88,7 @@ export default function Languages() {
         ),
       }),
       columnHelper.accessor('nativeName', {
-        header: 'Native Name',
+        header: t("Native Name"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue()}
@@ -95,7 +96,7 @@ export default function Languages() {
         ),
       }),
       columnHelper.accessor('direction', {
-        header: 'Direction',
+        header: t("Direction"),
         cell: (info) => (
           <span className="text-xs px-2 py-1 rounded bg-secondary text-muted-foreground uppercase">
             {info.getValue()}
@@ -103,19 +104,19 @@ export default function Languages() {
         ),
       }),
       columnHelper.accessor('isActive', {
-        header: 'Active',
+        header: t("Active"),
         cell: (info) => (
           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
             info.getValue()
               ? 'bg-green-100 text-green-800'
               : 'bg-gray-100 text-gray-800'
           }`}>
-            {info.getValue() ? 'Active' : 'Inactive'}
+            {info.getValue() ? t("Active") : t("Inactive")}
           </span>
         ),
       }),
       columnHelper.accessor('sortOrder', {
-        header: 'Order',
+        header: t("Order"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue()}
@@ -124,20 +125,20 @@ export default function Languages() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -145,7 +146,7 @@ export default function Languages() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -203,15 +204,15 @@ export default function Languages() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Languages</h2>
-              <p className="text-muted-foreground mt-1">Manage system languages</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Languages")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage system languages")}</p>
             </div>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Language
+              {t("Create Language")}
             </button>
           </div>
 
@@ -219,7 +220,7 @@ export default function Languages() {
           <div className="mb-6">
             <input
               type="text"
-              placeholder="Search by name..."
+              placeholder={t("Search by name...")}
               value={searchName}
               onChange={(e) => {
                 setSearchName(e.target.value)
@@ -233,15 +234,15 @@ export default function Languages() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading languages...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading languages...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load languages</p>
+              <p className="text-red-500">{t("Failed to load languages")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No languages found</p>
+              <p className="text-muted-foreground">{t("No languages found")}</p>
             </div>
           ) : (
             <>
@@ -302,7 +303,7 @@ export default function Languages() {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <Modal
-          title="Create Language"
+          title={t("Create Language")}
           onClose={() => {
             setIsCreateModalOpen(false)
             resetForm()
@@ -311,7 +312,7 @@ export default function Languages() {
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Code * (ISO 639-1)
+                {t("Code * (ISO 639-1)")}
               </label>
               <input
                 type="text"
@@ -325,7 +326,7 @@ export default function Languages() {
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Name *
+                {t("Name *")}
               </label>
               <input
                 type="text"
@@ -333,13 +334,13 @@ export default function Languages() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
                 maxLength={100}
-                placeholder="English"
+                placeholder={t("English")}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Native Name *
+                {t("Native Name *")}
               </label>
               <input
                 type="text"
@@ -347,26 +348,26 @@ export default function Languages() {
                 onChange={(e) => setFormData({ ...formData, nativeName: e.target.value })}
                 required
                 maxLength={100}
-                placeholder="English"
+                placeholder={t("English")}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Direction
+                {t("Direction")}
               </label>
               <select
                 value={formData.direction}
                 onChange={(e) => setFormData({ ...formData, direction: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="ltr">Left to Right (LTR)</option>
-                <option value="rtl">Right to Left (RTL)</option>
+                <option value="ltr">{t("Left to Right (LTR)")}</option>
+                <option value="rtl">{t("Right to Left (RTL)")}</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Sort Order
+                {t("Sort Order")}
               </label>
               <input
                 type="number"
@@ -384,7 +385,7 @@ export default function Languages() {
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm font-medium text-card-foreground">Active</span>
+                <span className="text-sm font-medium text-card-foreground">{t("Active")}</span>
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-4 border-t border-border">
@@ -396,14 +397,14 @@ export default function Languages() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={createMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {createMutation.isPending ? 'Creating...' : 'Create'}
+                {createMutation.isPending ? t("Creating...") : t("Create")}
               </button>
             </div>
           </form>
@@ -413,7 +414,7 @@ export default function Languages() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedLanguage && (
         <Modal
-          title="Edit Language"
+          title={t("Edit Language")}
           onClose={() => {
             setIsEditModalOpen(false)
             setSelectedLanguage(null)
@@ -423,7 +424,7 @@ export default function Languages() {
           <form onSubmit={handleEdit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Code
+                {t("Code")}
               </label>
               <input
                 type="text"
@@ -434,7 +435,7 @@ export default function Languages() {
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Name *
+                {t("Name *")}
               </label>
               <input
                 type="text"
@@ -447,7 +448,7 @@ export default function Languages() {
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Native Name *
+                {t("Native Name *")}
               </label>
               <input
                 type="text"
@@ -460,20 +461,20 @@ export default function Languages() {
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Direction
+                {t("Direction")}
               </label>
               <select
                 value={formData.direction}
                 onChange={(e) => setFormData({ ...formData, direction: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="ltr">Left to Right (LTR)</option>
-                <option value="rtl">Right to Left (RTL)</option>
+                <option value="ltr">{t("Left to Right (LTR)")}</option>
+                <option value="rtl">{t("Right to Left (RTL)")}</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Sort Order
+                {t("Sort Order")}
               </label>
               <input
                 type="number"
@@ -491,7 +492,7 @@ export default function Languages() {
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm font-medium text-card-foreground">Active</span>
+                <span className="text-sm font-medium text-card-foreground">{t("Active")}</span>
               </label>
             </div>
             <div className="flex gap-3 justify-end pt-4 border-t border-border">
@@ -504,14 +505,14 @@ export default function Languages() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updateMutation.isPending ? 'Updating...' : 'Update'}
+                {updateMutation.isPending ? t("Updating...") : t("Update")}
               </button>
             </div>
           </form>
@@ -521,7 +522,7 @@ export default function Languages() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedLanguage && (
         <Modal
-          title="Delete Language"
+          title={t("Delete Language")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedLanguage(null)
@@ -529,8 +530,7 @@ export default function Languages() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedLanguage.name}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete \"")}<strong>{selectedLanguage.name}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -540,14 +540,14 @@ export default function Languages() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>

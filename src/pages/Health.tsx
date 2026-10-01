@@ -1,5 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
+import ModulePage from '@/components/ModulePage'
+import SectionListEditor, { type SectionListField } from '@/components/SectionListEditor'
+import { useSiteModules } from '@/lib/siteModules'
+import { HEALTH_ICON_SITES, pickVariant } from '@/constants/siteSections'
+import { API_ENDPOINTS } from '@/constants/api'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import { useSite } from '@/contexts/SiteContext'
@@ -29,17 +35,6 @@ import 'lite-youtube-embed/src/lite-yt-embed.css'
 
 const columnHelper = createColumnHelper<HealthConfig>()
 
-interface HealthSlideFormItem {
-  key: string
-  alt: string
-  title: string
-  description: string
-  link: string
-  order: number
-  desktop: MultimediaResponse | null
-  mobile: MultimediaResponse | null
-}
-
 interface HealthVideoFormItem {
   key: string
   title: string
@@ -54,7 +49,6 @@ interface HealthFormData {
   title: string
   description: string
   image: MultimediaResponse | null
-  slider: HealthSlideFormItem[]
   videosSectionTitle: string
   videosSectionDescription: string
   videos: HealthVideoFormItem[]
@@ -66,7 +60,6 @@ const createInitialFormData = (siteId = ''): HealthFormData => ({
   title: '',
   description: '',
   image: null,
-  slider: [],
   videosSectionTitle: '',
   videosSectionDescription: '',
   videos: [],
@@ -74,8 +67,6 @@ const createInitialFormData = (siteId = ''): HealthFormData => ({
 
 type MediaPickerTarget =
   | { type: 'image' }
-  | { type: 'slideDesktop'; index: number }
-  | { type: 'slideMobile'; index: number }
   | { type: 'video'; index: number }
   | { type: 'thumbnail'; index: number }
 
@@ -86,19 +77,6 @@ function configToFormData(config: HealthConfig): HealthFormData {
     title: config.title ?? '',
     description: config.description ?? '',
     image: config.image ?? null,
-    slider: (config.slider ?? [])
-      .slice()
-      .sort((a, b) => a.order - b.order)
-      .map((slide, index) => ({
-        key: slide.id || `${Date.now()}-${index}`,
-        alt: slide.alt ?? '',
-        title: slide.title ?? '',
-        description: slide.description ?? '',
-        link: slide.link ?? '',
-        order: slide.order ?? index,
-        desktop: slide.desktop ?? null,
-        mobile: slide.mobile ?? null,
-      })),
     videosSectionTitle: config.videosSectionTitle ?? '',
     videosSectionDescription: config.videosSectionDescription ?? '',
     videos: (config.videos ?? [])
@@ -123,15 +101,7 @@ function formDataToPayload(
     title: formData.title,
     description: formData.description,
     imageId: formData.image?.id ?? null,
-    slider: formData.slider.map((slide, index) => ({
-      desktopImageId: slide.desktop?.id ?? null,
-      mobileImageId: slide.mobile?.id ?? null,
-      alt: slide.alt,
-      title: slide.title,
-      description: slide.description,
-      link: slide.link,
-      order: index,
-    })),
+    slider: [],
     videosSectionTitle: formData.videosSectionTitle,
     videosSectionDescription: formData.videosSectionDescription,
     videos: formData.videos.map((video, index) => ({
@@ -152,7 +122,8 @@ function isYouTubeMedia(media: MultimediaResponse | null | undefined): boolean {
   return Boolean(media?.provider === 'youtube' && media.videoId)
 }
 
-export default function Health() {
+export function HealthPageContent() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -200,22 +171,6 @@ export default function Health() {
 
     if (mediaPickerTarget.type === 'image') {
       setFormData((prev) => ({ ...prev, image: media }))
-    } else if (mediaPickerTarget.type === 'slideDesktop') {
-      const index = mediaPickerTarget.index
-      setFormData((prev) => ({
-        ...prev,
-        slider: prev.slider.map((item, i) =>
-          i === index ? { ...item, desktop: media } : item
-        ),
-      }))
-    } else if (mediaPickerTarget.type === 'slideMobile') {
-      const index = mediaPickerTarget.index
-      setFormData((prev) => ({
-        ...prev,
-        slider: prev.slider.map((item, i) =>
-          i === index ? { ...item, mobile: media } : item
-        ),
-      }))
     } else if (mediaPickerTarget.type === 'video') {
       const index = mediaPickerTarget.index
       setFormData((prev) => ({
@@ -275,56 +230,6 @@ export default function Health() {
     }
   }
 
-  const addSlide = () => {
-    setFormData((prev) => ({
-      ...prev,
-      slider: [
-        ...prev.slider,
-        {
-          key: `new-slide-${Date.now()}`,
-          alt: '',
-          title: '',
-          description: '',
-          link: '',
-          order: prev.slider.length,
-          desktop: null,
-          mobile: null,
-        },
-      ],
-    }))
-  }
-
-  const removeSlide = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      slider: prev.slider.filter((_, i) => i !== index),
-    }))
-  }
-
-  const moveSlide = (index: number, direction: -1 | 1) => {
-    setFormData((prev) => {
-      const nextIndex = index + direction
-      if (nextIndex < 0 || nextIndex >= prev.slider.length) return prev
-      const slider = [...prev.slider]
-      const [item] = slider.splice(index, 1)
-      slider.splice(nextIndex, 0, item)
-      return { ...prev, slider }
-    })
-  }
-
-  const updateSlideField = (
-    index: number,
-    field: 'alt' | 'title' | 'description' | 'link',
-    value: string
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      slider: prev.slider.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      ),
-    }))
-  }
-
   const addVideo = () => {
     setFormData((prev) => ({
       ...prev,
@@ -371,7 +276,7 @@ export default function Health() {
   const columns = useMemo<ColumnDef<HealthConfig, any>[]>(
     () => [
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t("Title"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue() || '-'}
@@ -380,18 +285,18 @@ export default function Health() {
       }),
       columnHelper.display({
         id: 'image',
-        header: 'Image',
+        header: t("Image"),
         cell: ({ row }) => {
           const url = mediaPreviewUrl(row.original.image)
           return url ? (
-            <img src={url} alt="Health" className="h-10 w-16 object-cover rounded" />
+            <img src={url} alt={t("Health")} className="h-10 w-16 object-cover rounded" />
           ) : (
             <span className="text-sm text-muted-foreground">-</span>
           )
         },
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             {info.getValue()}
@@ -399,17 +304,8 @@ export default function Health() {
         ),
       }),
       columnHelper.display({
-        id: 'sliderCount',
-        header: 'Slides',
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.slider?.length ?? 0}
-          </span>
-        ),
-      }),
-      columnHelper.display({
         id: 'videosCount',
-        header: 'Videos',
+        header: t("Videos"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {row.original.videos?.length ?? 0}
@@ -417,7 +313,7 @@ export default function Health() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -426,20 +322,20 @@ export default function Health() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -447,7 +343,7 @@ export default function Health() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -466,14 +362,14 @@ export default function Health() {
         : 'Select Image'
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Health</h2>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Health")}</h2>
               <p className="text-muted-foreground mt-1">
-                Manage health page content
+                {t("Manage health content and videos")}
               </p>
             </div>
             <button
@@ -483,18 +379,18 @@ export default function Health() {
                 setIsCreateModalOpen(true)
               }}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? 'Select a site in the sidebar first' : undefined}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Health Content
+              {t("Create Health Content")}
             </button>
           </div>
 
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search by title..."
+              placeholder={t("Search health...")}
               value={searchTitle}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
@@ -508,9 +404,9 @@ export default function Health() {
                 setFilterLanguage(e.target.value)
                 setPage(1)
               }}
-              className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All languages</option>
+              <option value="">{t("All languages")}</option>
               {(languagesData?.data || []).map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -520,10 +416,17 @@ export default function Health() {
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">{t("Loading health...")}</p>
+            </div>
           ) : error ? (
-            <div className="text-center py-12 text-red-600">
-              Failed to load health content
+            <div className="text-center py-12">
+              <p className="text-red-500">{t("Failed to load health")}</p>
+            </div>
+          ) : !data?.data.length ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">{t("No health content found")}</p>
             </div>
           ) : (
             <>
@@ -537,57 +440,46 @@ export default function Health() {
                             key={header.id}
                             className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                           >
-                            {flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
                           </th>
                         ))}
                       </tr>
                     ))}
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {table.getRowModel().rows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={columns.length}
-                          className="px-6 py-8 text-center text-sm text-muted-foreground"
-                        >
-                          No health content found
-                        </td>
+                    {table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-secondary/50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        ))}
                       </tr>
-                    ) : (
-                      table.getRowModel().rows.map((row) => (
-                        <tr key={row.id} className="hover:bg-secondary/50">
-                          {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-6 py-4">
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
 
-              {data?.pagination && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    pageCount={data.pagination.pageCount}
-                    pageSize={pageSize}
-                    totalItems={data.pagination.total}
-                    onPageChange={setPage}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size)
-                      setPage(1)
-                    }}
-                  />
-                </div>
+              {data.pagination && data.pagination.pageCount > 1 && (
+                <Pagination
+                  currentPage={data.pagination.page}
+                  pageCount={data.pagination.pageCount}
+                  pageSize={pageSize}
+                  totalItems={data.pagination.total}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  onPageSizeChange={(newSize) => {
+                    setPageSize(newSize)
+                    setPage(1)
+                  }}
+                />
               )}
             </>
           )}
@@ -596,7 +488,7 @@ export default function Health() {
 
       {isCreateModalOpen && (
         <HealthFormModal
-          title="Create Health Content"
+          title={t("Create Health Content")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -605,14 +497,10 @@ export default function Health() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
-          onAddSlide={addSlide}
-          onRemoveSlide={removeSlide}
-          onMoveSlide={moveSlide}
-          onUpdateSlideField={updateSlideField}
           onAddVideo={addVideo}
           onRemoveVideo={removeVideo}
           onMoveVideo={moveVideo}
@@ -622,7 +510,7 @@ export default function Health() {
 
       {isEditModalOpen && selectedHealth && (
         <HealthFormModal
-          title="Edit Health Content"
+          title={t("Edit Health Content")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -632,14 +520,10 @@ export default function Health() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
-          onAddSlide={addSlide}
-          onRemoveSlide={removeSlide}
-          onMoveSlide={moveSlide}
-          onUpdateSlideField={updateSlideField}
           onAddVideo={addVideo}
           onRemoveVideo={removeVideo}
           onMoveVideo={moveVideo}
@@ -649,7 +533,7 @@ export default function Health() {
 
       {isDeleteModalOpen && selectedHealth && (
         <Modal
-          title="Delete Health Content"
+          title={t("Delete Health Content")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedHealth(null)
@@ -657,9 +541,8 @@ export default function Health() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the health content "
-              <strong>{selectedHealth.title || 'Untitled'}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete the health content \"")}
+              <strong>{selectedHealth.title || t("Untitled")}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -669,14 +552,14 @@ export default function Health() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -689,7 +572,7 @@ export default function Health() {
         onSelect={handleMediaSelect}
         title={mediaPickerTitle}
       />
-    </Layout>
+    </>
   )
 }
 
@@ -704,14 +587,6 @@ interface HealthFormModalProps {
   languages: { code: string; name: string; nativeName: string }[]
   sites: { id: string; name: string }[]
   onOpenMediaPicker: (target: MediaPickerTarget) => void
-  onAddSlide: () => void
-  onRemoveSlide: (index: number) => void
-  onMoveSlide: (index: number, direction: -1 | 1) => void
-  onUpdateSlideField: (
-    index: number,
-    field: 'alt' | 'title' | 'description' | 'link',
-    value: string
-  ) => void
   onAddVideo: () => void
   onRemoveVideo: (index: number) => void
   onMoveVideo: (index: number, direction: -1 | 1) => void
@@ -729,15 +604,12 @@ function HealthFormModal({
   languages,
   sites,
   onOpenMediaPicker,
-  onAddSlide,
-  onRemoveSlide,
-  onMoveSlide,
-  onUpdateSlideField,
   onAddVideo,
   onRemoveVideo,
   onMoveVideo,
   onUpdateVideoField,
 }: HealthFormModalProps) {
+  const { t } = useTranslation()
   const imageUrl = mediaPreviewUrl(formData.image)
 
   return (
@@ -757,12 +629,12 @@ function HealthFormModal({
         <form onSubmit={onSubmit} className="p-6 space-y-6">
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Basic Information
+              {t("Basic Information")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Site *
+                  {t("Site *")}
                 </label>
                 <select
                   value={formData.siteId}
@@ -773,7 +645,7 @@ function HealthFormModal({
                   disabled
                   className="w-full px-4 py-2 bg-secondary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary cursor-not-allowed opacity-75"
                 >
-                  <option value="">Select a site</option>
+                  <option value="">{t("Select a site")}</option>
                   {sites.map((site) => (
                     <option key={site.id} value={site.id}>
                       {site.name}
@@ -781,12 +653,12 @@ function HealthFormModal({
                   ))}
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Site is automatically set from the sidebar selector
+                  {t("Site is automatically set from the sidebar selector")}
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Language *
+                  {t("Language *")}
                 </label>
                 <select
                   value={formData.languageCode}
@@ -796,7 +668,7 @@ function HealthFormModal({
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Select language</option>
+                  <option value="">{t("Select language")}</option>
                   {languages.map((lang) => (
                     <option key={lang.code} value={lang.code}>
                       {lang.name} ({lang.nativeName})
@@ -810,11 +682,11 @@ function HealthFormModal({
           {/* Main Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Main Section
+              {t("Main Section")}
             </h4>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Title
+                {t("Title")}
               </label>
               <input
                 type="text"
@@ -824,12 +696,12 @@ function HealthFormModal({
                 }
                 maxLength={255}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Section title"
+                placeholder={t("Section title")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Description
+                {t("Description")}
               </label>
               <textarea
                 value={formData.description}
@@ -838,12 +710,12 @@ function HealthFormModal({
                 }
                 rows={4}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Section description"
+                placeholder={t("Section description")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Image
+                {t("Image")}
               </label>
               <div className="flex items-center gap-3">
                 <button
@@ -852,14 +724,14 @@ function HealthFormModal({
                   className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                 >
                   <PhotoIcon className="w-5 h-5" />
-                  Select Image
+                  {t("Select Image")}
                 </button>
                 {formData.image && (
                   <>
                     {imageUrl && (
                       <img
                         src={imageUrl}
-                        alt="Health"
+                        alt={t("Health")}
                         className="w-12 h-12 object-cover rounded border border-border"
                       />
                     )}
@@ -878,232 +750,22 @@ function HealthFormModal({
             </div>
           </div>
 
-          {/* Slider Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <h4 className="text-sm font-semibold text-card-foreground">
-                Slider
-              </h4>
-              <button
-                type="button"
-                onClick={onAddSlide}
-                className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
-              >
-                <PlusIcon className="w-4 h-4" />
-                Add Slide
-              </button>
-            </div>
-
-            {formData.slider.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-                No slides added
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {formData.slider.map((item, index) => {
-                  const desktopUrl = mediaPreviewUrl(item.desktop)
-                  const mobileUrl = mediaPreviewUrl(item.mobile)
-                  return (
-                    <div
-                      key={item.key}
-                      className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium text-card-foreground">
-                          Slide {index + 1}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => onMoveSlide(index, -1)}
-                            disabled={index === 0}
-                            className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                            title="Move up"
-                          >
-                            <ChevronUpIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onMoveSlide(index, 1)}
-                            disabled={index === formData.slider.length - 1}
-                            className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                            title="Move down"
-                          >
-                            <ChevronDownIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onRemoveSlide(index)}
-                            className="p-1.5 text-red-600 hover:text-red-800"
-                            title="Remove"
-                          >
-                            <XIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Title
-                          </label>
-                          <input
-                            type="text"
-                            value={item.title}
-                            onChange={(e) =>
-                              onUpdateSlideField(index, 'title', e.target.value)
-                            }
-                            className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Slide title"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Alt
-                          </label>
-                          <input
-                            type="text"
-                            value={item.alt}
-                            onChange={(e) =>
-                              onUpdateSlideField(index, 'alt', e.target.value)
-                            }
-                            className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Alt text"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-card-foreground mb-2">
-                          Description
-                        </label>
-                        <textarea
-                          value={item.description}
-                          onChange={(e) =>
-                            onUpdateSlideField(index, 'description', e.target.value)
-                          }
-                          rows={2}
-                          className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="Slide description"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-card-foreground mb-2">
-                          Link
-                        </label>
-                        <input
-                          type="text"
-                          value={item.link}
-                          onChange={(e) =>
-                            onUpdateSlideField(index, 'link', e.target.value)
-                          }
-                          className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="https://..."
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Desktop Image
-                          </label>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onOpenMediaPicker({ type: 'slideDesktop', index })
-                              }
-                              className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
-                            >
-                              <PhotoIcon className="w-5 h-5" />
-                              Select
-                            </button>
-                            {item.desktop && (
-                              <>
-                                {desktopUrl && (
-                                  <img
-                                    src={desktopUrl}
-                                    alt="Desktop"
-                                    className="w-12 h-12 object-cover rounded border border-border"
-                                  />
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      slider: prev.slider.map((s, i) =>
-                                        i === index ? { ...s, desktop: null } : s
-                                      ),
-                                    }))
-                                  }
-                                  className="p-2 text-red-600 hover:text-red-800"
-                                >
-                                  <XIcon className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Mobile Image
-                          </label>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onOpenMediaPicker({ type: 'slideMobile', index })
-                              }
-                              className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
-                            >
-                              <PhotoIcon className="w-5 h-5" />
-                              Select
-                            </button>
-                            {item.mobile && (
-                              <>
-                                {mobileUrl && (
-                                  <img
-                                    src={mobileUrl}
-                                    alt="Mobile"
-                                    className="w-12 h-12 object-cover rounded border border-border"
-                                  />
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      slider: prev.slider.map((s, i) =>
-                                        i === index ? { ...s, mobile: null } : s
-                                      ),
-                                    }))
-                                  }
-                                  className="p-2 text-red-600 hover:text-red-800"
-                                >
-                                  <XIcon className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+          <div className="rounded-lg border border-dashed border-border bg-secondary/20 p-4">
+            <p className="text-sm text-card-foreground font-medium">{t("Page banner")}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {t("The hero banner for Salud / Health is managed in Pages. Open the page with slug")}
+              <span className="font-mono"> salud</span> or <span className="font-mono">health</span> {t("and add the banner there.")}
+            </p>
           </div>
 
           {/* Videos Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Videos Section
+              {t("Videos Section")}
             </h4>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Section Title
+                {t("Section Title")}
               </label>
               <input
                 type="text"
@@ -1116,12 +778,12 @@ function HealthFormModal({
                 }
                 maxLength={255}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Videos section title"
+                placeholder={t("Videos section title")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Section Description
+                {t("Section Description")}
               </label>
               <textarea
                 value={formData.videosSectionDescription}
@@ -1133,13 +795,13 @@ function HealthFormModal({
                 }
                 rows={3}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Videos section description"
+                placeholder={t("Videos section description")}
               />
             </div>
 
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium text-card-foreground">
-                Videos
+                {t("Videos")}
               </label>
               <button
                 type="button"
@@ -1147,13 +809,13 @@ function HealthFormModal({
                 className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Video
+                {t("Add Video")}
               </button>
             </div>
 
             {formData.videos.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-                No videos added
+                {t("No videos added")}
               </p>
             ) : (
               <div className="space-y-4">
@@ -1166,7 +828,7 @@ function HealthFormModal({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-medium text-card-foreground">
-                          Video {index + 1}
+                          {t("Video")} {index + 1}
                         </span>
                         <div className="flex items-center gap-1">
                           <button
@@ -1174,7 +836,7 @@ function HealthFormModal({
                             onClick={() => onMoveVideo(index, -1)}
                             disabled={index === 0}
                             className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                            title="Move up"
+                            title={t("Move up")}
                           >
                             <ChevronUpIcon className="w-4 h-4" />
                           </button>
@@ -1183,7 +845,7 @@ function HealthFormModal({
                             onClick={() => onMoveVideo(index, 1)}
                             disabled={index === formData.videos.length - 1}
                             className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                            title="Move down"
+                            title={t("Move down")}
                           >
                             <ChevronDownIcon className="w-4 h-4" />
                           </button>
@@ -1191,7 +853,7 @@ function HealthFormModal({
                             type="button"
                             onClick={() => onRemoveVideo(index)}
                             className="p-1.5 text-red-600 hover:text-red-800"
-                            title="Remove"
+                            title={t("Remove")}
                           >
                             <XIcon className="w-4 h-4" />
                           </button>
@@ -1200,7 +862,7 @@ function HealthFormModal({
 
                       <div>
                         <label className="block text-sm font-medium text-card-foreground mb-2">
-                          Title
+                          {t("Title")}
                         </label>
                         <input
                           type="text"
@@ -1211,13 +873,13 @@ function HealthFormModal({
                           required
                           maxLength={255}
                           className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                          placeholder="Video title"
+                          placeholder={t("Video title")}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-card-foreground mb-2">
-                          Video
+                          {t("Video")}
                         </label>
                         <div className="flex items-center gap-3 flex-wrap">
                           <button
@@ -1228,7 +890,7 @@ function HealthFormModal({
                             className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                           >
                             <VideoIcon className="w-5 h-5" />
-                            Select Video
+                            {t("Select Video")}
                           </button>
                           {item.video && (
                             <button
@@ -1252,7 +914,7 @@ function HealthFormModal({
                       {item.video && (
                         <div>
                           <label className="block text-sm font-medium text-card-foreground mb-2">
-                            Preview
+                            {t("Preview")}
                           </label>
                           {isYouTubeMedia(item.video) ? (
                             <div className="max-w-md overflow-hidden rounded-lg border border-border">
@@ -1274,7 +936,7 @@ function HealthFormModal({
 
                       <div>
                         <label className="block text-sm font-medium text-card-foreground mb-2">
-                          Thumbnail
+                          {t("Thumbnail")}
                         </label>
                         <div className="flex items-center gap-3 flex-wrap">
                           <button
@@ -1285,14 +947,14 @@ function HealthFormModal({
                             className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                           >
                             <PhotoIcon className="w-5 h-5" />
-                            Select Thumbnail
+                            {t("Select Thumbnail")}
                           </button>
                           {item.thumbnail && (
                             <>
                               {thumbnailUrl && (
                                 <img
                                   src={thumbnailUrl}
-                                  alt="Thumbnail"
+                                  alt={t("Thumbnail")}
                                   className="w-12 h-12 object-cover rounded border border-border"
                                 />
                               )}
@@ -1327,14 +989,14 @@ function HealthFormModal({
               onClick={onClose}
               className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !formData.siteId}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving...' : submitLabel}
+              {isSubmitting ? t("Saving...") : submitLabel}
             </button>
           </div>
         </form>
@@ -1428,5 +1090,51 @@ function ChevronDownIcon({ className }: { className?: string }) {
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </svg>
+  )
+}
+
+const HEALTH_ICON_FIELDS: SectionListField[] = [
+  { name: 'title', label: 'Title', required: true },
+  { name: 'description', label: 'Description', type: 'textarea' },
+  { name: 'imageId', label: 'Icon', type: 'image' },
+  { name: 'linkUrl', label: 'Link', placeholder: '/es/salud', help: 'Page opened when the icon is clicked.' },
+]
+
+export default function Health() {
+  const { t } = useTranslation()
+  const { selectedSite } = useSiteModules()
+
+  if (!pickVariant(HEALTH_ICON_SITES, selectedSite?.slug)) {
+    return (
+      <Layout>
+        <HealthPageContent />
+      </Layout>
+    )
+  }
+
+  return (
+    <ModulePage
+      title={t("Health")}
+      description={t("Health page with slides, videos and icons.")}
+      tabs={[
+        { key: 'page', label: t("Health page"), content: <HealthPageContent /> },
+        {
+          key: 'icons',
+          label: t("Health icons"),
+          content: (
+            <SectionListEditor
+              title={t("Health icons")}
+              description={t("Icons such as \"High in protein\" shown in the health section.")}
+              endpoint={API_ENDPOINTS.SECTION_LISTS.HEALTH_ICONS}
+              fields={HEALTH_ICON_FIELDS}
+              itemLabel="Icon"
+              addLabel="Add icon"
+              emptyMessage="There are no icons yet."
+              itemTitle={(item) => item.title}
+            />
+          ),
+        },
+      ]}
+    />
   )
 }
