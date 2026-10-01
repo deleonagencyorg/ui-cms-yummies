@@ -53,10 +53,11 @@ export default function JobTitles() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<JobTitleResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {
-        header: 'Name',
+        header: t("Name"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -64,7 +65,7 @@ export default function JobTitles() {
         ),
       }),
       columnHelper.accessor('department', {
-        header: 'Department',
+        header: t("Department"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue()?.name || '-'}
@@ -72,7 +73,7 @@ export default function JobTitles() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -80,7 +81,7 @@ export default function JobTitles() {
         ),
       }),
       columnHelper.accessor('updatedAt', {
-        header: 'Updated At',
+        header: t("Updated At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -89,20 +90,20 @@ export default function JobTitles() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -110,7 +111,7 @@ export default function JobTitles() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -176,7 +177,7 @@ export default function JobTitles() {
                 {t('nav.jobTitles')}
               </h2>
               <p className="text-muted-foreground mt-1">
-                Manage job titles and positions
+                {t("Manage job titles and positions")}
               </p>
             </div>
             <button
@@ -184,7 +185,7 @@ export default function JobTitles() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Job Title
+              {t("Create Job Title")}
             </button>
           </div>
 
@@ -192,7 +193,7 @@ export default function JobTitles() {
           <div className="mb-6 flex gap-4 flex-wrap">
             <input
               type="text"
-              placeholder="Search job titles..."
+              placeholder={t("Search job titles...")}
               value={searchName}
               onChange={(e) => {
                 setSearchName(e.target.value)
@@ -208,7 +209,7 @@ export default function JobTitles() {
               }}
               className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Departments</option>
+              <option value="">{t("All Departments")}</option>
               {departmentsData?.data.map((dept) => (
                 <option key={dept.id} value={dept.id}>
                   {dept.name}
@@ -221,15 +222,15 @@ export default function JobTitles() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading job titles...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading job titles...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load job titles</p>
+              <p className="text-red-500">{t("Failed to load job titles")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No job titles found</p>
+              <p className="text-muted-foreground">{t("No job titles found")}</p>
             </div>
           ) : (
             <>
@@ -290,7 +291,7 @@ export default function JobTitles() {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <Modal
-          title="Create Job Title"
+          title={t("Create Job Title")}
           onClose={() => {
             setIsCreateModalOpen(false)
             setFormData({ name: '', departmentId: '' })
@@ -299,7 +300,7 @@ export default function JobTitles() {
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Job Title Name *
+                {t("Job Title Name *")}
               </label>
               <input
                 type="text"
@@ -308,19 +309,19 @@ export default function JobTitles() {
                 required
                 maxLength={100}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter job title name"
+                placeholder={t("Enter job title name")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Department (Optional)
+                {t("Department (Optional)")}
               </label>
               <select
                 value={formData.departmentId}
                 onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">No Department</option>
+                <option value="">{t("No Department")}</option>
                 {departmentsData?.data.map((dept) => (
                   <option key={dept.id} value={dept.id}>
                     {dept.name}
@@ -337,14 +338,14 @@ export default function JobTitles() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={createMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {createMutation.isPending ? 'Creating...' : 'Create'}
+                {createMutation.isPending ? t("Creating...") : t("Create")}
               </button>
             </div>
           </form>
@@ -354,7 +355,7 @@ export default function JobTitles() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedJobTitle && (
         <Modal
-          title="Edit Job Title"
+          title={t("Edit Job Title")}
           onClose={() => {
             setIsEditModalOpen(false)
             setSelectedJobTitle(null)
@@ -364,7 +365,7 @@ export default function JobTitles() {
           <form onSubmit={handleEdit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Job Title Name
+                {t("Job Title Name")}
               </label>
               <input
                 type="text"
@@ -372,19 +373,19 @@ export default function JobTitles() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 maxLength={100}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter job title name"
+                placeholder={t("Enter job title name")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Department
+                {t("Department")}
               </label>
               <select
                 value={formData.departmentId}
                 onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">No Department</option>
+                <option value="">{t("No Department")}</option>
                 {departmentsData?.data.map((dept) => (
                   <option key={dept.id} value={dept.id}>
                     {dept.name}
@@ -402,14 +403,14 @@ export default function JobTitles() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updateMutation.isPending ? 'Updating...' : 'Update'}
+                {updateMutation.isPending ? t("Updating...") : t("Update")}
               </button>
             </div>
           </form>
@@ -419,7 +420,7 @@ export default function JobTitles() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedJobTitle && (
         <Modal
-          title="Delete Job Title"
+          title={t("Delete Job Title")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedJobTitle(null)
@@ -427,8 +428,7 @@ export default function JobTitles() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the job title "<strong>{selectedJobTitle.name}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete the job title \"")}<strong>{selectedJobTitle.name}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -438,14 +438,14 @@ export default function JobTitles() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>

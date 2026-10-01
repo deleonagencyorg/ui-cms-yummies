@@ -1,14 +1,18 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import { useFolderContents, useFolderById } from '@/queries/folders'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import type { FolderResponse } from '@/actions/folders'
 
+export type MediaUrlVariant = 'original' | 'thumbnail' | 'seo'
+
 interface MediaPickerProps {
   isOpen: boolean
   onClose: () => void
-  onSelect: (media: MultimediaResponse) => void
+  onSelect: (media: MultimediaResponse, urlVariant: MediaUrlVariant) => void
   currentUrl?: string
   title?: string
+  type?: 'image' | 'gallery' | 'video' | 'all'
 }
 
 interface BreadcrumbItem {
@@ -16,11 +20,13 @@ interface BreadcrumbItem {
   name: string
 }
 
-export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, title = 'Select Media' }: MediaPickerProps) {
+export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select Media' }: MediaPickerProps) {
+  const { t } = useTranslation()
   const [page, setPage] = useState(1)
   const [pageSize] = useState(24)
   const [searchFileName, setSearchFileName] = useState('')
   const [selectedMedia, setSelectedMedia] = useState<MultimediaResponse | null>(null)
+  const [selectedVariant, setSelectedVariant] = useState<MediaUrlVariant>('original')
 
   // Folder navigation state
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
@@ -37,6 +43,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
   })
 
   // Update breadcrumbs when folder changes
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!currentFolderId) {
       setBreadcrumbs([{ id: null, name: 'Root' }])
@@ -52,17 +59,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
   useEffect(() => {
     setPage(1)
   }, [currentFolderId])
-
-  // Reset state when modal closes/opens
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedMedia(null)
-      setCurrentFolderId(null)
-      setSearchFileName('')
-      setPage(1)
-      setBreadcrumbs([{ id: null, name: 'Root' }])
-    }
-  }, [isOpen])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!isOpen) return null
 
@@ -78,10 +75,20 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
     setSelectedMedia(null)
   }
 
+  const resetAndClose = () => {
+    setSelectedMedia(null)
+    setSelectedVariant('original')
+    setCurrentFolderId(null)
+    setSearchFileName('')
+    setPage(1)
+    setBreadcrumbs([{ id: null, name: 'Root' }])
+    onClose()
+  }
+
   const handleSelect = () => {
     if (!selectedMedia) return
-    onSelect(selectedMedia)
-    onClose()
+    onSelect(selectedMedia, selectedVariant)
+    resetAndClose()
   }
 
   const formatFileSize = (bytes: number) => {
@@ -92,6 +99,57 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
   }
 
+  // preview videos externos
+    const getMediaPreview = (media: MultimediaResponse) => {
+    if (media.provider === 'youtube' && media.thumbnailUrl) {
+      return (
+        <img
+          src={media.thumbnailUrl}
+          alt={media.altText || media.fileName}
+          className="w-full h-full object-cover"
+        />
+      )
+    }
+
+    // external videos
+    if (media.isExternal || media.externalUrl) {
+      return (
+        <div className="w-full h-full  flex flex-col items-center justify-center p-4 text-center relative">
+          <p className="text-[10px] text-white/70 mt-1">
+            {media.provider?.toUpperCase() || t("VIDEO")}
+          </p>
+        </div>
+      )
+    }
+    if (media.fileType?.startsWith('image')) {
+      return (
+        <img
+          src={media.thumbnailUrl || media.originalUrl}
+          alt={media.altText || media.fileName}
+          className="w-full h-full object-cover"
+        />
+      )
+    }
+
+    // local videos
+    if (media.fileType?.startsWith('video')) {
+      return (
+        <div className="w-full h-full  flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-xs text-white">{t("VIDEO")}</p>
+          </div>
+        </div>
+      )
+    }
+
+    // Default
+    return (
+      <div className="text-muted-foreground flex items-center justify-center h-full">
+        <FileIcon className="w-12 h-12" />
+      </div>
+    )
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-xl max-w-5xl w-full border border-border max-h-[90vh] flex flex-col">
@@ -99,7 +157,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
           <button
-            onClick={onClose}
+            onClick={resetAndClose}
             className="text-muted-foreground hover:text-foreground"
           >
             <XIcon className="w-5 h-5" />
@@ -130,7 +188,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
           {/* Search */}
           <input
             type="text"
-            placeholder="Search by filename..."
+            placeholder={t("Search by filename...")}
             value={searchFileName}
             onChange={(e) => {
               setSearchFileName(e.target.value)
@@ -145,11 +203,11 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading media...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading media...")}</p>
             </div>
           ) : !data?.folders?.length && !data?.multimedia?.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">This folder is empty</p>
+              <p className="text-muted-foreground">{t("This folder is empty")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -168,7 +226,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
                     <p className="text-xs font-medium text-card-foreground truncate" title={folder.name}>
                       {folder.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">Folder</p>
+                    <p className="text-xs text-muted-foreground">{t("Folder")}</p>
                   </div>
                 </div>
               ))}
@@ -184,25 +242,15 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
                       : 'border-border'
                   }`}
                 >
-                  <div className="aspect-square bg-secondary flex items-center justify-center">
-                    {media.fileType.startsWith('image') ? (
-                      <img
-                        src={media.thumbnailUrl || media.originalUrl}
-                        alt={media.altText || media.fileName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-muted-foreground">
-                        <FileIcon className="w-8 h-8" />
-                      </div>
-                    )}
+                  <div className="aspect-square bg-secondary flex items-center justify-center overflow-hidden">
+                    {getMediaPreview(media)}
                   </div>
                   <div className="p-2">
                     <p className="text-xs font-medium text-card-foreground truncate" title={media.fileName}>
                       {media.fileName}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatFileSize(media.fileSize)}
+                      {media.isExternal ? (media.provider?.toUpperCase() || t("VIDEO")) : formatFileSize(media.fileSize)}
                     </p>
                   </div>
                 </div>
@@ -218,17 +266,17 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
                 disabled={page === 1}
                 className="px-3 py-1 border border-border rounded hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                {t("Previous")}
               </button>
               <span className="px-4 py-1 text-sm text-muted-foreground">
-                Page {page} of {data.pagination.pageCount}
+                {t("Page")} {page} of {data.pagination.pageCount}
               </span>
               <button
                 onClick={() => setPage(Math.min(data.pagination.pageCount, page + 1))}
                 disabled={page === data.pagination.pageCount}
                 className="px-3 py-1 border border-border rounded hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {t("Next")}
               </button>
             </div>
           )}
@@ -239,8 +287,18 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
           <div className="p-6 border-t border-border bg-secondary/30">
             <div className="flex gap-6">
               <div className="flex-shrink-0">
-                <div className="w-32 h-32 bg-secondary rounded-lg flex items-center justify-center overflow-hidden">
-                  {selectedMedia.fileType.startsWith('image') ? (
+                <div className="w-32 h-32 bg-secondary rounded-lg flex items-center justify-center overflow-hidden border border-border">
+                  {selectedMedia.isExternal || selectedMedia.externalUrl ? (
+                    selectedMedia.thumbnailUrl ? (
+                      <img
+                        src={selectedMedia.thumbnailUrl}
+                        alt={selectedMedia.fileName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-6xl"></div>
+                    )
+                  ) : selectedMedia.fileType?.startsWith('image') ? (
                     <img
                       src={selectedMedia.thumbnailUrl || selectedMedia.originalUrl}
                       alt={selectedMedia.altText || selectedMedia.fileName}
@@ -252,23 +310,23 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-card-foreground mb-1">Selected Media</h4>
+                <h4 className="text-sm font-semibold text-card-foreground mb-1">{t("Selected Media")}</h4>
                 <p className="text-sm text-muted-foreground truncate">{selectedMedia.fileName}</p>
                 <p className="text-xs text-muted-foreground mb-2">
-                  {formatFileSize(selectedMedia.fileSize)}
-                  {selectedMedia.width && selectedMedia.height &&
-                    ` • ${selectedMedia.width}x${selectedMedia.height}`
+                  {selectedMedia.isExternal 
+                    ? selectedMedia.provider?.toUpperCase() 
+                    : formatFileSize(selectedMedia.fileSize)
                   }
                 </p>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {selectedMedia.originalUrl && (
-                    <span className="px-2 py-0.5 bg-background border border-border rounded">Original</span>
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">{t("Original")}</span>
                   )}
                   {selectedMedia.optimizedUrl && (
-                    <span className="px-2 py-0.5 bg-background border border-border rounded">Optimized</span>
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">{t("Optimized")}</span>
                   )}
                   {selectedMedia.thumbnailUrl && (
-                    <span className="px-2 py-0.5 bg-background border border-border rounded">Thumbnail</span>
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">{t("Thumbnail")}</span>
                   )}
                   {selectedMedia.seoUrl && (
                     <span className="px-2 py-0.5 bg-background border border-border rounded">SEO</span>
@@ -282,17 +340,17 @@ export default function MediaPicker({ isOpen, onClose, onSelect, currentUrl, tit
         {/* Footer */}
         <div className="flex gap-3 justify-end p-6 border-t border-border">
           <button
-            onClick={onClose}
+            onClick={resetAndClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             onClick={handleSelect}
             disabled={!selectedMedia}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Select
+            {t("Select")}
           </button>
         </div>
       </div>

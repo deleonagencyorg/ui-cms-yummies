@@ -21,6 +21,7 @@ export interface ProductNutritionResponse {
 
 export interface ProductResponse {
   id: string
+  siteId: string | null
   name: string
   slug: string
   image: string
@@ -33,6 +34,8 @@ export interface ProductResponse {
   description: string
   available: string
   backgroundImage: string
+  isNew: boolean
+  sortOrder: number
   languageCode: string
   sizes: ProductSizeResponse[]
   weight: string[]
@@ -64,6 +67,7 @@ export interface ProductNutritionRequest {
 }
 
 export interface CreateProductRequest {
+  siteId: string
   name: string
   slug: string
   image?: string
@@ -76,6 +80,8 @@ export interface CreateProductRequest {
   description?: string
   available?: string
   backgroundImage?: string
+  isNew?: boolean
+  sortOrder?: number
   languageCode: string
   sizes?: ProductSizeRequest[]
   weight?: string[]
@@ -96,6 +102,8 @@ export interface UpdateProductRequest {
   description?: string
   available?: string
   backgroundImage?: string
+  isNew?: boolean
+  sortOrder?: number
   languageCode?: string
   sizes?: ProductSizeRequest[]
   weight?: string[]
@@ -104,6 +112,7 @@ export interface UpdateProductRequest {
 }
 
 export interface ProductFiltersRequest {
+  siteId?: string
   name?: string
   slug?: string
   category?: string

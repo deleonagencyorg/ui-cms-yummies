@@ -42,10 +42,11 @@ export default function Departments() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<DepartmentResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {
-        header: 'Name',
+        header: t("Name"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -53,7 +54,7 @@ export default function Departments() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -61,7 +62,7 @@ export default function Departments() {
         ),
       }),
       columnHelper.accessor('updatedAt', {
-        header: 'Updated At',
+        header: t("Updated At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -70,20 +71,20 @@ export default function Departments() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -91,7 +92,7 @@ export default function Departments() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -151,7 +152,7 @@ export default function Departments() {
                 {t('nav.departments')}
               </h2>
               <p className="text-muted-foreground mt-1">
-                Manage your organization's departments
+                {t("Manage your organization's departments")}
               </p>
             </div>
             <button
@@ -159,7 +160,7 @@ export default function Departments() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Department
+              {t("Create Department")}
             </button>
           </div>
 
@@ -167,7 +168,7 @@ export default function Departments() {
           <div className="mb-6">
             <input
               type="text"
-              placeholder="Search departments..."
+              placeholder={t("Search departments...")}
               value={searchName}
               onChange={(e) => {
                 setSearchName(e.target.value)
@@ -181,15 +182,15 @@ export default function Departments() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading departments...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading departments...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load departments</p>
+              <p className="text-red-500">{t("Failed to load departments")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No departments found</p>
+              <p className="text-muted-foreground">{t("No departments found")}</p>
             </div>
           ) : (
             <>
@@ -250,7 +251,7 @@ export default function Departments() {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <Modal
-          title="Create Department"
+          title={t("Create Department")}
           onClose={() => {
             setIsCreateModalOpen(false)
             setFormData({ name: '' })
@@ -259,7 +260,7 @@ export default function Departments() {
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Department Name
+                {t("Department Name")}
               </label>
               <input
                 type="text"
@@ -268,7 +269,7 @@ export default function Departments() {
                 required
                 maxLength={100}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter department name"
+                placeholder={t("Enter department name")}
               />
             </div>
             <div className="flex gap-3 justify-end">
@@ -280,14 +281,14 @@ export default function Departments() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={createMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {createMutation.isPending ? 'Creating...' : 'Create'}
+                {createMutation.isPending ? t("Creating...") : t("Create")}
               </button>
             </div>
           </form>
@@ -297,7 +298,7 @@ export default function Departments() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedDepartment && (
         <Modal
-          title="Edit Department"
+          title={t("Edit Department")}
           onClose={() => {
             setIsEditModalOpen(false)
             setSelectedDepartment(null)
@@ -307,7 +308,7 @@ export default function Departments() {
           <form onSubmit={handleEdit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Department Name
+                {t("Department Name")}
               </label>
               <input
                 type="text"
@@ -316,7 +317,7 @@ export default function Departments() {
                 required
                 maxLength={100}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter department name"
+                placeholder={t("Enter department name")}
               />
             </div>
             <div className="flex gap-3 justify-end">
@@ -329,14 +330,14 @@ export default function Departments() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updateMutation.isPending ? 'Updating...' : 'Update'}
+                {updateMutation.isPending ? t("Updating...") : t("Update")}
               </button>
             </div>
           </form>
@@ -346,7 +347,7 @@ export default function Departments() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedDepartment && (
         <Modal
-          title="Delete Department"
+          title={t("Delete Department")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedDepartment(null)
@@ -354,8 +355,7 @@ export default function Departments() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the department "<strong>{selectedDepartment.name}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete the department \"")}<strong>{selectedDepartment.name}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -365,14 +365,14 @@ export default function Departments() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>

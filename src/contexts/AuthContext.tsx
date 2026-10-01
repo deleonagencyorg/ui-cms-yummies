@@ -1,6 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, type ReactNode, useEffect } from 'react'
 
 import axiosInstance from '@/lib/axios'
+import { setActiveSiteId } from '@/lib/activeSite'
 import { API_ENDPOINTS, TOKEN_STORAGE_KEY, REFRESH_TOKEN_STORAGE_KEY } from '@/constants/api'
 import type { LoginRequest, AuthResponse, UserResponse } from '@/types/auth.types'
 
@@ -103,10 +105,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const resolvedUser: UserResponse = (await axiosInstance.get<UserResponse>(API_ENDPOINTS.AUTH.ME)).data
 
       localStorage.setItem('user', JSON.stringify(resolvedUser))
+      setActiveSiteId(null)
       setUser(resolvedUser)
       setIsAuthenticated(true)
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Login failed. Please try again.'
+    } catch (err: unknown) {
+      const errorMessage = (err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Login failed. Please try again.'
       setError(errorMessage)
       throw new Error(errorMessage)
     } finally {
@@ -115,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
+    setActiveSiteId(null)
     localStorage.removeItem(TOKEN_STORAGE_KEY)
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
     localStorage.removeItem('user')

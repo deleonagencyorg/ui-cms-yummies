@@ -1,5 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
+import ModulePage from '@/components/ModulePage'
+import SectionTextsForm from '@/components/SectionTextsForm'
+import { useSiteModules } from '@/lib/siteModules'
+import { RECIPES_PAGE_FIELDS, RECIPES_PAGE_SITES } from '@/constants/siteSections'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import type { MultimediaResponse } from '@/actions/multimedia'
@@ -10,6 +14,7 @@ import { useBrands } from '@/queries/brands'
 import { useProducts } from '@/queries/products'
 import { useCreateRecipe, useUpdateRecipe, useDeleteRecipe } from '@/mutations/recipes'
 import type { RecipeResponse } from '@/actions/recipes'
+import { useSite } from '@/contexts/SiteContext'
 import {
   useReactTable,
   getCoreRowModel,
@@ -27,6 +32,8 @@ interface RecipeFormData {
   people: string
   difficulty: string
   image: string
+  video: string
+  isNew: boolean
   gallery: string[]
   type: string
   preparationTime: number
@@ -45,6 +52,8 @@ const initialFormData: RecipeFormData = {
   people: '',
   difficulty: '',
   image: '',
+  video: '',
+  isNew: false,
   gallery: [],
   type: '',
   preparationTime: 0,
@@ -58,10 +67,12 @@ const initialFormData: RecipeFormData = {
 
 type MediaPickerTarget =
   | { type: 'image' }
+  | { type: 'video' | 'all' }
   | { type: 'gallery'; index?: number }
 
-export default function Recipes() {
+export function RecipesPageContent() {
   const { t } = useTranslation()
+  const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchTitle, setSearchTitle] = useState('')
@@ -76,17 +87,30 @@ export default function Recipes() {
   const [mediaPickerTarget, setMediaPickerTarget] = useState<MediaPickerTarget | null>(null)
 
   const { data, isLoading, error } = useRecipes({
+    siteId: selectedSiteId || undefined,
     page,
     pageSize,
     title: searchTitle || undefined,
     category: filterCategory || undefined,
-  })
+  }, { enabled: !!selectedSiteId })
   const { data: languagesData } = useLanguages({ page: 1, pageSize: 100, isActive: true })
   const { data: brandsData } = useBrands({ page: 1, pageSize: 100 })
-  const { data: productsData } = useProducts({ page: 1, pageSize: 100 })
+  const { data: productsData } = useProducts(
+    { siteId: selectedSiteId || undefined, page: 1, pageSize: 100 },
+    { enabled: !!selectedSiteId }
+  )
   const createMutation = useCreateRecipe()
   const updateMutation = useUpdateRecipe()
   const deleteMutation = useDeleteRecipe()
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return
+    const brands = brandsData?.data ?? []
+    if (brands.length !== 1) return
+    setFormData((prev) =>
+      prev.brandIds.length > 0 ? prev : { ...prev, brandIds: [brands[0].id] }
+    )
+  }, [isCreateModalOpen, brandsData])
 
   const openEditModal = (recipe: RecipeResponse) => {
     setSelectedRecipe(recipe)
@@ -100,6 +124,8 @@ export default function Recipes() {
       gallery: recipe.gallery || [],
       type: recipe.type || '',
       preparationTime: recipe.preparationTime || 0,
+      video: recipe.video || '',
+      isNew: recipe.isNew ?? false,
       ingredients: recipe.ingredients || [],
       category: recipe.category || '',
       instructions: recipe.instructions || [],
@@ -115,10 +141,11 @@ export default function Recipes() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<RecipeResponse, any>[]>(
     () => [
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t("Title"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -126,7 +153,7 @@ export default function Recipes() {
         ),
       }),
       columnHelper.accessor('slug', {
-        header: 'Slug',
+        header: t("Slug"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             {info.getValue()}
@@ -134,18 +161,18 @@ export default function Recipes() {
         ),
       }),
       columnHelper.accessor('image', {
-        header: 'Image',
+        header: t("Image"),
         cell: (info) => {
           const url = info.getValue()
           return url ? (
-            <img src={url} alt="Recipe" className="h-10 w-10 object-cover rounded" />
+            <img src={url} alt={t("Recipe")} className="h-10 w-10 object-cover rounded" />
           ) : (
             <span className="text-sm text-muted-foreground">-</span>
           )
         },
       }),
       columnHelper.accessor('category', {
-        header: 'Category',
+        header: t("Category"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue() || '-'}
@@ -153,7 +180,7 @@ export default function Recipes() {
         ),
       }),
       columnHelper.accessor('difficulty', {
-        header: 'Difficulty',
+        header: t("Difficulty"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue() || '-'}
@@ -161,7 +188,7 @@ export default function Recipes() {
         ),
       }),
       columnHelper.accessor('preparationTime', {
-        header: 'Prep Time',
+        header: t("Prep Time"),
         cell: (info) => {
           const time = info.getValue()
           return (
@@ -172,7 +199,7 @@ export default function Recipes() {
         },
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             {info.getValue()}
@@ -180,7 +207,7 @@ export default function Recipes() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -189,20 +216,20 @@ export default function Recipes() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -210,7 +237,7 @@ export default function Recipes() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -223,8 +250,14 @@ export default function Recipes() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedSiteId) return
+    if (formData.brandIds.length === 0) {
+      window.alert(t("Select at least one brand so the recipe can appear on the site."))
+      return
+    }
     try {
       await createMutation.mutateAsync({
+        siteId: selectedSiteId,
         title: formData.title,
         slug: formData.slug,
         date: formData.date || undefined,
@@ -234,11 +267,13 @@ export default function Recipes() {
         gallery: formData.gallery.length > 0 ? formData.gallery : undefined,
         type: formData.type || undefined,
         preparationTime: formData.preparationTime || undefined,
+        video: formData.video,
+        isNew: formData.isNew,
         ingredients: formData.ingredients.length > 0 ? formData.ingredients : undefined,
         category: formData.category || undefined,
         instructions: formData.instructions.length > 0 ? formData.instructions : undefined,
         languageCode: formData.languageCode,
-        brandIds: formData.brandIds.length > 0 ? formData.brandIds : undefined,
+        brandIds: formData.brandIds,
         productIds: formData.productIds.length > 0 ? formData.productIds : undefined,
       })
       setIsCreateModalOpen(false)
@@ -251,6 +286,10 @@ export default function Recipes() {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedRecipe) return
+    if (formData.brandIds.length === 0) {
+      window.alert(t("Select at least one brand so the recipe can appear on the site."))
+      return
+    }
     try {
       await updateMutation.mutateAsync({
         id: selectedRecipe.id,
@@ -264,6 +303,8 @@ export default function Recipes() {
           gallery: formData.gallery,
           type: formData.type || undefined,
           preparationTime: formData.preparationTime || undefined,
+          video: formData.video,
+          isNew: formData.isNew,
           ingredients: formData.ingredients,
           category: formData.category || undefined,
           instructions: formData.instructions,
@@ -292,12 +333,16 @@ export default function Recipes() {
   }
 
   // Media picker handlers
-  const handleMediaSelect = (media: MultimediaResponse) => {
+  const handleMediaSelect = (media: MultimediaResponse, _variant?: string) => {
     if (!mediaPickerTarget) return
 
     if (mediaPickerTarget.type === 'image') {
       setFormData((prev) => ({ ...prev, image: media.originalUrl }))
-    } else if (mediaPickerTarget.type === 'gallery') {
+    } 
+    else if (mediaPickerTarget.type === 'video' || mediaPickerTarget.type === 'all') {
+      setFormData((prev) => ({ ...prev, video: media.externalUrl || media.originalUrl }))
+    } 
+    else if (mediaPickerTarget.type === 'gallery') {
       if (mediaPickerTarget.index !== undefined) {
         // Update existing gallery image
         setFormData((prev) => ({
@@ -390,7 +435,7 @@ export default function Recipes() {
   }
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           {/* Header */}
@@ -400,7 +445,7 @@ export default function Recipes() {
                 {t('nav.recipes')}
               </h2>
               <p className="text-muted-foreground mt-1">
-                Manage your recipes
+                {t("Manage your recipes")}
               </p>
             </div>
             <button
@@ -408,7 +453,7 @@ export default function Recipes() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Recipe
+              {t("Create Recipe")}
             </button>
           </div>
 
@@ -416,7 +461,7 @@ export default function Recipes() {
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search recipes..."
+              placeholder={t("Search recipes...")}
               value={searchTitle}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
@@ -426,7 +471,7 @@ export default function Recipes() {
             />
             <input
               type="text"
-              placeholder="Filter by category..."
+              placeholder={t("Filter by category...")}
               value={filterCategory}
               onChange={(e) => {
                 setFilterCategory(e.target.value)
@@ -440,15 +485,15 @@ export default function Recipes() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading recipes...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading recipes...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load recipes</p>
+              <p className="text-red-500">{t("Failed to load recipes")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No recipes found</p>
+              <p className="text-muted-foreground">{t("No recipes found")}</p>
             </div>
           ) : (
             <>
@@ -509,7 +554,7 @@ export default function Recipes() {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <RecipeFormModal
-          title="Create Recipe"
+          title={t("Create Recipe")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -518,7 +563,7 @@ export default function Recipes() {
             setFormData(initialFormData)
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           brands={brandsData?.data || []}
           products={productsData?.data || []}
@@ -538,7 +583,7 @@ export default function Recipes() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedRecipe && (
         <RecipeFormModal
-          title="Edit Recipe"
+          title={t("Edit Recipe")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -548,7 +593,7 @@ export default function Recipes() {
             setFormData(initialFormData)
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           brands={brandsData?.data || []}
           products={productsData?.data || []}
@@ -568,7 +613,7 @@ export default function Recipes() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedRecipe && (
         <Modal
-          title="Delete Recipe"
+          title={t("Delete Recipe")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedRecipe(null)
@@ -576,8 +621,7 @@ export default function Recipes() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the recipe "<strong>{selectedRecipe.title}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete the recipe \"")}<strong>{selectedRecipe.title}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -587,14 +631,14 @@ export default function Recipes() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -606,9 +650,9 @@ export default function Recipes() {
         isOpen={mediaPickerTarget !== null}
         onClose={() => setMediaPickerTarget(null)}
         onSelect={handleMediaSelect}
-        title="Select Image"
+        title={t("Select Image")}
       />
-    </Layout>
+    </>
   )
 }
 
@@ -658,6 +702,7 @@ function RecipeFormModal({
   onToggleBrand,
   onToggleProduct,
 }: RecipeFormModalProps) {
+  const { t } = useTranslation()
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full border border-border max-h-[90vh] overflow-y-auto">
@@ -671,12 +716,12 @@ function RecipeFormModal({
           {/* Basic Info Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Basic Information
+              {t("Basic Information")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Title *
+                  {t("Title *")}
                 </label>
                 <input
                   type="text"
@@ -685,12 +730,12 @@ function RecipeFormModal({
                   required
                   maxLength={255}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Recipe title"
+                  placeholder={t("Recipe title")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Slug *
+                  {t("Slug *")}
                 </label>
                 <input
                   type="text"
@@ -704,7 +749,7 @@ function RecipeFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Language *
+                  {t("Language *")}
                 </label>
                 <select
                   value={formData.languageCode}
@@ -712,7 +757,7 @@ function RecipeFormModal({
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Select language</option>
+                  <option value="">{t("Select language")}</option>
                   {languages.map((lang) => (
                     <option key={lang.code} value={lang.code}>
                       {lang.name} ({lang.nativeName})
@@ -722,7 +767,7 @@ function RecipeFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Date
+                  {t("Date")}
                 </label>
                 <input
                   type="date"
@@ -733,7 +778,7 @@ function RecipeFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Category
+                  {t("Category")}
                 </label>
                 <input
                   type="text"
@@ -741,12 +786,12 @@ function RecipeFormModal({
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   maxLength={50}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="e.g., Desserts"
+                  placeholder={t("e.g., Desserts")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Type
+                  {t("Type")}
                 </label>
                 <input
                   type="text"
@@ -754,27 +799,27 @@ function RecipeFormModal({
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                   maxLength={50}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="e.g., Main Course"
+                  placeholder={t("e.g., Main Course")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Difficulty
+                  {t("Difficulty")}
                 </label>
                 <select
                   value={formData.difficulty}
                   onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Select difficulty</option>
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
+                  <option value="">{t("Select difficulty")}</option>
+                  <option value="Easy">{t("Easy")}</option>
+                  <option value="Medium">{t("Medium")}</option>
+                  <option value="Hard">{t("Hard")}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  People/Servings
+                  {t("People/Servings")}
                 </label>
                 <input
                   type="text"
@@ -782,12 +827,12 @@ function RecipeFormModal({
                   onChange={(e) => setFormData({ ...formData, people: e.target.value })}
                   maxLength={50}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="e.g., 4 servings"
+                  placeholder={t("e.g., 4 servings")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Preparation Time (minutes)
+                  {t("Preparation Time (minutes)")}
                 </label>
                 <input
                   type="number"
@@ -800,17 +845,26 @@ function RecipeFormModal({
                   placeholder="30"
                 />
               </div>
+              <label className="flex items-center gap-2 text-sm font-medium text-card-foreground">
+                <input
+                  type="checkbox"
+                  checked={formData.isNew}
+                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
+                  className="rounded border-border"
+                />
+                {t("Mark as new")}
+              </label>
             </div>
           </div>
 
           {/* Images Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Images
+              {t("Images")}
             </h4>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Main Image
+                {t("Main Image")}
               </label>
               <div className="flex items-center gap-3">
                 <button
@@ -819,13 +873,13 @@ function RecipeFormModal({
                   className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                 >
                   <PhotoIcon className="w-5 h-5" />
-                  Select Image
+                  {t("Select Image")}
                 </button>
                 {formData.image && (
                   <>
                     <img
                       src={formData.image}
-                      alt="Recipe"
+                      alt={t("Recipe")}
                       className="w-12 h-12 object-cover rounded border border-border"
                     />
                     <button
@@ -840,22 +894,56 @@ function RecipeFormModal({
               </div>
             </div>
 
+            {/* Video Section */}
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Video")}
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onOpenMediaPicker({ type: 'all' })}
+                  className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
+                >
+                  <VideoIcon className="w-5 h-5" />
+                  {t("Select")}
+                </button>
+                <input
+                  type="url"
+                  value={formData.video}
+                  onChange={(e) => setFormData({ ...formData, video: e.target.value })}
+                  maxLength={500}
+                  className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  placeholder="https://"
+                />
+                {formData.video && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, video: '' })}
+                    className="p-2 text-red-600 hover:text-red-800"
+                  >
+                    <XIcon className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Gallery */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-card-foreground">Gallery</label>
+                <label className="block text-sm font-medium text-card-foreground">{t("Gallery")}</label>
                 <button
                   type="button"
                   onClick={() => onOpenMediaPicker({ type: 'gallery' })}
                   className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  Add Image
+                  {t("Add Image")}
                 </button>
               </div>
               {formData.gallery.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-                  No gallery images added
+                  {t("No gallery images added")}
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-3">
@@ -883,19 +971,19 @@ function RecipeFormModal({
           {/* Ingredients Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-2">
-              <h4 className="text-sm font-semibold text-card-foreground">Ingredients</h4>
+              <h4 className="text-sm font-semibold text-card-foreground">{t("Ingredients")}</h4>
               <button
                 type="button"
                 onClick={onAddIngredient}
                 className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Ingredient
+                {t("Add Ingredient")}
               </button>
             </div>
             {formData.ingredients.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No ingredients added
+                {t("No ingredients added")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -906,7 +994,7 @@ function RecipeFormModal({
                       type="text"
                       value={ingredient}
                       onChange={(e) => onUpdateIngredient(index, e.target.value)}
-                      placeholder="e.g., 2 cups flour"
+                      placeholder={t("e.g., 2 cups flour")}
                       className="flex-1 px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                     />
                     <button
@@ -925,19 +1013,19 @@ function RecipeFormModal({
           {/* Instructions Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-2">
-              <h4 className="text-sm font-semibold text-card-foreground">Instructions</h4>
+              <h4 className="text-sm font-semibold text-card-foreground">{t("Instructions")}</h4>
               <button
                 type="button"
                 onClick={onAddInstruction}
                 className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Step
+                {t("Add Step")}
               </button>
             </div>
             {formData.instructions.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No instructions added
+                {t("No instructions added")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -947,7 +1035,7 @@ function RecipeFormModal({
                     <textarea
                       value={instruction}
                       onChange={(e) => onUpdateInstruction(index, e.target.value)}
-                      placeholder="Describe this step..."
+                      placeholder={t("Describe this step...")}
                       rows={2}
                       className="flex-1 px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                     />
@@ -967,10 +1055,13 @@ function RecipeFormModal({
           {/* Brands Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Related Brands
+              {t("Related Brands *")}
             </h4>
+            <p className="text-xs text-muted-foreground">
+              {t("Required. Yummi Nuts only shows recipes linked to its brand.")}
+            </p>
             {brands.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No brands available</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("No brands available")}</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {brands.map((brand) => (
@@ -994,10 +1085,10 @@ function RecipeFormModal({
           {/* Products Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Related Products
+              {t("Related Products")}
             </h4>
             {products.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No products available</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("No products available")}</p>
             ) : (
               <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
                 {products.map((product) => (
@@ -1025,14 +1116,14 @@ function RecipeFormModal({
               onClick={onClose}
               className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving...' : submitLabel}
+              {isSubmitting ? t("Saving...") : submitLabel}
             </button>
           </div>
         </form>
@@ -1104,5 +1195,47 @@ function PhotoIcon({ className }: { className?: string }) {
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
     </svg>
+  )
+}
+
+function VideoIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+    </svg>
+  )
+}
+
+export default function Recipes() {
+  const { t } = useTranslation()
+  const { selectedSite } = useSiteModules()
+
+  if (!selectedSite || !RECIPES_PAGE_SITES.includes(selectedSite.slug)) {
+    return (
+      <Layout>
+        <RecipesPageContent />
+      </Layout>
+    )
+  }
+
+  return (
+    <ModulePage
+      title={t("Recipes")}
+      description={t("Recipes with ingredients, steps and related products.")}
+      tabs={[
+        { key: 'recipes', label: t("Recipes"), content: <RecipesPageContent /> },
+        {
+          key: 'page-texts',
+          label: t("Recipes page texts"),
+          content: (
+            <SectionTextsForm
+              title={t("Recipes page texts")}
+              description={t("Messages and buttons of the recipes list.")}
+              fields={RECIPES_PAGE_FIELDS}
+            />
+          ),
+        },
+      ]}
+    />
   )
 }

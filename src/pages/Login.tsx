@@ -23,8 +23,8 @@ export default function Login() {
       setTimeout(() => {
         navigate('/')
       }, 500)
-    } catch (err: any) {
-      toast.error(err.message || t('auth.login.failed'))
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t('auth.login.failed'))
       setIsLoading(false)
     }
   }

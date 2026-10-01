@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useCallback, useMemo, useState, createContext, useContext } from 'react'
 import { createEditor, type Descendant, Element as SlateElement, Text, Transforms, type BaseEditor, Editor } from 'slate'
 import { Slate, Editable, withReact, useSlate, type RenderElementProps, type RenderLeafProps, type ReactEditor } from 'slate-react'
@@ -108,12 +109,11 @@ const withImages = (editor: BaseEditor & ReactEditor) => {
 }
 
 export default function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
+  const { t } = useTranslation()
   const editor = useMemo(() => withImages(withHistory(withReact(createEditor()))), [])
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false)
 
-  const initialValue: Descendant[] = useMemo(() => {
-    return htmlToSlate(value)
-  }, [])
+  const [initialValue] = useState<Descendant[]>(() => htmlToSlate(value))
 
   const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, [])
   const renderLeaf = useCallback((props: RenderLeafProps) => <Leaf {...props} />, [])
@@ -123,8 +123,8 @@ export default function RichTextEditor({ value, onChange, placeholder, className
     onChange(html)
   }
 
-  const handleMediaSelect = (media: MultimediaResponse) => {
-    insertImage(editor, media.originalUrl, media.filename)
+  const handleMediaSelect = (media: MultimediaResponse, _variant?: string) => {
+    insertImage(editor, media.originalUrl, media.fileName)
     setIsMediaPickerOpen(false)
   }
 
@@ -140,7 +140,7 @@ export default function RichTextEditor({ value, onChange, placeholder, className
           <Editable
             renderElement={renderElement}
             renderLeaf={renderLeaf}
-            placeholder={placeholder || 'Enter content...'}
+            placeholder={placeholder || t("Enter content...")}
             spellCheck
             className="min-h-[200px] p-4 bg-background focus:outline-none prose prose-sm max-w-none"
             onKeyDown={(event) => {
@@ -157,7 +157,7 @@ export default function RichTextEditor({ value, onChange, placeholder, className
         isOpen={isMediaPickerOpen}
         onClose={() => setIsMediaPickerOpen(false)}
         onSelect={handleMediaSelect}
-        title="Insert Image"
+        title={t("Insert Image")}
       />
     </MediaPickerContext.Provider>
   )
@@ -180,6 +180,7 @@ function insertImage(editor: BaseEditor & ReactEditor, url: string, alt?: string
 
 // Toolbar Component
 function Toolbar() {
+  const { t } = useTranslation()
   const context = useContext(MediaPickerContext)
 
   return (
@@ -205,7 +206,7 @@ function Toolbar() {
           context?.openMediaPicker()
         }}
         className="p-1.5 rounded transition-colors hover:bg-secondary text-muted-foreground hover:text-foreground"
-        title="Insert Image"
+        title={t("Insert Image")}
       >
         <ImageIcon />
       </button>

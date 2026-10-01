@@ -1,5 +1,9 @@
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
+import ModulePage from '@/components/ModulePage'
+import SectionTextsForm from '@/components/SectionTextsForm'
+import { useSiteModules } from '@/lib/siteModules'
+import { PRODUCTS_PAGE_FIELDS, PRODUCTS_PAGE_SITES } from '@/constants/siteSections'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import type { MultimediaResponse } from '@/actions/multimedia'
@@ -14,6 +18,7 @@ import type {
   NutritionRowRequest,
   ProductNutritionRequest,
 } from '@/actions/products'
+import { useSite } from '@/contexts/SiteContext'
 import {
   useReactTable,
   getCoreRowModel,
@@ -42,6 +47,8 @@ interface ProductFormData {
   weight: string[]
   nutrition: ProductNutritionRequest
   brandId: string
+  isNew: boolean
+  sortOrder: number
 }
 
 const initialFormData: ProductFormData = {
@@ -67,6 +74,8 @@ const initialFormData: ProductFormData = {
     disclaimer: '',
   },
   brandId: '',
+  isNew: false,
+  sortOrder: 0,
 }
 
 type MediaPickerTarget =
@@ -76,8 +85,9 @@ type MediaPickerTarget =
   | { type: 'available' }
   | { type: 'sizeImage'; index: number }
 
-export default function Products() {
+export function ProductsPageContent() {
   const { t } = useTranslation()
+  const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchName, setSearchName] = useState('')
@@ -92,11 +102,12 @@ export default function Products() {
   const [mediaPickerTarget, setMediaPickerTarget] = useState<MediaPickerTarget | null>(null)
 
   const { data, isLoading, error } = useProducts({
+    siteId: selectedSiteId || undefined,
     page,
     pageSize,
     name: searchName || undefined,
     brandId: filterBrandId || undefined,
-  })
+  }, { enabled: !!selectedSiteId })
   const { data: languagesData } = useLanguages({ page: 1, pageSize: 100, isActive: true })
   const { data: brandsData } = useBrands({ page: 1, pageSize: 100 })
   const createMutation = useCreateProduct()
@@ -128,6 +139,8 @@ export default function Products() {
         disclaimer: product.nutrition?.disclaimer || '',
       },
       brandId: product.brandId,
+      isNew: product.isNew ?? false,
+      sortOrder: product.sortOrder ?? 0,
     })
     setIsEditModalOpen(true)
   }
@@ -141,10 +154,11 @@ export default function Products() {
     return brandsData?.data.find((b) => b.id === brandId)?.name || '-'
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<ProductResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {
-        header: 'Name',
+        header: t("Name"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -152,7 +166,7 @@ export default function Products() {
         ),
       }),
       columnHelper.accessor('slug', {
-        header: 'Slug',
+        header: t("Slug"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             {info.getValue()}
@@ -160,18 +174,18 @@ export default function Products() {
         ),
       }),
       columnHelper.accessor('image', {
-        header: 'Image',
+        header: t("Image"),
         cell: (info) => {
           const url = info.getValue()
           return url ? (
-            <img src={url} alt="Product" className="h-10 w-10 object-cover rounded" />
+            <img src={url} alt={t("Product")} className="h-10 w-10 object-cover rounded" />
           ) : (
             <span className="text-sm text-muted-foreground">-</span>
           )
         },
       }),
       columnHelper.accessor('category', {
-        header: 'Category',
+        header: t("Category"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue() || '-'}
@@ -179,7 +193,7 @@ export default function Products() {
         ),
       }),
       columnHelper.accessor('brandId', {
-        header: 'Brand',
+        header: t("Brand"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {getBrandName(info.getValue())}
@@ -187,7 +201,7 @@ export default function Products() {
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             {info.getValue()}
@@ -195,7 +209,7 @@ export default function Products() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -204,20 +218,20 @@ export default function Products() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -225,7 +239,7 @@ export default function Products() {
         ),
       }),
     ],
-    [brandsData]
+    [brandsData, t]
   )
 
   const table = useReactTable({
@@ -238,8 +252,10 @@ export default function Products() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedSiteId) return
     try {
       await createMutation.mutateAsync({
+        siteId: selectedSiteId,
         name: formData.name,
         slug: formData.slug,
         image: formData.image || undefined,
@@ -259,6 +275,8 @@ export default function Products() {
           ? formData.nutrition
           : undefined,
         brandId: formData.brandId,
+        isNew: formData.isNew,
+        sortOrder: formData.sortOrder,
       })
       setIsCreateModalOpen(false)
       setFormData(initialFormData)
@@ -291,6 +309,8 @@ export default function Products() {
           weight: formData.weight,
           nutrition: formData.nutrition,
           brandId: formData.brandId,
+          isNew: formData.isNew,
+          sortOrder: formData.sortOrder,
         },
       })
       setIsEditModalOpen(false)
@@ -313,7 +333,7 @@ export default function Products() {
   }
 
   // Media picker handlers
-  const handleMediaSelect = (media: MultimediaResponse) => {
+  const handleMediaSelect = (media: MultimediaResponse, _variant?: string) => {
     if (!mediaPickerTarget) return
 
     if (mediaPickerTarget.type === 'image') {
@@ -415,7 +435,7 @@ export default function Products() {
   }
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           {/* Header */}
@@ -425,7 +445,7 @@ export default function Products() {
                 {t('nav.products')}
               </h2>
               <p className="text-muted-foreground mt-1">
-                Manage your products catalog
+                {t("Manage your products catalog")}
               </p>
             </div>
             <button
@@ -433,7 +453,7 @@ export default function Products() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Product
+              {t("Create Product")}
             </button>
           </div>
 
@@ -441,7 +461,7 @@ export default function Products() {
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder={t("Search products...")}
               value={searchName}
               onChange={(e) => {
                 setSearchName(e.target.value)
@@ -457,7 +477,7 @@ export default function Products() {
               }}
               className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Brands</option>
+              <option value="">{t("All Brands")}</option>
               {brandsData?.data.map((brand) => (
                 <option key={brand.id} value={brand.id}>
                   {brand.name}
@@ -470,15 +490,15 @@ export default function Products() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading products...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading products...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load products</p>
+              <p className="text-red-500">{t("Failed to load products")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No products found</p>
+              <p className="text-muted-foreground">{t("No products found")}</p>
             </div>
           ) : (
             <>
@@ -539,7 +559,7 @@ export default function Products() {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <ProductFormModal
-          title="Create Product"
+          title={t("Create Product")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -548,7 +568,7 @@ export default function Products() {
             setFormData(initialFormData)
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           brands={brandsData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
@@ -568,7 +588,7 @@ export default function Products() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedProduct && (
         <ProductFormModal
-          title="Edit Product"
+          title={t("Edit Product")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -578,7 +598,7 @@ export default function Products() {
             setFormData(initialFormData)
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           brands={brandsData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
@@ -598,7 +618,7 @@ export default function Products() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedProduct && (
         <Modal
-          title="Delete Product"
+          title={t("Delete Product")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedProduct(null)
@@ -606,8 +626,7 @@ export default function Products() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the product "<strong>{selectedProduct.name}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete the product \"")}<strong>{selectedProduct.name}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -617,14 +636,14 @@ export default function Products() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -636,9 +655,9 @@ export default function Products() {
         isOpen={mediaPickerTarget !== null}
         onClose={() => setMediaPickerTarget(null)}
         onSelect={handleMediaSelect}
-        title="Select Image"
+        title={t("Select Image")}
       />
-    </Layout>
+    </>
   )
 }
 
@@ -688,6 +707,7 @@ function ProductFormModal({
   onUpdateNutritionRow,
   onUpdateNutrition,
 }: ProductFormModalProps) {
+  const { t } = useTranslation()
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full border border-border max-h-[90vh] overflow-y-auto">
@@ -701,12 +721,12 @@ function ProductFormModal({
           {/* Basic Info Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Basic Information
+              {t("Basic Information")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Name *
+                  {t("Name *")}
                 </label>
                 <input
                   type="text"
@@ -715,12 +735,12 @@ function ProductFormModal({
                   required
                   maxLength={100}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Product name"
+                  placeholder={t("Product name")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Slug *
+                  {t("Slug *")}
                 </label>
                 <input
                   type="text"
@@ -734,7 +754,7 @@ function ProductFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Brand *
+                  {t("Brand *")}
                 </label>
                 <select
                   value={formData.brandId}
@@ -742,7 +762,7 @@ function ProductFormModal({
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Select brand</option>
+                  <option value="">{t("Select brand")}</option>
                   {brands.map((brand) => (
                     <option key={brand.id} value={brand.id}>
                       {brand.name}
@@ -752,7 +772,7 @@ function ProductFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Language *
+                  {t("Language *")}
                 </label>
                 <select
                   value={formData.languageCode}
@@ -760,7 +780,7 @@ function ProductFormModal({
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Select language</option>
+                  <option value="">{t("Select language")}</option>
                   {languages.map((lang) => (
                     <option key={lang.code} value={lang.code}>
                       {lang.name} ({lang.nativeName})
@@ -770,7 +790,7 @@ function ProductFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Category
+                  {t("Category")}
                 </label>
                 <input
                   type="text"
@@ -778,20 +798,41 @@ function ProductFormModal({
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   maxLength={100}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Product category"
+                  placeholder={t("Product category")}
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-card-foreground mb-2">
+                  {t("Sort Order")}
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={formData.sortOrder}
+                  onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm font-medium text-card-foreground">
+                <input
+                  type="checkbox"
+                  checked={formData.isNew}
+                  onChange={(e) => setFormData({ ...formData, isNew: e.target.checked })}
+                  className="rounded border-border"
+                />
+                {t("Mark as new")}
+              </label>
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Description
+                {t("Description")}
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Product description"
+                placeholder={t("Product description")}
               />
             </div>
           </div>
@@ -799,29 +840,29 @@ function ProductFormModal({
           {/* Images Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Images
+              {t("Images")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <ImageField
-                label="Main Image"
+                label={t("Main Image")}
                 value={formData.image}
                 onClear={() => setFormData({ ...formData, image: '' })}
                 onSelect={() => onOpenMediaPicker({ type: 'image' })}
               />
               <ImageField
-                label="Mobile Image"
+                label={t("Mobile Image")}
                 value={formData.imageMobile}
                 onClear={() => setFormData({ ...formData, imageMobile: '' })}
                 onSelect={() => onOpenMediaPicker({ type: 'imageMobile' })}
               />
               <ImageField
-                label="Background Image"
+                label={t("Background Image")}
                 value={formData.backgroundImage}
                 onClear={() => setFormData({ ...formData, backgroundImage: '' })}
                 onSelect={() => onOpenMediaPicker({ type: 'backgroundImage' })}
               />
               <ImageField
-                label="Available Image"
+                label={t("Available Image")}
                 value={formData.available}
                 onClear={() => setFormData({ ...formData, available: '' })}
                 onSelect={() => onOpenMediaPicker({ type: 'available' })}
@@ -832,26 +873,26 @@ function ProductFormModal({
           {/* Colors Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Colors
+              {t("Colors")}
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <ColorField
-                label="Background"
+                label={t("Background")}
                 value={formData.backgroundColor}
                 onChange={(v) => setFormData({ ...formData, backgroundColor: v })}
               />
               <ColorField
-                label="Header Text"
+                label={t("Header Text")}
                 value={formData.headerTextColor}
                 onChange={(v) => setFormData({ ...formData, headerTextColor: v })}
               />
               <ColorField
-                label="Button"
+                label={t("Button")}
                 value={formData.colorButton}
                 onChange={(v) => setFormData({ ...formData, colorButton: v })}
               />
               <ColorField
-                label="Text"
+                label={t("Text")}
                 value={formData.textColor}
                 onChange={(v) => setFormData({ ...formData, textColor: v })}
               />
@@ -861,19 +902,19 @@ function ProductFormModal({
           {/* Sizes Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-2">
-              <h4 className="text-sm font-semibold text-card-foreground">Sizes</h4>
+              <h4 className="text-sm font-semibold text-card-foreground">{t("Sizes")}</h4>
               <button
                 type="button"
                 onClick={onAddSize}
                 className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Size
+                {t("Add Size")}
               </button>
             </div>
             {formData.sizes.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No sizes added
+                {t("No sizes added")}
               </p>
             ) : (
               <div className="space-y-3">
@@ -886,7 +927,7 @@ function ProductFormModal({
                       type="text"
                       value={size.value}
                       onChange={(e) => onUpdateSize(index, 'value', e.target.value)}
-                      placeholder="Size value"
+                      placeholder={t("Size value")}
                       className="flex-1 px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                     />
                     <button
@@ -895,12 +936,12 @@ function ProductFormModal({
                       className="px-3 py-2 bg-background border border-border rounded-lg hover:bg-secondary transition-colors flex items-center gap-1 text-sm"
                     >
                       <PhotoIcon className="w-4 h-4" />
-                      Image
+                      {t("Image")}
                     </button>
                     {size.image && (
                       <img
                         src={size.image}
-                        alt="Size"
+                        alt={t("Size")}
                         className="w-8 h-8 object-cover rounded border border-border"
                       />
                     )}
@@ -920,19 +961,19 @@ function ProductFormModal({
           {/* Weight Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-2">
-              <h4 className="text-sm font-semibold text-card-foreground">Weight Options</h4>
+              <h4 className="text-sm font-semibold text-card-foreground">{t("Weight Options")}</h4>
               <button
                 type="button"
                 onClick={onAddWeight}
                 className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Weight
+                {t("Add Weight")}
               </button>
             </div>
             {formData.weight.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No weight options added
+                {t("No weight options added")}
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -945,7 +986,7 @@ function ProductFormModal({
                       type="text"
                       value={w}
                       onChange={(e) => onUpdateWeight(index, e.target.value)}
-                      placeholder="Weight"
+                      placeholder={t("Weight")}
                       className="w-24 px-2 py-1 bg-background border border-border rounded text-sm"
                     />
                     <button
@@ -964,12 +1005,12 @@ function ProductFormModal({
           {/* Nutrition Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Nutrition Information
+              {t("Nutrition Information")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">
-                  Title
+                  {t("Title")}
                 </label>
                 <input
                   type="text"
@@ -977,12 +1018,12 @@ function ProductFormModal({
                   onChange={(e) => onUpdateNutrition('title', e.target.value)}
                   maxLength={100}
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  placeholder="Nutrition Facts"
+                  placeholder={t("Nutrition Facts")}
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">
-                  Serving Size
+                  {t("Serving Size")}
                 </label>
                 <input
                   type="text"
@@ -990,26 +1031,26 @@ function ProductFormModal({
                   onChange={(e) => onUpdateNutrition('serving', e.target.value)}
                   maxLength={255}
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  placeholder="Per serving (100g)"
+                  placeholder={t("Per serving (100g)")}
                 />
               </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">
-                Disclaimer
+                {t("Disclaimer")}
               </label>
               <textarea
                 value={formData.nutrition.disclaimer || ''}
                 onChange={(e) => onUpdateNutrition('disclaimer', e.target.value)}
                 rows={2}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                placeholder="Nutritional disclaimer text"
+                placeholder={t("Nutritional disclaimer text")}
               />
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-medium text-muted-foreground">
-                  Nutrition Rows
+                  {t("Nutrition Rows")}
                 </label>
                 <button
                   type="button"
@@ -1017,12 +1058,12 @@ function ProductFormModal({
                   className="px-2 py-1 text-xs bg-secondary text-foreground rounded hover:bg-secondary/80 flex items-center gap-1"
                 >
                   <PlusIcon className="w-3 h-3" />
-                  Add Row
+                  {t("Add Row")}
                 </button>
               </div>
               {(formData.nutrition.rows || []).length === 0 ? (
                 <p className="text-xs text-muted-foreground text-center py-2">
-                  No nutrition rows added
+                  {t("No nutrition rows added")}
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -1032,14 +1073,14 @@ function ProductFormModal({
                         type="text"
                         value={row.label}
                         onChange={(e) => onUpdateNutritionRow(index, 'label', e.target.value)}
-                        placeholder="Label (e.g., Calories)"
+                        placeholder={t("Label (e.g., Calories)")}
                         className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
                       />
                       <input
                         type="text"
                         value={row.value}
                         onChange={(e) => onUpdateNutritionRow(index, 'value', e.target.value)}
-                        placeholder="Value (e.g., 250kcal)"
+                        placeholder={t("Value (e.g., 250kcal)")}
                         className="flex-1 px-2 py-1 bg-background border border-border rounded text-sm"
                       />
                       <button
@@ -1063,14 +1104,14 @@ function ProductFormModal({
               onClick={onClose}
               className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving...' : submitLabel}
+              {isSubmitting ? t("Saving...") : submitLabel}
             </button>
           </div>
         </form>
@@ -1091,6 +1132,7 @@ function ImageField({
   onClear: () => void
   onSelect: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div>
       <label className="block text-sm font-medium text-card-foreground mb-2">{label}</label>
@@ -1101,7 +1143,7 @@ function ImageField({
           className="px-3 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-1 text-sm"
         >
           <PhotoIcon className="w-4 h-4" />
-          Select
+          {t("Select")}
         </button>
         {value && (
           <>
@@ -1238,5 +1280,39 @@ function PhotoIcon({ className }: { className?: string }) {
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
     </svg>
+  )
+}
+
+export default function Products() {
+  const { t } = useTranslation()
+  const { selectedSite } = useSiteModules()
+
+  if (!selectedSite || !PRODUCTS_PAGE_SITES.includes(selectedSite.slug)) {
+    return (
+      <Layout>
+        <ProductsPageContent />
+      </Layout>
+    )
+  }
+
+  return (
+    <ModulePage
+      title={t("Products")}
+      description={t("Product catalog with sizes, colors and images.")}
+      tabs={[
+        { key: 'catalog', label: t("Products"), content: <ProductsPageContent /> },
+        {
+          key: 'page-texts',
+          label: t("Products page texts"),
+          content: (
+            <SectionTextsForm
+              title={t("Products page texts")}
+              description={t("Button labels and links used on the product cards and product pages.")}
+              fields={PRODUCTS_PAGE_FIELDS}
+            />
+          ),
+        },
+      ]}
+    />
   )
 }

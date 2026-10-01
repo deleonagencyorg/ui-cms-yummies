@@ -1,13 +1,15 @@
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 
 export default function ThemeToggle() {
+  const { t } = useTranslation()
   const { theme, toggleTheme } = useTheme()
 
   return (
     <button
       onClick={toggleTheme}
       className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-      aria-label="Toggle theme"
+      aria-label={t("Toggle theme")}
     >
       {theme === 'light' ? (
         <svg

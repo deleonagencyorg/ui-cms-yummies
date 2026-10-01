@@ -1,14 +1,15 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import { useSite } from '@/contexts/SiteContext'
-import { toast } from 'sonner'
 import { usePages } from '@/queries/pages'
 import { useSites } from '@/queries/sites'
 import { useLanguages } from '@/queries/languages'
 import { useCreatePage, useUpdatePage, useDeletePage } from '@/mutations/pages'
-import type { PageResponse, CreatePageRequest } from '@/actions/pages'
+import type { PageResponse, CreatePageRequest, CreatePageBannerRequest, PageBannerType } from '@/actions/pages'
+import type { MultimediaResponse } from '@/actions/multimedia'
 import {
   useReactTable,
   getCoreRowModel,
@@ -20,8 +21,132 @@ import {
 const columnHelper = createColumnHelper<PageResponse>()
 
 const PAGE_STATUSES = ['draft', 'published', 'scheduled', 'trash'] as const
+const BANNER_TYPES: PageBannerType[] = ['image', 'video', 'html']
+
+interface PageBannerHtmlForm {
+  background: MultimediaResponse | null
+  backgroundMobile: MultimediaResponse | null
+  image: MultimediaResponse | null
+  imageMobile: MultimediaResponse | null
+  title: string
+  subtitle: string
+  description: string
+  buttonText: string
+  buttonUrl: string
+}
+
+interface PageBannerFormItem {
+  key: string
+  type: PageBannerType
+  alt: string
+  title: string
+  subtitle: string
+  description: string
+  link: string
+  desktop: MultimediaResponse | null
+  mobile: MultimediaResponse | null
+  html: PageBannerHtmlForm
+}
+
+type BannerMediaTarget = {
+  index: number
+  field:
+    | 'desktop'
+    | 'mobile'
+    | 'htmlBackground'
+    | 'htmlBackgroundMobile'
+    | 'htmlImage'
+    | 'htmlImageMobile'
+}
+
+const emptyHtmlForm = (): PageBannerHtmlForm => ({
+  background: null,
+  backgroundMobile: null,
+  image: null,
+  imageMobile: null,
+  title: '',
+  subtitle: '',
+  description: '',
+  buttonText: '',
+  buttonUrl: '',
+})
+
+const createEmptyBanner = (index = 0): PageBannerFormItem => ({
+  key: `banner-${Date.now()}-${index}`,
+  type: 'image',
+  alt: '',
+  title: '',
+  subtitle: '',
+  description: '',
+  link: '',
+  desktop: null,
+  mobile: null,
+  html: emptyHtmlForm(),
+})
+
+function bannersFromPage(page: PageResponse): PageBannerFormItem[] {
+  return (page.banners ?? [])
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((banner, index) => ({
+      key: banner.id || `banner-${index}`,
+      type: banner.type || 'image',
+      alt: banner.alt ?? '',
+      title: banner.title ?? '',
+      subtitle: banner.subtitle ?? '',
+      description: banner.description ?? '',
+      link: banner.link ?? '',
+      desktop: banner.desktop ?? null,
+      mobile: banner.mobile ?? null,
+      html: {
+        background: banner.html?.backgroundImage ?? null,
+        backgroundMobile: banner.html?.backgroundImageMobile ?? null,
+        image: banner.html?.image ?? null,
+        imageMobile: banner.html?.imageMobile ?? null,
+        title: banner.html?.title ?? '',
+        subtitle: banner.html?.subtitle ?? '',
+        description: banner.html?.description ?? '',
+        buttonText: banner.html?.buttonText ?? '',
+        buttonUrl: banner.html?.buttonUrl ?? '',
+      },
+    }))
+}
+
+function bannersToPayload(banners: PageBannerFormItem[]): CreatePageBannerRequest[] {
+  return banners.map((banner, index) => ({
+    type: banner.type,
+    desktopMediaId: banner.desktop?.id ?? null,
+    mobileMediaId: banner.mobile?.id ?? null,
+    alt: banner.alt,
+    title: banner.title,
+    subtitle: banner.subtitle,
+    description: banner.description,
+    link: banner.link,
+    html:
+      banner.type === 'html'
+        ? {
+            backgroundMediaId: banner.html.background?.id ?? null,
+            backgroundMobileMediaId: banner.html.backgroundMobile?.id ?? null,
+            imageMediaId: banner.html.image?.id ?? null,
+            imageMobileMediaId: banner.html.imageMobile?.id ?? null,
+            title: banner.html.title,
+            subtitle: banner.html.subtitle,
+            description: banner.html.description,
+            buttonText: banner.html.buttonText,
+            buttonUrl: banner.html.buttonUrl,
+          }
+        : undefined,
+    order: index,
+  }))
+}
+
+function mediaPreviewUrl(media: MultimediaResponse | null | undefined): string | null {
+  if (!media) return null
+  return media.optimizedUrl || media.originalUrl || media.thumbnailUrl || null
+}
 
 export default function Pages() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -33,6 +158,8 @@ export default function Pages() {
   const [selectedPage, setSelectedPage] = useState<PageResponse | null>(null)
   const [isFeaturedImagePickerOpen, setIsFeaturedImagePickerOpen] = useState(false)
   const [isOgImagePickerOpen, setIsOgImagePickerOpen] = useState(false)
+  const [bannerMediaTarget, setBannerMediaTarget] = useState<BannerMediaTarget | null>(null)
+  const [banners, setBanners] = useState<PageBannerFormItem[]>([])
   const [formData, setFormData] = useState<Partial<CreatePageRequest>>({
     siteId: '',
     languageCode: 'en',
@@ -55,6 +182,7 @@ export default function Pages() {
     if (selectedSiteId && !formData.siteId) {
       setFormData(prev => ({ ...prev, siteId: selectedSiteId }))
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSiteId])
 
   const { data, isLoading, error } = usePages({
@@ -70,35 +198,23 @@ export default function Pages() {
 
   const createMutation = useCreatePage({
     onSuccess: () => {
-      toast.success('Page created successfully!')
       setIsCreateModalOpen(false)
       resetForm()
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to create page')
     },
   })
 
   const updateMutation = useUpdatePage({
     onSuccess: () => {
-      toast.success('Page updated successfully!')
       setIsEditModalOpen(false)
       setSelectedPage(null)
       resetForm()
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to update page')
     },
   })
 
   const deleteMutation = useDeletePage({
     onSuccess: () => {
-      toast.success('Page deleted successfully!')
       setIsDeleteModalOpen(false)
       setSelectedPage(null)
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to delete page')
     },
   })
 
@@ -119,6 +235,7 @@ export default function Pages() {
       ogImageId: '',
       status: 'draft',
     })
+    setBanners([])
   }
 
   const openEditModal = (page: PageResponse) => {
@@ -140,6 +257,7 @@ export default function Pages() {
       status: page.status,
       publishedAt: page.publishedAt || '',
     })
+    setBanners(bannersFromPage(page))
     setIsEditModalOpen(true)
   }
 
@@ -148,10 +266,11 @@ export default function Pages() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<PageResponse, any>[]>(
     () => [
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t("Title"),
         cell: (info) => (
           <div>
             <span className="text-sm font-medium text-card-foreground">
@@ -166,7 +285,7 @@ export default function Pages() {
         ),
       }),
       columnHelper.accessor('slug', {
-        header: 'Slug',
+        header: t("Slug"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             /{info.getValue()}
@@ -174,7 +293,7 @@ export default function Pages() {
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => {
           const languageCode = info.getValue()
           const language = info.row.original.language
@@ -187,10 +306,10 @@ export default function Pages() {
         },
       }),
       columnHelper.accessor('status', {
-        header: 'Status',
+        header: t("Status"),
         cell: (info) => {
           const status = info.getValue()
-          const statusColors = {
+          const statusColors: { [key: string]: string } = {
             draft: 'bg-gray-100 text-gray-800',
             published: 'bg-green-100 text-green-800',
             scheduled: 'bg-blue-100 text-blue-800',
@@ -203,8 +322,17 @@ export default function Pages() {
           )
         },
       }),
+      columnHelper.display({
+        id: 'banners',
+        header: t("Banners"),
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">
+            {row.original.banners?.length ?? 0}
+          </span>
+        ),
+      }),
       columnHelper.accessor('author', {
-        header: 'Author',
+        header: t("Author"),
         cell: (info) => {
           const author = info.getValue()
           return author ? (
@@ -217,7 +345,7 @@ export default function Pages() {
         },
       }),
       columnHelper.accessor('updatedAt', {
-        header: 'Last Updated',
+        header: t("Last Updated"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -226,20 +354,20 @@ export default function Pages() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -247,7 +375,7 @@ export default function Pages() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -276,6 +404,7 @@ export default function Pages() {
       ogImageId: formData.ogImageId || undefined,
       status: formData.status,
       publishedAt: formData.publishedAt || undefined,
+      banners: bannersToPayload(banners),
     })
   }
 
@@ -301,6 +430,7 @@ export default function Pages() {
         ogImageId: formData.ogImageId || undefined,
         status: formData.status,
         publishedAt: formData.publishedAt || undefined,
+        banners: bannersToPayload(banners),
       }
     })
   }
@@ -310,6 +440,53 @@ export default function Pages() {
     await deleteMutation.mutateAsync(selectedPage.id)
   }
 
+  const addBanner = () => {
+    setBanners((prev) => [...prev, createEmptyBanner(prev.length)])
+  }
+
+  const removeBanner = (index: number) => {
+    setBanners((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const moveBanner = (index: number, direction: -1 | 1) => {
+    setBanners((prev) => {
+      const nextIndex = index + direction
+      if (nextIndex < 0 || nextIndex >= prev.length) return prev
+      const next = [...prev]
+      const [item] = next.splice(index, 1)
+      next.splice(nextIndex, 0, item)
+      return next
+    })
+  }
+
+  const updateBanner = (index: number, patch: Partial<PageBannerFormItem>) => {
+    setBanners((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, ...patch } : item))
+    )
+  }
+
+  const updateBannerHtml = (index: number, patch: Partial<PageBannerHtmlForm>) => {
+    setBanners((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, html: { ...item.html, ...patch } } : item
+      )
+    )
+  }
+
+  const handleBannerMediaSelect = (media: MultimediaResponse) => {
+    if (!bannerMediaTarget) return
+    const { index, field } = bannerMediaTarget
+
+    if (field === 'desktop') updateBanner(index, { desktop: media })
+    if (field === 'mobile') updateBanner(index, { mobile: media })
+    if (field === 'htmlBackground') updateBannerHtml(index, { background: media })
+    if (field === 'htmlBackgroundMobile') updateBannerHtml(index, { backgroundMobile: media })
+    if (field === 'htmlImage') updateBannerHtml(index, { image: media })
+    if (field === 'htmlImageMobile') updateBannerHtml(index, { imageMobile: media })
+
+    setBannerMediaTarget(null)
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -317,15 +494,18 @@ export default function Pages() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Pages</h2>
-              <p className="text-muted-foreground mt-1">Manage your website pages</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Pages")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage your website pages")}</p>
             </div>
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => {
+                resetForm()
+                setIsCreateModalOpen(true)
+              }}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Page
+              {t("Create Page")}
             </button>
           </div>
 
@@ -333,7 +513,7 @@ export default function Pages() {
           <div className="mb-6 flex gap-4 flex-wrap">
             <input
               type="text"
-              placeholder="Search by title..."
+              placeholder={t("Search by title...")}
               value={searchTitle}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
@@ -349,7 +529,7 @@ export default function Pages() {
               }}
               className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Statuses</option>
+              <option value="">{t("All Statuses")}</option>
               {PAGE_STATUSES.map((status) => (
                 <option key={status} value={status}>
                   {status}
@@ -362,15 +542,15 @@ export default function Pages() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading pages...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading pages...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load pages</p>
+              <p className="text-red-500">{t("Failed to load pages")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No pages found</p>
+              <p className="text-muted-foreground">{t("No pages found")}</p>
             </div>
           ) : (
             <>
@@ -431,9 +611,9 @@ export default function Pages() {
       {/* Create/Edit Modal */}
       {(isCreateModalOpen || isEditModalOpen) && (
         <LargeModal
-          title={isCreateModalOpen ? 'Create Page' : 'Edit Page'}
+          title={isCreateModalOpen ? t("Create Page") : t("Edit Page")}
           onClose={() => {
-            isCreateModalOpen ? setIsCreateModalOpen(false) : setIsEditModalOpen(false)
+            if (isCreateModalOpen) { setIsCreateModalOpen(false) } else { setIsEditModalOpen(false) }
             setSelectedPage(null)
             resetForm()
           }}
@@ -441,11 +621,11 @@ export default function Pages() {
           <form onSubmit={isCreateModalOpen ? handleCreate : handleEdit} className="space-y-6">
             {/* Basic Information */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Basic Information</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Basic Information")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Site *
+                    {t("Site *")}
                   </label>
                   <select
                     value={formData.siteId}
@@ -454,7 +634,7 @@ export default function Pages() {
                     disabled
                     className="w-full px-4 py-2 bg-secondary border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary cursor-not-allowed opacity-75"
                   >
-                    <option value="">Select a site</option>
+                    <option value="">{t("Select a site")}</option>
                     {sitesData?.data.map((site) => (
                       <option key={site.id} value={site.id}>
                         {site.name}
@@ -462,12 +642,12 @@ export default function Pages() {
                     ))}
                   </select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Site is automatically set from the sidebar selector
+                    {t("Site is automatically set from the sidebar selector")}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Language *
+                    {t("Language *")}
                   </label>
                   <select
                     value={formData.languageCode}
@@ -484,11 +664,11 @@ export default function Pages() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Status
+                    {t("Status")}
                   </label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as typeof PAGE_STATUSES[number] })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {PAGE_STATUSES.map((status) => (
@@ -498,7 +678,7 @@ export default function Pages() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Title *
+                    {t("Title *")}
                   </label>
                   <input
                     type="text"
@@ -511,7 +691,7 @@ export default function Pages() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Slug *
+                    {t("Slug *")}
                   </label>
                   <input
                     type="text"
@@ -525,7 +705,7 @@ export default function Pages() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Excerpt
+                    {t("Excerpt")}
                   </label>
                   <textarea
                     value={formData.excerpt}
@@ -533,12 +713,12 @@ export default function Pages() {
                     rows={2}
                     maxLength={500}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Brief summary of the page"
+                    placeholder={t("Brief summary of the page")}
                   />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Content *
+                    {t("Content *")}
                   </label>
                   <textarea
                     value={formData.content}
@@ -546,15 +726,57 @@ export default function Pages() {
                     required
                     rows={8}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
-                    placeholder="Page content (HTML supported)"
+                    placeholder={t("Page content (HTML supported)")}
                   />
                 </div>
               </div>
             </div>
 
+            {/* Page Banners */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-card-foreground">{t("Banners")}</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("Add one or more banners. Choose image, video, or HTML hero for each slide.")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addBanner}
+                  className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  {t("Add Banner")}
+                </button>
+              </div>
+
+              {banners.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
+                  {t("No banners added")}
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {banners.map((banner, index) => (
+                    <PageBannerCard
+                      key={banner.key}
+                      banner={banner}
+                      index={index}
+                      total={banners.length}
+                      onMove={moveBanner}
+                      onRemove={removeBanner}
+                      onChange={updateBanner}
+                      onChangeHtml={updateBannerHtml}
+                      onOpenMediaPicker={setBannerMediaTarget}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Featured Image */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Featured Image</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Featured Image")}</h4>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -562,14 +784,14 @@ export default function Pages() {
                   className="px-4 py-2 bg-background border border-border rounded-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <PhotoIcon className="w-5 h-5 inline mr-2" />
-                  Select from Media
+                  {t("Select from Media")}
                 </button>
                 {formData.featuredImageId && (
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, featuredImageId: '' })}
                     className="px-3 py-2 text-red-600 border border-border rounded-lg hover:bg-red-50"
-                    title="Clear"
+                    title={t("Clear")}
                   >
                     <XIcon className="w-5 h-5" />
                   </button>
@@ -578,7 +800,7 @@ export default function Pages() {
               {formData.featuredImageId && (
                 <div className="mt-2 p-2 bg-secondary rounded border border-border">
                   <p className="text-xs text-muted-foreground">
-                    Image ID: {formData.featuredImageId}
+                    {t("Image ID:")} {formData.featuredImageId}
                   </p>
                 </div>
               )}
@@ -586,11 +808,11 @@ export default function Pages() {
 
             {/* SEO */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">SEO Settings</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("SEO Settings")}</h4>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Meta Title
+                    {t("Meta Title")}
                   </label>
                   <input
                     type="text"
@@ -602,7 +824,7 @@ export default function Pages() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Meta Description
+                    {t("Meta Description")}
                   </label>
                   <textarea
                     value={formData.metaDescription}
@@ -613,14 +835,14 @@ export default function Pages() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Meta Keywords
+                    {t("Meta Keywords")}
                   </label>
                   <input
                     type="text"
                     value={formData.metaKeywords}
                     onChange={(e) => setFormData({ ...formData, metaKeywords: e.target.value })}
                     maxLength={255}
-                    placeholder="keyword1, keyword2, keyword3"
+                    placeholder={t("keyword1, keyword2, keyword3")}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
@@ -629,42 +851,42 @@ export default function Pages() {
 
             {/* Open Graph / Social Media */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Open Graph / Social Media</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Open Graph / Social Media")}</h4>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    OG Title
+                    {t("OG Title")}
                   </label>
                   <input
                     type="text"
                     value={formData.ogTitle}
                     onChange={(e) => setFormData({ ...formData, ogTitle: e.target.value })}
                     maxLength={255}
-                    placeholder="How the page title appears when shared on social media"
+                    placeholder={t("How the page title appears when shared on social media")}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Recommended: 60-90 characters
+                    {t("Recommended: 60-90 characters")}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    OG Description
+                    {t("OG Description")}
                   </label>
                   <textarea
                     value={formData.ogDescription}
                     onChange={(e) => setFormData({ ...formData, ogDescription: e.target.value })}
                     rows={3}
-                    placeholder="Brief description for social media previews"
+                    placeholder={t("Brief description for social media previews")}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Recommended: 150-200 characters
+                    {t("Recommended: 150-200 characters")}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    OG Image
+                    {t("OG Image")}
                   </label>
                   <div className="flex gap-2">
                     <button
@@ -673,14 +895,14 @@ export default function Pages() {
                       className="px-4 py-2 bg-background border border-border rounded-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <PhotoIcon className="w-5 h-5 inline mr-2" />
-                      Select OG Image
+                      {t("Select OG Image")}
                     </button>
                     {formData.ogImageId && (
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, ogImageId: '' })}
                         className="px-3 py-2 text-red-600 border border-border rounded-lg hover:bg-red-50"
-                        title="Clear"
+                        title={t("Clear")}
                       >
                         <XIcon className="w-5 h-5" />
                       </button>
@@ -689,12 +911,12 @@ export default function Pages() {
                   {formData.ogImageId && (
                     <div className="mt-2 p-2 bg-secondary rounded border border-border">
                       <p className="text-xs text-muted-foreground">
-                        Image ID: {formData.ogImageId}
+                        {t("Image ID:")} {formData.ogImageId}
                       </p>
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    Recommended: 1200x630 pixels (1.91:1 ratio)
+                    {t("Recommended: 1200x630 pixels (1.91:1 ratio)")}
                   </p>
                 </div>
               </div>
@@ -704,13 +926,13 @@ export default function Pages() {
               <button
                 type="button"
                 onClick={() => {
-                  isCreateModalOpen ? setIsCreateModalOpen(false) : setIsEditModalOpen(false)
+                  if (isCreateModalOpen) { setIsCreateModalOpen(false) } else { setIsEditModalOpen(false) }
                   setSelectedPage(null)
                   resetForm()
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
@@ -718,8 +940,8 @@ export default function Pages() {
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
                 {createMutation.isPending || updateMutation.isPending
-                  ? isCreateModalOpen ? 'Creating...' : 'Updating...'
-                  : isCreateModalOpen ? 'Create' : 'Update'}
+                  ? isCreateModalOpen ? t("Creating...") : t("Updating...")
+                  : isCreateModalOpen ? t("Create") : t("Update")}
               </button>
             </div>
           </form>
@@ -729,7 +951,7 @@ export default function Pages() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedPage && (
         <Modal
-          title="Delete Page"
+          title={t("Delete Page")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedPage(null)
@@ -737,8 +959,7 @@ export default function Pages() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedPage.title}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete \"")}<strong>{selectedPage.title}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -748,14 +969,14 @@ export default function Pages() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -766,19 +987,352 @@ export default function Pages() {
       <MediaPicker
         isOpen={isFeaturedImagePickerOpen}
         onClose={() => setIsFeaturedImagePickerOpen(false)}
-        onSelect={(url, media) => setFormData({ ...formData, featuredImageId: media.id })}
-        currentUrl={formData.featuredImageId}
-        title="Select Featured Image"
+        onSelect={(media, _variant) => setFormData({ ...formData, featuredImageId: media.id })}
+        title={t("Select Featured Image")}
       />
 
       <MediaPicker
         isOpen={isOgImagePickerOpen}
         onClose={() => setIsOgImagePickerOpen(false)}
-        onSelect={(url, media) => setFormData({ ...formData, ogImageId: media.id })}
-        currentUrl={formData.ogImageId}
-        title="Select Open Graph Image"
+        onSelect={(media, _variant) => setFormData({ ...formData, ogImageId: media.id })}
+        title={t("Select Open Graph Image")}
+      />
+
+      <MediaPicker
+        isOpen={bannerMediaTarget !== null}
+        onClose={() => setBannerMediaTarget(null)}
+        onSelect={handleBannerMediaSelect}
+        title={
+          bannerMediaTarget?.field === 'desktop' || bannerMediaTarget?.field === 'mobile'
+            ? banners[bannerMediaTarget.index]?.type === 'video'
+              ? t("Select Video")
+              : t("Select Image")
+            : t("Select Image")
+        }
       />
     </Layout>
+  )
+}
+
+interface PageBannerCardProps {
+  banner: PageBannerFormItem
+  index: number
+  total: number
+  onMove: (index: number, direction: -1 | 1) => void
+  onRemove: (index: number) => void
+  onChange: (index: number, patch: Partial<PageBannerFormItem>) => void
+  onChangeHtml: (index: number, patch: Partial<PageBannerHtmlForm>) => void
+  onOpenMediaPicker: (target: BannerMediaTarget) => void
+}
+
+function MediaField({
+  label,
+  media,
+  onSelect,
+  onClear,
+  video,
+}: {
+  label: string
+  media: MultimediaResponse | null
+  onSelect: () => void
+  onClear: () => void
+  video?: boolean
+}) {
+  const { t } = useTranslation()
+  const previewUrl = mediaPreviewUrl(media)
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-card-foreground mb-2">
+        {label}
+      </label>
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          type="button"
+          onClick={onSelect}
+          className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
+        >
+          {video ? <VideoIcon className="w-5 h-5" /> : <PhotoIcon className="w-5 h-5" />}
+          {t("Select")}
+        </button>
+        {media && (
+          <>
+            {previewUrl && !video && (
+              <img
+                src={previewUrl}
+                alt={label}
+                className="w-12 h-12 object-cover rounded border border-border"
+              />
+            )}
+            {video && (
+              <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+                {media.fileName}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={onClear}
+              className="p-2 text-red-600 hover:text-red-800"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function PageBannerCard({
+  banner,
+  index,
+  total,
+  onMove,
+  onRemove,
+  onChange,
+  onChangeHtml,
+  onOpenMediaPicker,
+}: PageBannerCardProps) {
+  const { t } = useTranslation()
+  return (
+    <div className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-card-foreground">
+          {t("Banner")} {index + 1}
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onMove(index, -1)}
+            disabled={index === 0}
+            className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+            title={t("Move up")}
+          >
+            <ChevronUpIcon className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onMove(index, 1)}
+            disabled={index === total - 1}
+            className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+            title={t("Move down")}
+          >
+            <ChevronDownIcon className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="p-1.5 text-red-600 hover:text-red-800"
+            title={t("Remove")}
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-card-foreground mb-2">
+          {t("Type *")}
+        </label>
+        <select
+          value={banner.type}
+          onChange={(e) => onChange(index, { type: e.target.value as PageBannerType })}
+          className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          {BANNER_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type === 'html' ? t("HTML (hero)") : type === 'video' ? t("Video") : t("Image")}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {(banner.type === 'image' || banner.type === 'video') && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Title")}
+              </label>
+              <input
+                type="text"
+                value={banner.title}
+                onChange={(e) => onChange(index, { title: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t("Banner title")}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Subtitle")}
+              </label>
+              <input
+                type="text"
+                value={banner.subtitle}
+                onChange={(e) => onChange(index, { subtitle: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t("Banner subtitle")}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Alt")}
+              </label>
+              <input
+                type="text"
+                value={banner.alt}
+                onChange={(e) => onChange(index, { alt: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t("Alt text")}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Link")}
+              </label>
+              <input
+                type="text"
+                value={banner.link}
+                onChange={(e) => onChange(index, { link: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-card-foreground mb-2">
+              {t("Description")}
+            </label>
+            <textarea
+              value={banner.description}
+              onChange={(e) => onChange(index, { description: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder={t("Optional description")}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MediaField
+              label={banner.type === 'video' ? t("Desktop media") : t("Desktop media")}
+              media={banner.desktop}
+              video={banner.type === 'video'}
+              onSelect={() => onOpenMediaPicker({ index, field: 'desktop' })}
+              onClear={() => onChange(index, { desktop: null })}
+            />
+            <MediaField
+              label={banner.type === 'video' ? t("Mobile media") : t("Mobile media")}
+              media={banner.mobile}
+              video={banner.type === 'video'}
+              onSelect={() => onOpenMediaPicker({ index, field: 'mobile' })}
+              onClear={() => onChange(index, { mobile: null })}
+            />
+          </div>
+        </>
+      )}
+
+      {banner.type === 'html' && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Title")}
+              </label>
+              <input
+                type="text"
+                value={banner.html.title}
+                onChange={(e) => onChangeHtml(index, { title: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t("Hero title")}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Subtitle")}
+              </label>
+              <input
+                type="text"
+                value={banner.html.subtitle}
+                onChange={(e) => onChangeHtml(index, { subtitle: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t("Hero subtitle")}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-card-foreground mb-2">
+              {t("Description")}
+            </label>
+            <textarea
+              value={banner.html.description}
+              onChange={(e) => onChangeHtml(index, { description: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder={t("Hero description")}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Button text")}
+              </label>
+              <input
+                type="text"
+                value={banner.html.buttonText}
+                onChange={(e) => onChangeHtml(index, { buttonText: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t("Ver más")}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Button URL")}
+              </label>
+              <input
+                type="text"
+                value={banner.html.buttonUrl}
+                onChange={(e) => onChangeHtml(index, { buttonUrl: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="/recetas"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MediaField
+              label={t("Background (desktop)")}
+              media={banner.html.background}
+              onSelect={() => onOpenMediaPicker({ index, field: 'htmlBackground' })}
+              onClear={() => onChangeHtml(index, { background: null })}
+            />
+            <MediaField
+              label={t("Background (mobile)")}
+              media={banner.html.backgroundMobile}
+              onSelect={() => onOpenMediaPicker({ index, field: 'htmlBackgroundMobile' })}
+              onClear={() => onChangeHtml(index, { backgroundMobile: null })}
+            />
+            <MediaField
+              label={t("Overlay image (desktop)")}
+              media={banner.html.image}
+              onSelect={() => onOpenMediaPicker({ index, field: 'htmlImage' })}
+              onClear={() => onChangeHtml(index, { image: null })}
+            />
+            <MediaField
+              label={t("Overlay image (mobile)")}
+              media={banner.html.imageMobile}
+              onSelect={() => onOpenMediaPicker({ index, field: 'htmlImageMobile' })}
+              onClear={() => onChangeHtml(index, { imageMobile: null })}
+            />
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -863,6 +1417,30 @@ function PhotoIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+  )
+}
+
+function VideoIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+    </svg>
+  )
+}
+
+function ChevronUpIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+    </svg>
+  )
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </svg>
   )
 }

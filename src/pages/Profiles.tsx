@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useProfiles } from '@/queries/profiles'
 import { useCreateProfile, useUpdateProfile, useDeleteProfile } from '@/mutations/profiles'
 import { useJobTitles } from '@/queries/job-titles'
-import type { ProfileResponse, CreateProfileRequest, UpdateProfileRequest } from '@/actions/profiles'
+import type { ProfileResponse, CreateProfileRequest } from '@/actions/profiles'
 import {
   useReactTable,
   getCoreRowModel,
@@ -76,10 +76,11 @@ export default function Profiles() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<ProfileResponse, any>[]>(
     () => [
       columnHelper.accessor('firstName', {
-        header: 'First Name',
+        header: t("First Name"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -87,7 +88,7 @@ export default function Profiles() {
         ),
       }),
       columnHelper.accessor('lastName', {
-        header: 'Last Name',
+        header: t("Last Name"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -95,7 +96,7 @@ export default function Profiles() {
         ),
       }),
       columnHelper.accessor('user', {
-        header: 'Email',
+        header: t("Email"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue()?.email || '-'}
@@ -103,7 +104,7 @@ export default function Profiles() {
         ),
       }),
       columnHelper.accessor('jobTitle', {
-        header: 'Job Title',
+        header: t("Job Title"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue()?.name || '-'}
@@ -111,7 +112,7 @@ export default function Profiles() {
         ),
       }),
       columnHelper.accessor('employmentStatus', {
-        header: 'Status',
+        header: t("Status"),
         cell: (info) => {
           const status = info.getValue()
           const statusColors = {
@@ -129,20 +130,20 @@ export default function Profiles() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -150,7 +151,7 @@ export default function Profiles() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -171,13 +172,13 @@ export default function Profiles() {
         lastName: formData.lastName!,
         avatar: formData.avatar || null,
         birthday: formData.birthday ? new Date(formData.birthday).toISOString() : null,
-        gender: formData.gender as any,
+        gender: formData.gender as CreateProfileRequest['gender'],
         employeeId: formData.employeeId || null,
         workEmail: formData.workEmail || null,
         workPhone: formData.workPhone || null,
         jobTitleId: formData.jobTitleId || null,
         location: formData.location || null,
-        employmentStatus: formData.employmentStatus as any,
+        employmentStatus: formData.employmentStatus as CreateProfileRequest['employmentStatus'],
         hireDate: formData.hireDate ? new Date(formData.hireDate).toISOString() : null,
         terminationDate: formData.terminationDate ? new Date(formData.terminationDate).toISOString() : null,
         bossUserId: formData.bossUserId || null,
@@ -207,13 +208,13 @@ export default function Profiles() {
           lastName: formData.lastName,
           avatar: formData.avatar || null,
           birthday: formData.birthday ? new Date(formData.birthday).toISOString() : null,
-          gender: formData.gender as any,
+          gender: formData.gender as CreateProfileRequest['gender'],
           employeeId: formData.employeeId || null,
           workEmail: formData.workEmail || null,
           workPhone: formData.workPhone || null,
           jobTitleId: formData.jobTitleId || null,
           location: formData.location || null,
-          employmentStatus: formData.employmentStatus as any,
+          employmentStatus: formData.employmentStatus as CreateProfileRequest['employmentStatus'],
           hireDate: formData.hireDate ? new Date(formData.hireDate).toISOString() : null,
           terminationDate: formData.terminationDate ? new Date(formData.terminationDate).toISOString() : null,
           bossUserId: formData.bossUserId || null,
@@ -256,7 +257,7 @@ export default function Profiles() {
                 {t('nav.profiles')}
               </h2>
               <p className="text-muted-foreground mt-1">
-                Manage employee profiles
+                {t("Manage employee profiles")}
               </p>
             </div>
             <button
@@ -264,7 +265,7 @@ export default function Profiles() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Profile
+              {t("Create Profile")}
             </button>
           </div>
 
@@ -272,7 +273,7 @@ export default function Profiles() {
           <div className="mb-6 flex gap-4 flex-wrap">
             <input
               type="text"
-              placeholder="Search by first name..."
+              placeholder={t("Search by first name...")}
               value={searchFirstName}
               onChange={(e) => {
                 setSearchFirstName(e.target.value)
@@ -282,7 +283,7 @@ export default function Profiles() {
             />
             <input
               type="text"
-              placeholder="Search by last name..."
+              placeholder={t("Search by last name...")}
               value={searchLastName}
               onChange={(e) => {
                 setSearchLastName(e.target.value)
@@ -298,7 +299,7 @@ export default function Profiles() {
               }}
               className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Statuses</option>
+              <option value="">{t("All Statuses")}</option>
               {EMPLOYMENT_STATUSES.map((status) => (
                 <option key={status} value={status}>
                   {status}
@@ -311,15 +312,15 @@ export default function Profiles() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading profiles...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading profiles...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load profiles</p>
+              <p className="text-red-500">{t("Failed to load profiles")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No profiles found</p>
+              <p className="text-muted-foreground">{t("No profiles found")}</p>
             </div>
           ) : (
             <>
@@ -380,7 +381,7 @@ export default function Profiles() {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <LargeModal
-          title="Create Profile"
+          title={t("Create Profile")}
           onClose={() => {
             setIsCreateModalOpen(false)
             setFormData({
@@ -396,11 +397,11 @@ export default function Profiles() {
           <form onSubmit={handleCreate} className="space-y-6">
             {/* Account Section */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Account Information</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Account Information")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Email *
+                    {t("Email *")}
                   </label>
                   <input
                     type="email"
@@ -414,7 +415,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Password (Optional)
+                    {t("Password (Optional)")}
                   </label>
                   <input
                     type="password"
@@ -424,18 +425,18 @@ export default function Profiles() {
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="••••••••"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Leave blank to generate a random password</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("Leave blank to generate a random password")}</p>
                 </div>
               </div>
             </div>
 
             {/* Personal Info */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Personal Information</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Personal Information")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    First Name *
+                    {t("First Name *")}
                   </label>
                   <input
                     type="text"
@@ -448,7 +449,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Last Name *
+                    {t("Last Name *")}
                   </label>
                   <input
                     type="text"
@@ -461,11 +462,11 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Gender
+                    {t("Gender")}
                   </label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {GENDERS.map((gender) => (
@@ -475,7 +476,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Birthday
+                    {t("Birthday")}
                   </label>
                   <input
                     type="date"
@@ -489,11 +490,11 @@ export default function Profiles() {
 
             {/* Employment Info */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Employment Information</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Employment Information")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Employee ID
+                    {t("Employee ID")}
                   </label>
                   <input
                     type="text"
@@ -505,7 +506,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Work Email
+                    {t("Work Email")}
                   </label>
                   <input
                     type="email"
@@ -517,7 +518,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Work Phone
+                    {t("Work Phone")}
                   </label>
                   <input
                     type="tel"
@@ -529,14 +530,14 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Job Title
+                    {t("Job Title")}
                   </label>
                   <select
                     value={formData.jobTitleId || ''}
                     onChange={(e) => setFormData({ ...formData, jobTitleId: e.target.value || undefined })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <option value="">No Job Title</option>
+                    <option value="">{t("No Job Title")}</option>
                     {jobTitlesData?.data.map((job) => (
                       <option key={job.id} value={job.id}>
                         {job.name}
@@ -546,7 +547,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Location
+                    {t("Location")}
                   </label>
                   <input
                     type="text"
@@ -558,11 +559,11 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Employment Status
+                    {t("Employment Status")}
                   </label>
                   <select
                     value={formData.employmentStatus}
-                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as 'active' | 'inactive' | 'terminated' | 'leave' })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {EMPLOYMENT_STATUSES.map((status) => (
@@ -572,7 +573,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Hire Date
+                    {t("Hire Date")}
                   </label>
                   <input
                     type="date"
@@ -583,7 +584,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Termination Date
+                    {t("Termination Date")}
                   </label>
                   <input
                     type="date"
@@ -611,14 +612,14 @@ export default function Profiles() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={createMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {createMutation.isPending ? 'Creating...' : 'Create'}
+                {createMutation.isPending ? t("Creating...") : t("Create")}
               </button>
             </div>
           </form>
@@ -628,7 +629,7 @@ export default function Profiles() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedProfile && (
         <LargeModal
-          title="Edit Profile"
+          title={t("Edit Profile")}
           onClose={() => {
             setIsEditModalOpen(false)
             setSelectedProfile(null)
@@ -645,11 +646,11 @@ export default function Profiles() {
           <form onSubmit={handleEdit} className="space-y-6">
             {/* Personal Info */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Personal Information</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Personal Information")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    First Name
+                    {t("First Name")}
                   </label>
                   <input
                     type="text"
@@ -661,7 +662,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Last Name
+                    {t("Last Name")}
                   </label>
                   <input
                     type="text"
@@ -673,11 +674,11 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Gender
+                    {t("Gender")}
                   </label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'unspecified' | 'male' | 'female' | 'other' })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {GENDERS.map((gender) => (
@@ -687,7 +688,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Birthday
+                    {t("Birthday")}
                   </label>
                   <input
                     type="date"
@@ -701,11 +702,11 @@ export default function Profiles() {
 
             {/* Employment Info */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Employment Information</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Employment Information")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Employee ID
+                    {t("Employee ID")}
                   </label>
                   <input
                     type="text"
@@ -717,7 +718,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Work Email
+                    {t("Work Email")}
                   </label>
                   <input
                     type="email"
@@ -729,7 +730,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Work Phone
+                    {t("Work Phone")}
                   </label>
                   <input
                     type="tel"
@@ -741,14 +742,14 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Job Title
+                    {t("Job Title")}
                   </label>
                   <select
                     value={formData.jobTitleId || ''}
                     onChange={(e) => setFormData({ ...formData, jobTitleId: e.target.value || undefined })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <option value="">No Job Title</option>
+                    <option value="">{t("No Job Title")}</option>
                     {jobTitlesData?.data.map((job) => (
                       <option key={job.id} value={job.id}>
                         {job.name}
@@ -758,7 +759,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Location
+                    {t("Location")}
                   </label>
                   <input
                     type="text"
@@ -770,11 +771,11 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Employment Status
+                    {t("Employment Status")}
                   </label>
                   <select
                     value={formData.employmentStatus}
-                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, employmentStatus: e.target.value as 'active' | 'inactive' | 'terminated' | 'leave' })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {EMPLOYMENT_STATUSES.map((status) => (
@@ -784,7 +785,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Hire Date
+                    {t("Hire Date")}
                   </label>
                   <input
                     type="date"
@@ -795,7 +796,7 @@ export default function Profiles() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Termination Date
+                    {t("Termination Date")}
                   </label>
                   <input
                     type="date"
@@ -824,14 +825,14 @@ export default function Profiles() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updateMutation.isPending ? 'Updating...' : 'Update'}
+                {updateMutation.isPending ? t("Updating...") : t("Update")}
               </button>
             </div>
           </form>
@@ -841,7 +842,7 @@ export default function Profiles() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedProfile && (
         <Modal
-          title="Delete Profile"
+          title={t("Delete Profile")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedProfile(null)
@@ -849,8 +850,7 @@ export default function Profiles() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the profile for "<strong>{selectedProfile.firstName} {selectedProfile.lastName}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete the profile for \"")}<strong>{selectedProfile.firstName} {selectedProfile.lastName}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -860,14 +860,14 @@ export default function Profiles() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>

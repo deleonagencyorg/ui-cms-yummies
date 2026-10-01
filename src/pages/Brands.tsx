@@ -79,10 +79,11 @@ export default function Brands() {
     setIsDeleteModalOpen(true)
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const columns = useMemo<ColumnDef<BrandResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {
-        header: 'Name',
+        header: t("Name"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -90,7 +91,7 @@ export default function Brands() {
         ),
       }),
       columnHelper.accessor('slug', {
-        header: 'Slug',
+        header: t("Slug"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             {info.getValue()}
@@ -98,29 +99,29 @@ export default function Brands() {
         ),
       }),
       columnHelper.accessor('logoUrl', {
-        header: 'Logo',
+        header: t("Logo"),
         cell: (info) => {
           const url = info.getValue()
           return url ? (
-            <img src={url} alt="Logo" className="h-8 w-8 object-contain rounded" />
+            <img src={url} alt={t("Logo")} className="h-8 w-8 object-contain rounded" />
           ) : (
             <span className="text-sm text-muted-foreground">-</span>
           )
         },
       }),
       columnHelper.accessor('brandLanguages', {
-        header: 'Languages',
+        header: t("Languages"),
         cell: (info) => {
           const languages = info.getValue()
           return (
             <span className="text-sm text-muted-foreground">
-              {languages?.length || 0} language(s)
+              {languages?.length || 0} {t("language(s)")}
             </span>
           )
         },
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -129,20 +130,20 @@ export default function Brands() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -150,7 +151,7 @@ export default function Brands() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -246,13 +247,13 @@ export default function Brands() {
   }
 
   // Handle brand logo selection from media picker
-  const handleBrandLogoSelect = (media: MultimediaResponse) => {
+  const handleBrandLogoSelect = (media: MultimediaResponse, _variant?: string) => {
     setFormData((prev) => ({ ...prev, logoUrl: media.originalUrl }))
     setIsBrandLogoPickerOpen(false)
   }
 
   // Handle brand language logo selection from media picker
-  const handleBrandLanguageLogoSelect = (media: MultimediaResponse) => {
+  const handleBrandLanguageLogoSelect = (media: MultimediaResponse, _variant?: string) => {
     if (brandLanguageLogoIndex !== null) {
       updateBrandLanguage(brandLanguageLogoIndex, 'logoUrl', media.originalUrl)
       setBrandLanguageLogoIndex(null)
@@ -270,7 +271,7 @@ export default function Brands() {
                 {t('nav.brands')}
               </h2>
               <p className="text-muted-foreground mt-1">
-                Manage your brands and their translations
+                {t("Manage your brands and their translations")}
               </p>
             </div>
             <button
@@ -278,7 +279,7 @@ export default function Brands() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Brand
+              {t("Create Brand")}
             </button>
           </div>
 
@@ -286,7 +287,7 @@ export default function Brands() {
           <div className="mb-6">
             <input
               type="text"
-              placeholder="Search brands..."
+              placeholder={t("Search brands...")}
               value={searchName}
               onChange={(e) => {
                 setSearchName(e.target.value)
@@ -300,15 +301,15 @@ export default function Brands() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading brands...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading brands...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load brands</p>
+              <p className="text-red-500">{t("Failed to load brands")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No brands found</p>
+              <p className="text-muted-foreground">{t("No brands found")}</p>
             </div>
           ) : (
             <>
@@ -369,7 +370,7 @@ export default function Brands() {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <Modal
-          title="Create Brand"
+          title={t("Create Brand")}
           onClose={() => {
             setIsCreateModalOpen(false)
             setFormData(initialFormData)
@@ -380,7 +381,7 @@ export default function Brands() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Brand Name *
+                  {t("Brand Name *")}
                 </label>
                 <input
                   type="text"
@@ -389,12 +390,12 @@ export default function Brands() {
                   required
                   maxLength={100}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Enter brand name"
+                  placeholder={t("Enter brand name")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Slug *
+                  {t("Slug *")}
                 </label>
                 <input
                   type="text"
@@ -411,7 +412,7 @@ export default function Brands() {
             {/* Brand Logo - Media Picker */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Logo
+                {t("Logo")}
               </label>
               <div className="flex items-center gap-3">
                 <button
@@ -420,14 +421,14 @@ export default function Brands() {
                   className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                 >
                   <PhotoIcon className="w-5 h-5" />
-                  Select from Media
+                  {t("Select from Media")}
                 </button>
                 {formData.logoUrl && (
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, logoUrl: '' })}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
-                    title="Clear logo"
+                    title={t("Clear logo")}
                   >
                     <XIcon className="w-5 h-5" />
                   </button>
@@ -437,7 +438,7 @@ export default function Brands() {
                 <div className="mt-3 flex items-center gap-3 p-3 bg-secondary/30 rounded-lg border border-border">
                   <img
                     src={formData.logoUrl}
-                    alt="Brand logo preview"
+                    alt={t("Brand logo preview")}
                     className="w-16 h-16 object-contain rounded border border-border bg-background"
                   />
                   <div className="flex-1 min-w-0">
@@ -452,7 +453,7 @@ export default function Brands() {
             {/* Brand Background Color */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Background Color
+                {t("Background Color")}
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -475,7 +476,7 @@ export default function Brands() {
                     type="button"
                     onClick={() => setFormData({ ...formData, background: '' })}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
-                    title="Clear background color"
+                    title={t("Clear background color")}
                   >
                     <XIcon className="w-5 h-5" />
                   </button>
@@ -487,7 +488,7 @@ export default function Brands() {
             <div className="border-t border-border pt-4">
               <div className="flex items-center justify-between mb-4">
                 <label className="block text-sm font-medium text-card-foreground">
-                  Brand Languages
+                  {t("Brand Languages")}
                 </label>
                 <button
                   type="button"
@@ -495,13 +496,13 @@ export default function Brands() {
                   className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  Add Language
+                  {t("Add Language")}
                 </button>
               </div>
 
               {formData.brandLanguages.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No languages added. Click "Add Language" to add translations.
+                  {t("No languages added. Click \"Add Language\" to add translations.")}
                 </p>
               ) : (
                 <div className="space-y-4">
@@ -530,14 +531,14 @@ export default function Brands() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={createMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {createMutation.isPending ? 'Creating...' : 'Create'}
+                {createMutation.isPending ? t("Creating...") : t("Create")}
               </button>
             </div>
           </form>
@@ -547,7 +548,7 @@ export default function Brands() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedBrand && (
         <Modal
-          title="Edit Brand"
+          title={t("Edit Brand")}
           onClose={() => {
             setIsEditModalOpen(false)
             setSelectedBrand(null)
@@ -559,7 +560,7 @@ export default function Brands() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Brand Name *
+                  {t("Brand Name *")}
                 </label>
                 <input
                   type="text"
@@ -568,12 +569,12 @@ export default function Brands() {
                   required
                   maxLength={100}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Enter brand name"
+                  placeholder={t("Enter brand name")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Slug *
+                  {t("Slug *")}
                 </label>
                 <input
                   type="text"
@@ -590,7 +591,7 @@ export default function Brands() {
             {/* Brand Logo - Media Picker */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Logo
+                {t("Logo")}
               </label>
               <div className="flex items-center gap-3">
                 <button
@@ -599,14 +600,14 @@ export default function Brands() {
                   className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                 >
                   <PhotoIcon className="w-5 h-5" />
-                  Select from Media
+                  {t("Select from Media")}
                 </button>
                 {formData.logoUrl && (
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, logoUrl: '' })}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
-                    title="Clear logo"
+                    title={t("Clear logo")}
                   >
                     <XIcon className="w-5 h-5" />
                   </button>
@@ -616,7 +617,7 @@ export default function Brands() {
                 <div className="mt-3 flex items-center gap-3 p-3 bg-secondary/30 rounded-lg border border-border">
                   <img
                     src={formData.logoUrl}
-                    alt="Brand logo preview"
+                    alt={t("Brand logo preview")}
                     className="w-16 h-16 object-contain rounded border border-border bg-background"
                   />
                   <div className="flex-1 min-w-0">
@@ -631,7 +632,7 @@ export default function Brands() {
             {/* Brand Background Color */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Background Color
+                {t("Background Color")}
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -654,7 +655,7 @@ export default function Brands() {
                     type="button"
                     onClick={() => setFormData({ ...formData, background: '' })}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
-                    title="Clear background color"
+                    title={t("Clear background color")}
                   >
                     <XIcon className="w-5 h-5" />
                   </button>
@@ -666,7 +667,7 @@ export default function Brands() {
             <div className="border-t border-border pt-4">
               <div className="flex items-center justify-between mb-4">
                 <label className="block text-sm font-medium text-card-foreground">
-                  Brand Languages
+                  {t("Brand Languages")}
                 </label>
                 <button
                   type="button"
@@ -674,13 +675,13 @@ export default function Brands() {
                   className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  Add Language
+                  {t("Add Language")}
                 </button>
               </div>
 
               {formData.brandLanguages.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No languages added. Click "Add Language" to add translations.
+                  {t("No languages added. Click \"Add Language\" to add translations.")}
                 </p>
               ) : (
                 <div className="space-y-4">
@@ -710,14 +711,14 @@ export default function Brands() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
                 disabled={updateMutation.isPending}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
-                {updateMutation.isPending ? 'Updating...' : 'Update'}
+                {updateMutation.isPending ? t("Updating...") : t("Update")}
               </button>
             </div>
           </form>
@@ -727,7 +728,7 @@ export default function Brands() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedBrand && (
         <Modal
-          title="Delete Brand"
+          title={t("Delete Brand")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedBrand(null)
@@ -735,8 +736,7 @@ export default function Brands() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the brand "<strong>{selectedBrand.name}</strong>"?
-              This will also delete all associated brand languages. This action cannot be undone.
+              {t("Are you sure you want to delete the brand \"")}<strong>{selectedBrand.name}</strong>{t("\"? This will also delete all associated brand languages. This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -746,14 +746,14 @@ export default function Brands() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -766,7 +766,7 @@ export default function Brands() {
         onClose={() => setIsBrandLogoPickerOpen(false)}
         onSelect={handleBrandLogoSelect}
         currentUrl={formData.logoUrl}
-        title="Select Brand Logo"
+        title={t("Select Brand Logo")}
       />
 
       {/* Media Picker for Brand Language Logo */}
@@ -775,7 +775,7 @@ export default function Brands() {
         onClose={() => setBrandLanguageLogoIndex(null)}
         onSelect={handleBrandLanguageLogoSelect}
         currentUrl={brandLanguageLogoIndex !== null ? formData.brandLanguages[brandLanguageLogoIndex]?.logoUrl : undefined}
-        title="Select Language Logo"
+        title={t("Select Language Logo")}
       />
     </Layout>
   )
@@ -801,6 +801,7 @@ function BrandLanguageForm({
   onRemove,
   onOpenMediaPicker,
 }: BrandLanguageFormProps) {
+  const { t } = useTranslation()
   const currentLanguage = allLanguages.find((l) => l.code === brandLanguage.code)
   const selectableLanguages = brandLanguage.code
     ? [currentLanguage, ...availableLanguages].filter(Boolean)
@@ -810,13 +811,13 @@ function BrandLanguageForm({
     <div className="p-4 bg-secondary/30 rounded-lg border border-border">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-card-foreground">
-          Language #{index + 1}
+          {t("Language #")}{index + 1}
         </span>
         <button
           type="button"
           onClick={() => onRemove(index)}
           className="text-red-600 hover:text-red-800"
-          title="Remove language"
+          title={t("Remove language")}
         >
           <TrashIcon className="w-4 h-4" />
         </button>
@@ -824,7 +825,7 @@ function BrandLanguageForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1">
-            Language *
+            {t("Language *")}
           </label>
           <select
             value={brandLanguage.code}
@@ -832,7 +833,7 @@ function BrandLanguageForm({
             required
             className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
           >
-            <option value="">Select language</option>
+            <option value="">{t("Select language")}</option>
             {selectableLanguages.map((lang) => (
               <option key={lang!.code} value={lang!.code}>
                 {lang!.name} ({lang!.nativeName})
@@ -842,7 +843,7 @@ function BrandLanguageForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1">
-            Name *
+            {t("Name *")}
           </label>
           <input
             type="text"
@@ -851,12 +852,12 @@ function BrandLanguageForm({
             required
             maxLength={100}
             className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-            placeholder="Localized brand name"
+            placeholder={t("Localized brand name")}
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1">
-            Link
+            {t("Link")}
           </label>
           <input
             type="url"
@@ -869,7 +870,7 @@ function BrandLanguageForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1">
-            Logo
+            {t("Logo")}
           </label>
           <div className="flex items-center gap-2">
             <button
@@ -878,20 +879,20 @@ function BrandLanguageForm({
               className="px-3 py-2 bg-background border border-border rounded-lg hover:bg-secondary transition-colors flex items-center gap-1 text-sm"
             >
               <PhotoIcon className="w-4 h-4" />
-              Select
+              {t("Select")}
             </button>
             {brandLanguage.logoUrl && (
               <>
                 <img
                   src={brandLanguage.logoUrl}
-                  alt="Logo preview"
+                  alt={t("Logo preview")}
                   className="w-8 h-8 object-contain rounded border border-border bg-background"
                 />
                 <button
                   type="button"
                   onClick={() => onUpdate(index, 'logoUrl', '')}
                   className="p-1 text-red-600 hover:text-red-800"
-                  title="Clear logo"
+                  title={t("Clear logo")}
                 >
                   <XIcon className="w-4 h-4" />
                 </button>
@@ -901,7 +902,7 @@ function BrandLanguageForm({
         </div>
         <div className="md:col-span-2">
           <label className="block text-xs font-medium text-muted-foreground mb-1">
-            Caption
+            {t("Caption")}
           </label>
           <input
             type="text"
@@ -909,7 +910,7 @@ function BrandLanguageForm({
             onChange={(e) => onUpdate(index, 'caption', e.target.value)}
             maxLength={255}
             className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-            placeholder="Brand caption or tagline"
+            placeholder={t("Brand caption or tagline")}
           />
         </div>
       </div>
