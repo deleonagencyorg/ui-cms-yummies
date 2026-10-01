@@ -8,7 +8,8 @@ import { usePages } from '@/queries/pages'
 import { useSites } from '@/queries/sites'
 import { useLanguages } from '@/queries/languages'
 import { useCreatePage, useUpdatePage, useDeletePage } from '@/mutations/pages'
-import type { PageResponse, CreatePageRequest } from '@/actions/pages'
+import type { PageResponse, CreatePageRequest, CreatePageBannerRequest, PageBannerType } from '@/actions/pages'
+import type { MultimediaResponse } from '@/actions/multimedia'
 import {
   useReactTable,
   getCoreRowModel,
@@ -20,6 +21,129 @@ import {
 const columnHelper = createColumnHelper<PageResponse>()
 
 const PAGE_STATUSES = ['draft', 'published', 'scheduled', 'trash'] as const
+const BANNER_TYPES: PageBannerType[] = ['image', 'video', 'html']
+
+interface PageBannerHtmlForm {
+  background: MultimediaResponse | null
+  backgroundMobile: MultimediaResponse | null
+  image: MultimediaResponse | null
+  imageMobile: MultimediaResponse | null
+  title: string
+  subtitle: string
+  description: string
+  buttonText: string
+  buttonUrl: string
+}
+
+interface PageBannerFormItem {
+  key: string
+  type: PageBannerType
+  alt: string
+  title: string
+  subtitle: string
+  description: string
+  link: string
+  desktop: MultimediaResponse | null
+  mobile: MultimediaResponse | null
+  html: PageBannerHtmlForm
+}
+
+type BannerMediaTarget = {
+  index: number
+  field:
+    | 'desktop'
+    | 'mobile'
+    | 'htmlBackground'
+    | 'htmlBackgroundMobile'
+    | 'htmlImage'
+    | 'htmlImageMobile'
+}
+
+const emptyHtmlForm = (): PageBannerHtmlForm => ({
+  background: null,
+  backgroundMobile: null,
+  image: null,
+  imageMobile: null,
+  title: '',
+  subtitle: '',
+  description: '',
+  buttonText: '',
+  buttonUrl: '',
+})
+
+const createEmptyBanner = (index = 0): PageBannerFormItem => ({
+  key: `banner-${Date.now()}-${index}`,
+  type: 'image',
+  alt: '',
+  title: '',
+  subtitle: '',
+  description: '',
+  link: '',
+  desktop: null,
+  mobile: null,
+  html: emptyHtmlForm(),
+})
+
+function bannersFromPage(page: PageResponse): PageBannerFormItem[] {
+  return (page.banners ?? [])
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((banner, index) => ({
+      key: banner.id || `banner-${index}`,
+      type: banner.type || 'image',
+      alt: banner.alt ?? '',
+      title: banner.title ?? '',
+      subtitle: banner.subtitle ?? '',
+      description: banner.description ?? '',
+      link: banner.link ?? '',
+      desktop: banner.desktop ?? null,
+      mobile: banner.mobile ?? null,
+      html: {
+        background: banner.html?.backgroundImage ?? null,
+        backgroundMobile: banner.html?.backgroundImageMobile ?? null,
+        image: banner.html?.image ?? null,
+        imageMobile: banner.html?.imageMobile ?? null,
+        title: banner.html?.title ?? '',
+        subtitle: banner.html?.subtitle ?? '',
+        description: banner.html?.description ?? '',
+        buttonText: banner.html?.buttonText ?? '',
+        buttonUrl: banner.html?.buttonUrl ?? '',
+      },
+    }))
+}
+
+function bannersToPayload(banners: PageBannerFormItem[]): CreatePageBannerRequest[] {
+  return banners.map((banner, index) => ({
+    type: banner.type,
+    desktopMediaId: banner.desktop?.id ?? null,
+    mobileMediaId: banner.mobile?.id ?? null,
+    alt: banner.alt,
+    title: banner.title,
+    subtitle: banner.subtitle,
+    description: banner.description,
+    link: banner.link,
+    html:
+      banner.type === 'html'
+        ? {
+            backgroundMediaId: banner.html.background?.id ?? null,
+            backgroundMobileMediaId: banner.html.backgroundMobile?.id ?? null,
+            imageMediaId: banner.html.image?.id ?? null,
+            imageMobileMediaId: banner.html.imageMobile?.id ?? null,
+            title: banner.html.title,
+            subtitle: banner.html.subtitle,
+            description: banner.html.description,
+            buttonText: banner.html.buttonText,
+            buttonUrl: banner.html.buttonUrl,
+          }
+        : undefined,
+    order: index,
+  }))
+}
+
+function mediaPreviewUrl(media: MultimediaResponse | null | undefined): string | null {
+  if (!media) return null
+  return media.optimizedUrl || media.originalUrl || media.thumbnailUrl || null
+}
 
 export default function Pages() {
   const { selectedSiteId } = useSite()
@@ -33,6 +157,8 @@ export default function Pages() {
   const [selectedPage, setSelectedPage] = useState<PageResponse | null>(null)
   const [isFeaturedImagePickerOpen, setIsFeaturedImagePickerOpen] = useState(false)
   const [isOgImagePickerOpen, setIsOgImagePickerOpen] = useState(false)
+  const [bannerMediaTarget, setBannerMediaTarget] = useState<BannerMediaTarget | null>(null)
+  const [banners, setBanners] = useState<PageBannerFormItem[]>([])
   const [formData, setFormData] = useState<Partial<CreatePageRequest>>({
     siteId: '',
     languageCode: 'en',
@@ -120,6 +246,7 @@ export default function Pages() {
       ogImageId: '',
       status: 'draft',
     })
+    setBanners([])
   }
 
   const openEditModal = (page: PageResponse) => {
@@ -141,6 +268,7 @@ export default function Pages() {
       status: page.status,
       publishedAt: page.publishedAt || '',
     })
+    setBanners(bannersFromPage(page))
     setIsEditModalOpen(true)
   }
 
@@ -204,6 +332,15 @@ export default function Pages() {
             </span>
           )
         },
+      }),
+      columnHelper.display({
+        id: 'banners',
+        header: 'Banners',
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">
+            {row.original.banners?.length ?? 0}
+          </span>
+        ),
       }),
       columnHelper.accessor('author', {
         header: 'Author',
@@ -278,6 +415,7 @@ export default function Pages() {
       ogImageId: formData.ogImageId || undefined,
       status: formData.status,
       publishedAt: formData.publishedAt || undefined,
+      banners: bannersToPayload(banners),
     })
   }
 
@@ -303,6 +441,7 @@ export default function Pages() {
         ogImageId: formData.ogImageId || undefined,
         status: formData.status,
         publishedAt: formData.publishedAt || undefined,
+        banners: bannersToPayload(banners),
       }
     })
   }
@@ -310,6 +449,53 @@ export default function Pages() {
   const handleDelete = async () => {
     if (!selectedPage) return
     await deleteMutation.mutateAsync(selectedPage.id)
+  }
+
+  const addBanner = () => {
+    setBanners((prev) => [...prev, createEmptyBanner(prev.length)])
+  }
+
+  const removeBanner = (index: number) => {
+    setBanners((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const moveBanner = (index: number, direction: -1 | 1) => {
+    setBanners((prev) => {
+      const nextIndex = index + direction
+      if (nextIndex < 0 || nextIndex >= prev.length) return prev
+      const next = [...prev]
+      const [item] = next.splice(index, 1)
+      next.splice(nextIndex, 0, item)
+      return next
+    })
+  }
+
+  const updateBanner = (index: number, patch: Partial<PageBannerFormItem>) => {
+    setBanners((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, ...patch } : item))
+    )
+  }
+
+  const updateBannerHtml = (index: number, patch: Partial<PageBannerHtmlForm>) => {
+    setBanners((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, html: { ...item.html, ...patch } } : item
+      )
+    )
+  }
+
+  const handleBannerMediaSelect = (media: MultimediaResponse) => {
+    if (!bannerMediaTarget) return
+    const { index, field } = bannerMediaTarget
+
+    if (field === 'desktop') updateBanner(index, { desktop: media })
+    if (field === 'mobile') updateBanner(index, { mobile: media })
+    if (field === 'htmlBackground') updateBannerHtml(index, { background: media })
+    if (field === 'htmlBackgroundMobile') updateBannerHtml(index, { backgroundMobile: media })
+    if (field === 'htmlImage') updateBannerHtml(index, { image: media })
+    if (field === 'htmlImageMobile') updateBannerHtml(index, { imageMobile: media })
+
+    setBannerMediaTarget(null)
   }
 
   return (
@@ -323,7 +509,10 @@ export default function Pages() {
               <p className="text-muted-foreground mt-1">Manage your website pages</p>
             </div>
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => {
+                resetForm()
+                setIsCreateModalOpen(true)
+              }}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
@@ -554,6 +743,48 @@ export default function Pages() {
               </div>
             </div>
 
+            {/* Page Banners */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-card-foreground">Banners</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Add one or more banners. Choose image, video, or HTML hero for each slide.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addBanner}
+                  className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  Add Banner
+                </button>
+              </div>
+
+              {banners.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
+                  No banners added
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {banners.map((banner, index) => (
+                    <PageBannerCard
+                      key={banner.key}
+                      banner={banner}
+                      index={index}
+                      total={banners.length}
+                      onMove={moveBanner}
+                      onRemove={removeBanner}
+                      onChange={updateBanner}
+                      onChangeHtml={updateBannerHtml}
+                      onOpenMediaPicker={setBannerMediaTarget}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Featured Image */}
             <div>
               <h4 className="text-sm font-semibold text-card-foreground mb-3">Featured Image</h4>
@@ -778,7 +1009,340 @@ export default function Pages() {
         onSelect={(media, _variant) => setFormData({ ...formData, ogImageId: media.id })}
         title="Select Open Graph Image"
       />
+
+      <MediaPicker
+        isOpen={bannerMediaTarget !== null}
+        onClose={() => setBannerMediaTarget(null)}
+        onSelect={handleBannerMediaSelect}
+        title={
+          bannerMediaTarget?.field === 'desktop' || bannerMediaTarget?.field === 'mobile'
+            ? banners[bannerMediaTarget.index]?.type === 'video'
+              ? 'Select Video'
+              : 'Select Image'
+            : 'Select Image'
+        }
+      />
     </Layout>
+  )
+}
+
+interface PageBannerCardProps {
+  banner: PageBannerFormItem
+  index: number
+  total: number
+  onMove: (index: number, direction: -1 | 1) => void
+  onRemove: (index: number) => void
+  onChange: (index: number, patch: Partial<PageBannerFormItem>) => void
+  onChangeHtml: (index: number, patch: Partial<PageBannerHtmlForm>) => void
+  onOpenMediaPicker: (target: BannerMediaTarget) => void
+}
+
+function MediaField({
+  label,
+  media,
+  onSelect,
+  onClear,
+  video,
+}: {
+  label: string
+  media: MultimediaResponse | null
+  onSelect: () => void
+  onClear: () => void
+  video?: boolean
+}) {
+  const previewUrl = mediaPreviewUrl(media)
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-card-foreground mb-2">
+        {label}
+      </label>
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          type="button"
+          onClick={onSelect}
+          className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
+        >
+          {video ? <VideoIcon className="w-5 h-5" /> : <PhotoIcon className="w-5 h-5" />}
+          Select
+        </button>
+        {media && (
+          <>
+            {previewUrl && !video && (
+              <img
+                src={previewUrl}
+                alt={label}
+                className="w-12 h-12 object-cover rounded border border-border"
+              />
+            )}
+            {video && (
+              <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+                {media.fileName}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={onClear}
+              className="p-2 text-red-600 hover:text-red-800"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function PageBannerCard({
+  banner,
+  index,
+  total,
+  onMove,
+  onRemove,
+  onChange,
+  onChangeHtml,
+  onOpenMediaPicker,
+}: PageBannerCardProps) {
+  return (
+    <div className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-card-foreground">
+          Banner {index + 1}
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onMove(index, -1)}
+            disabled={index === 0}
+            className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+            title="Move up"
+          >
+            <ChevronUpIcon className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onMove(index, 1)}
+            disabled={index === total - 1}
+            className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+            title="Move down"
+          >
+            <ChevronDownIcon className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            className="p-1.5 text-red-600 hover:text-red-800"
+            title="Remove"
+          >
+            <XIcon className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-card-foreground mb-2">
+          Type *
+        </label>
+        <select
+          value={banner.type}
+          onChange={(e) => onChange(index, { type: e.target.value as PageBannerType })}
+          className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          {BANNER_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type === 'html' ? 'HTML (hero)' : type === 'video' ? 'Video' : 'Image'}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {(banner.type === 'image' || banner.type === 'video') && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                value={banner.title}
+                onChange={(e) => onChange(index, { title: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Banner title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Subtitle
+              </label>
+              <input
+                type="text"
+                value={banner.subtitle}
+                onChange={(e) => onChange(index, { subtitle: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Banner subtitle"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Alt
+              </label>
+              <input
+                type="text"
+                value={banner.alt}
+                onChange={(e) => onChange(index, { alt: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Alt text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Link
+              </label>
+              <input
+                type="text"
+                value={banner.link}
+                onChange={(e) => onChange(index, { link: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-card-foreground mb-2">
+              Description
+            </label>
+            <textarea
+              value={banner.description}
+              onChange={(e) => onChange(index, { description: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Optional description"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MediaField
+              label={banner.type === 'video' ? 'Desktop Video' : 'Desktop Image'}
+              media={banner.desktop}
+              video={banner.type === 'video'}
+              onSelect={() => onOpenMediaPicker({ index, field: 'desktop' })}
+              onClear={() => onChange(index, { desktop: null })}
+            />
+            <MediaField
+              label={banner.type === 'video' ? 'Mobile Video' : 'Mobile Image'}
+              media={banner.mobile}
+              video={banner.type === 'video'}
+              onSelect={() => onOpenMediaPicker({ index, field: 'mobile' })}
+              onClear={() => onChange(index, { mobile: null })}
+            />
+          </div>
+        </>
+      )}
+
+      {banner.type === 'html' && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                value={banner.html.title}
+                onChange={(e) => onChangeHtml(index, { title: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Hero title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Subtitle
+              </label>
+              <input
+                type="text"
+                value={banner.html.subtitle}
+                onChange={(e) => onChangeHtml(index, { subtitle: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Hero subtitle"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-card-foreground mb-2">
+              Description
+            </label>
+            <textarea
+              value={banner.html.description}
+              onChange={(e) => onChangeHtml(index, { description: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Hero description"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Button text
+              </label>
+              <input
+                type="text"
+                value={banner.html.buttonText}
+                onChange={(e) => onChangeHtml(index, { buttonText: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Ver más"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                Button URL
+              </label>
+              <input
+                type="text"
+                value={banner.html.buttonUrl}
+                onChange={(e) => onChangeHtml(index, { buttonUrl: e.target.value })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="/recetas"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MediaField
+              label="Background (desktop)"
+              media={banner.html.background}
+              onSelect={() => onOpenMediaPicker({ index, field: 'htmlBackground' })}
+              onClear={() => onChangeHtml(index, { background: null })}
+            />
+            <MediaField
+              label="Background (mobile)"
+              media={banner.html.backgroundMobile}
+              onSelect={() => onOpenMediaPicker({ index, field: 'htmlBackgroundMobile' })}
+              onClear={() => onChangeHtml(index, { backgroundMobile: null })}
+            />
+            <MediaField
+              label="Overlay image (desktop)"
+              media={banner.html.image}
+              onSelect={() => onOpenMediaPicker({ index, field: 'htmlImage' })}
+              onClear={() => onChangeHtml(index, { image: null })}
+            />
+            <MediaField
+              label="Overlay image (mobile)"
+              media={banner.html.imageMobile}
+              onSelect={() => onOpenMediaPicker({ index, field: 'htmlImageMobile' })}
+              onClear={() => onChangeHtml(index, { imageMobile: null })}
+            />
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -863,6 +1427,30 @@ function PhotoIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+  )
+}
+
+function VideoIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+    </svg>
+  )
+}
+
+function ChevronUpIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+    </svg>
+  )
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
     </svg>
   )
 }

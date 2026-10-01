@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9011/v1'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9015/v1'
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -82,10 +82,13 @@ export const API_ENDPOINTS = {
     BASE: '/news',
     BY_ID: (id: string) => `/news/${id}`,
   },
-  API_TOKENS: {
-    BASE: '/api-tokens',
-    BY_ID: (id: string) => `/api-tokens/${id}`,
-    REVOKE: (id: string) => `/api-tokens/${id}/revoke`,
+  HEALTH: {
+    BASE: '/health',
+    BY_ID: (id: string) => `/health/${id}`,
+  },
+  DESCUBRENOS: {
+    BASE: '/descubrenos',
+    BY_ID: (id: string) => `/descubrenos/${id}`,
   },
 } as const
 

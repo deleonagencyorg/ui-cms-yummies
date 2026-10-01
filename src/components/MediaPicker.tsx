@@ -38,6 +38,7 @@ interface MediaPickerProps {
   onSelect: (media: MultimediaResponse, urlVariant: MediaUrlVariant) => void
   currentUrl?: string
   title?: string
+  type?: 'image' | 'gallery' | 'video' | 'all'
 }
 
 interface BreadcrumbItem {
@@ -121,6 +122,57 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
     const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+  }
+
+  // preview videos externos
+    const getMediaPreview = (media: MultimediaResponse) => {
+    if (media.provider === 'youtube' && media.thumbnailUrl) {
+      return (
+        <img
+          src={media.thumbnailUrl}
+          alt={media.altText || media.fileName}
+          className="w-full h-full object-cover"
+        />
+      )
+    }
+
+    // external videos
+    if (media.isExternal || media.externalUrl) {
+      return (
+        <div className="w-full h-full  flex flex-col items-center justify-center p-4 text-center relative">
+          <p className="text-[10px] text-white/70 mt-1">
+            {media.provider?.toUpperCase() || 'VIDEO'}
+          </p>
+        </div>
+      )
+    }
+    if (media.fileType?.startsWith('image')) {
+      return (
+        <img
+          src={media.thumbnailUrl || media.originalUrl}
+          alt={media.altText || media.fileName}
+          className="w-full h-full object-cover"
+        />
+      )
+    }
+
+    // local videos
+    if (media.fileType?.startsWith('video')) {
+      return (
+        <div className="w-full h-full  flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-xs text-white">VIDEO</p>
+          </div>
+        </div>
+      )
+    }
+
+    // Default
+    return (
+      <div className="text-muted-foreground flex items-center justify-center h-full">
+        <FileIcon className="w-12 h-12" />
+      </div>
+    )
   }
 
   return (
@@ -215,25 +267,15 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
                       : 'border-border'
                   }`}
                 >
-                  <div className="aspect-square bg-secondary flex items-center justify-center">
-                    {media.fileType.startsWith('image') ? (
-                      <img
-                        src={media.thumbnailUrl || media.originalUrl}
-                        alt={media.altText || media.fileName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="text-muted-foreground">
-                        <FileIcon className="w-8 h-8" />
-                      </div>
-                    )}
+                  <div className="aspect-square bg-secondary flex items-center justify-center overflow-hidden">
+                    {getMediaPreview(media)}
                   </div>
                   <div className="p-2">
                     <p className="text-xs font-medium text-card-foreground truncate" title={media.fileName}>
                       {media.fileName}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatFileSize(media.fileSize)}
+                      {media.isExternal ? (media.provider?.toUpperCase() || 'VIDEO') : formatFileSize(media.fileSize)}
                     </p>
                   </div>
                 </div>
@@ -267,12 +309,57 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
 
         {/* Selected Media Preview */}
         {selectedMedia && (
-          <MediaPreviewPanel
-            media={selectedMedia}
-            selectedVariant={selectedVariant}
-            onVariantChange={setSelectedVariant}
-            formatFileSize={formatFileSize}
-          />
+          <div className="p-6 border-t border-border bg-secondary/30">
+            <div className="flex gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-32 h-32 bg-secondary rounded-lg flex items-center justify-center overflow-hidden border border-border">
+                  {selectedMedia.isExternal || selectedMedia.externalUrl ? (
+                    selectedMedia.thumbnailUrl ? (
+                      <img
+                        src={selectedMedia.thumbnailUrl}
+                        alt={selectedMedia.fileName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-6xl"></div>
+                    )
+                  ) : selectedMedia.fileType?.startsWith('image') ? (
+                    <img
+                      src={selectedMedia.thumbnailUrl || selectedMedia.originalUrl}
+                      alt={selectedMedia.altText || selectedMedia.fileName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <FileIcon className="w-12 h-12 text-muted-foreground" />
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold text-card-foreground mb-1">Selected Media</h4>
+                <p className="text-sm text-muted-foreground truncate">{selectedMedia.fileName}</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  {selectedMedia.isExternal 
+                    ? selectedMedia.provider?.toUpperCase() 
+                    : formatFileSize(selectedMedia.fileSize)
+                  }
+                </p>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {selectedMedia.originalUrl && (
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">Original</span>
+                  )}
+                  {selectedMedia.optimizedUrl && (
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">Optimized</span>
+                  )}
+                  {selectedMedia.thumbnailUrl && (
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">Thumbnail</span>
+                  )}
+                  {selectedMedia.seoUrl && (
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">SEO</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Footer */}

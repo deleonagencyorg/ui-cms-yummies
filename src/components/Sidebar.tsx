@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSite } from '@/contexts/SiteContext'
@@ -21,6 +22,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const hasSites = sitesData && sitesData.data.length > 0
 
+  useEffect(() => {
+    if (!selectedSiteId && sitesData?.data?.length) {
+      setSelectedSiteId(sitesData.data[0].id)
+    }
+  }, [selectedSiteId, sitesData, setSelectedSiteId])
+
   const navItems = [
     { name: t('nav.home'), path: '/', icon: HomeIcon },
     { name: t('nav.dashboard'), path: '/dashboard', icon: DashboardIcon },
@@ -32,6 +39,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { name: t('nav.products'), path: '/products', icon: ProductsIcon },
     { name: t('nav.recipes'), path: '/recipes', icon: RecipesIcon },
     { name: t('nav.news'), path: '/news', icon: NewsIcon },
+    { name: t('nav.health'), path: '/health', icon: HealthIcon },
+    { name: t('nav.descubrenos'), path: '/descubrenos', icon: DescubrenosIcon },
+    { name: t('nav.contact'), path: '/contact', icon: ContactIcon },
+    { name: t('nav.footer'), path: '/footer', icon: FooterIcon },
     { name: t('nav.multimedia'), path: '/multimedia', icon: MultimediaIcon },
     { name: t('nav.sites'), path: '/sites', icon: SitesIcon },
     { name: t('nav.pages'), path: '/pages', icon: PagesIcon },
@@ -598,6 +609,91 @@ function NewsIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z"
+      />
+    </svg>
+  )
+}
+function HealthIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+      />
+      <polyline
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points="3.5 12.5 7 12.5 9 9 12 15 14 12.5 17 12.5 20.5 12.5"
+      />
+    </svg>
+  );
+}
+
+function DescubrenosIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.055-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
+      />
+    </svg>
+  )
+}
+
+function ContactIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+      />
+    </svg>
+  )
+}
+
+function FooterIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
       />
     </svg>
   )

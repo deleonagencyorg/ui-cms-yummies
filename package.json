@@ -18,6 +18,7 @@
     "dompurify": "^3.3.1",
     "i18next": "23.16.8",
     "i18next-browser-languagedetector": "8.2.0",
+    "lite-youtube-embed": "^0.3.4",
     "postcss": "8.5.6",
     "react": "19.2.0",
     "react-dom": "19.2.0",
