@@ -16,6 +16,7 @@ export interface RecipeProductResponse {
 
 export interface RecipeResponse {
   id: string
+  siteId: string | null
   title: string
   slug: string
   date: string
@@ -25,6 +26,8 @@ export interface RecipeResponse {
   gallery: string[]
   type: string
   preparationTime: number
+  video: string
+  isNew: boolean
   ingredients: string[]
   category: string
   instructions: string[]
@@ -40,6 +43,7 @@ export interface RecipeListResponse {
 }
 
 export interface CreateRecipeRequest {
+  siteId: string
   title: string
   slug: string
   date?: string
@@ -49,6 +53,8 @@ export interface CreateRecipeRequest {
   gallery?: string[]
   type?: string
   preparationTime?: number
+  video?: string
+  isNew?: boolean
   ingredients?: string[]
   category?: string
   instructions?: string[]
@@ -67,6 +73,8 @@ export interface UpdateRecipeRequest {
   gallery?: string[]
   type?: string
   preparationTime?: number
+  video?: string
+  isNew?: boolean
   ingredients?: string[]
   category?: string
   instructions?: string[]
@@ -76,6 +84,7 @@ export interface UpdateRecipeRequest {
 }
 
 export interface RecipeFiltersRequest {
+  siteId?: string
   title?: string
   slug?: string
   category?: string

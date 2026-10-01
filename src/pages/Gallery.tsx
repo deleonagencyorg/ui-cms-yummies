@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
@@ -65,6 +66,7 @@ function formDataToPayload(
 }
 
 export default function GalleryPage() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
@@ -154,8 +156,8 @@ export default function GalleryPage() {
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Gallery</h2>
-              <p className="text-muted-foreground mt-1">Manage the site image gallery</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Gallery")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage the site image gallery")}</p>
             </div>
             <button
               onClick={() => {
@@ -164,11 +166,11 @@ export default function GalleryPage() {
                 setIsCreateModalOpen(true)
               }}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? 'Select a site in the sidebar first' : undefined}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Add Image
+              {t("Add Image")}
             </button>
           </div>
 
@@ -181,7 +183,7 @@ export default function GalleryPage() {
               }}
               className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All languages</option>
+              <option value="">{t("All languages")}</option>
               {(languagesData?.data || []).map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -193,15 +195,15 @@ export default function GalleryPage() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading gallery...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading gallery...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load gallery</p>
+              <p className="text-red-500">{t("Failed to load gallery")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No gallery images found</p>
+              <p className="text-muted-foreground">{t("No gallery images found")}</p>
             </div>
           ) : (
             <>
@@ -228,20 +230,20 @@ export default function GalleryPage() {
                       <p className="text-xs text-muted-foreground truncate" title={item.caption}>
                         {item.caption || item.alt || '-'}
                       </p>
-                      <p className="text-xs text-muted-foreground font-mono">Order: {item.order}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{t("Order:")} {item.order}</p>
                     </div>
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => openEditModal(item)}
                         className="p-1.5 bg-card rounded-md shadow text-primary hover:text-primary/80"
-                        title="Edit"
+                        title={t("Edit")}
                       >
                         <EditIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => openDeleteModal(item)}
                         className="p-1.5 bg-card rounded-md shadow text-red-600 hover:text-red-800"
-                        title="Delete"
+                        title={t("Delete")}
                       >
                         <DeleteIcon className="w-4 h-4" />
                       </button>
@@ -272,7 +274,7 @@ export default function GalleryPage() {
 
       {isCreateModalOpen && (
         <GalleryFormModal
-          title="Add Image"
+          title={t("Add Image")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -281,7 +283,7 @@ export default function GalleryPage() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           onOpenMediaPicker={() => setIsMediaPickerOpen(true)}
         />
@@ -289,7 +291,7 @@ export default function GalleryPage() {
 
       {isEditModalOpen && selectedItem && (
         <GalleryFormModal
-          title="Edit Image"
+          title={t("Edit Image")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -299,7 +301,7 @@ export default function GalleryPage() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           onOpenMediaPicker={() => setIsMediaPickerOpen(true)}
         />
@@ -307,7 +309,7 @@ export default function GalleryPage() {
 
       {isDeleteModalOpen && selectedItem && (
         <Modal
-          title="Delete Image"
+          title={t("Delete Image")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedItem(null)
@@ -315,9 +317,8 @@ export default function GalleryPage() {
         >
           <div className="p-6 space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "
-              <strong>{selectedItem.caption || selectedItem.alt || 'this image'}</strong>"? This
-              action cannot be undone.
+              {t("Are you sure you want to delete \"")}
+              <strong>{selectedItem.caption || selectedItem.alt || 'this image'}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -327,14 +328,14 @@ export default function GalleryPage() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -345,7 +346,7 @@ export default function GalleryPage() {
         isOpen={isMediaPickerOpen}
         onClose={() => setIsMediaPickerOpen(false)}
         onSelect={handleMediaSelect}
-        title="Select Image"
+        title={t("Select Image")}
       />
     </Layout>
   )
@@ -372,6 +373,7 @@ function GalleryFormModal({
   languages: { code: string; name: string; nativeName: string }[]
   onOpenMediaPicker: () => void
 }) {
+  const { t } = useTranslation()
   const set = <K extends keyof GalleryFormData>(key: K, value: GalleryFormData[K]) =>
     setFormData({ ...formData, [key]: value })
 
@@ -379,14 +381,14 @@ function GalleryFormModal({
     <Modal title={title} onClose={onClose} maxWidth="max-w-2xl" scrollBody>
       <form onSubmit={onSubmit} className="p-6 space-y-6">
         <div>
-          <label className="block text-sm font-medium text-card-foreground mb-2">Language *</label>
+          <label className="block text-sm font-medium text-card-foreground mb-2">{t("Language *")}</label>
           <select
             value={formData.languageCode}
             onChange={(e) => set('languageCode', e.target.value)}
             required
             className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="">Select language</option>
+            <option value="">{t("Select language")}</option>
             {languages.map((lang) => (
               <option key={lang.code} value={lang.code}>
                 {lang.name} ({lang.nativeName})
@@ -396,7 +398,7 @@ function GalleryFormModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-card-foreground mb-2">Image *</label>
+          <label className="block text-sm font-medium text-card-foreground mb-2">{t("Image *")}</label>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -404,14 +406,14 @@ function GalleryFormModal({
               className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
             >
               <PhotoIcon className="w-5 h-5" />
-              Select Image
+              {t("Select Image")}
             </button>
             {(formData.imagePreviewUrl || formData.imageId) && (
               <>
                 {formData.imagePreviewUrl && (
                   <img
                     src={formData.imagePreviewUrl}
-                    alt={formData.alt || 'Preview'}
+                    alt={formData.alt || t("Preview")}
                     className="w-14 h-14 object-cover rounded border border-border"
                   />
                 )}
@@ -427,10 +429,10 @@ function GalleryFormModal({
           </div>
         </div>
 
-        <TextField label="Alt Text" value={formData.alt} onChange={(v) => set('alt', v)} />
-        <TextField label="Caption" value={formData.caption} onChange={(v) => set('caption', v)} />
+        <TextField label={t("Alt Text")} value={formData.alt} onChange={(v) => set('alt', v)} />
+        <TextField label={t("Caption")} value={formData.caption} onChange={(v) => set('caption', v)} />
         <TextField
-          label="Order"
+          label={t("Order")}
           type="number"
           value={String(formData.order)}
           onChange={(v) => set('order', Number(v) || 0)}
@@ -442,14 +444,14 @@ function GalleryFormModal({
             onClick={onClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"
             disabled={isSubmitting || !formData.siteId || !formData.imageId}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : submitLabel}
+            {isSubmitting ? t("Saving...") : submitLabel}
           </button>
         </div>
       </form>

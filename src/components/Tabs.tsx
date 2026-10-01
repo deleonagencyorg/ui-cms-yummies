@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 
 export interface TabItem {
@@ -13,12 +14,13 @@ interface TabsProps {
 }
 
 export default function Tabs({ tabs, activeKey, onChange }: TabsProps) {
+  const { t } = useTranslation()
   const activeTab = tabs.find((tab) => tab.key === activeKey) ?? tabs[0]
 
   return (
     <div>
       <div className="border-b border-border overflow-x-auto">
-        <nav className="flex gap-1 min-w-max" aria-label="Tabs">
+        <nav className="flex gap-1 min-w-max" aria-label={t("Tabs")}>
           {tabs.map((tab) => (
             <button
               key={tab.key}

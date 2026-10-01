@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
 import { useLanguages } from '@/queries/languages'
@@ -32,6 +33,7 @@ const initialFormData: TopMessageFormData = {
 }
 
 export function TopMessagesContent() {
+  const { t } = useTranslation()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -97,7 +99,7 @@ export function TopMessagesContent() {
   const columns = useMemo<ColumnDef<TopMessageResponse, any>[]>(
     () => [
       columnHelper.accessor('order', {
-        header: 'Orden',
+        header: t("Orden"),
         cell: (info) => (
           <span className="text-xs font-semibold text-cyan-400 bg-cyan-400/10 px-2 py-1 rounded-md border border-cyan-400/20 inline-block">
             #{info.getValue() ?? 0}
@@ -105,7 +107,7 @@ export function TopMessagesContent() {
         ),
       }),
       columnHelper.accessor('title', {
-        header: 'Título / Mensaje',
+        header: t("Título / Mensaje"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue() || '-'}
@@ -113,7 +115,7 @@ export function TopMessagesContent() {
         ),
       }),
       columnHelper.accessor('link', {
-        header: 'Enlace',
+        header: t("Enlace"),
         cell: (info) => {
           const link = info.getValue()
           return link ? (
@@ -132,7 +134,7 @@ export function TopMessagesContent() {
         },
       }),
       columnHelper.accessor('brandId', {
-        header: 'Marca',
+        header: t("Marca"),
         cell: (info) => {
           const brandId = info.getValue()
           return (
@@ -143,7 +145,7 @@ export function TopMessagesContent() {
         },
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Idioma',
+        header: t("Idioma"),
         cell: (info) => {
           const code = info.getValue()
           return (
@@ -155,20 +157,20 @@ export function TopMessagesContent() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Acciones</span>,
+        header: () => <span className="text-right block">{t("Acciones")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-cyan-400 hover:text-cyan-300 p-1 rounded hover:bg-secondary transition-colors"
-              title="Editar"
+              title={t("Editar")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-secondary transition-colors"
-              title="Eliminar"
+              title={t("Eliminar")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -176,7 +178,7 @@ export function TopMessagesContent() {
         ),
       }),
     ],
-    [brandsMap, languagesMap]
+    [brandsMap, languagesMap, t]
   )
 
   const table = useReactTable({
@@ -244,10 +246,10 @@ export function TopMessagesContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold text-card-foreground">
-                Cintillos
+                {t("Cintillos")}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Administra los cintillos promocionales superiores que se muestran en el sitio
+                {t("Administra los cintillos promocionales superiores que se muestran en el sitio")}
               </p>
             </div>
             <button
@@ -255,7 +257,7 @@ export function TopMessagesContent() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Crear Cintillo
+              {t("Crear Cintillo")}
             </button>
           </div>
 
@@ -263,14 +265,14 @@ export function TopMessagesContent() {
           <div className="flex flex-col sm:flex-row gap-4 mb-6 pb-6 border-b border-border">
             <div className="flex-1 max-w-xs">
               <label className="block text-xs font-medium text-muted-foreground mb-1">
-                Filtrar por Marca
+                {t("Filtrar por Marca")}
               </label>
               <select
                 value={filterBrandId}
                 onChange={(e) => setFilterBrandId(e.target.value)}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Todas las marcas</option>
+                <option value="">{t("Todas las marcas")}</option>
                 {brandsData?.data?.map((brand) => (
                   <option key={brand.id} value={brand.id}>
                     {brand.name}
@@ -281,14 +283,14 @@ export function TopMessagesContent() {
 
             <div className="flex-1 max-w-xs">
               <label className="block text-xs font-medium text-muted-foreground mb-1">
-                Filtrar por Idioma
+                {t("Filtrar por Idioma")}
               </label>
               <select
                 value={filterLanguageCode}
                 onChange={(e) => setFilterLanguageCode(e.target.value)}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Todos los idiomas</option>
+                <option value="">{t("Todos los idiomas")}</option>
                 {languagesData?.data?.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.name} ({lang.code})
@@ -303,7 +305,7 @@ export function TopMessagesContent() {
                   onClick={clearFilters}
                   className="px-3 py-2 border border-border rounded-lg text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors"
                 >
-                  Limpiar filtros
+                  {t("Limpiar filtros")}
                 </button>
               </div>
             )}
@@ -312,21 +314,21 @@ export function TopMessagesContent() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Cargando cintillos...</p>
+              <p className="mt-4 text-muted-foreground">{t("Cargando cintillos...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500 font-medium">Error al cargar los cintillos</p>
+              <p className="text-red-500 font-medium">{t("Error al cargar los cintillos")}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {(error as Error)?.message || 'Ocurrió un error inesperado al conectar con el servidor.'}
+                {(error as Error)?.message || t("Ocurrió un error inesperado al conectar con el servidor.")}
               </p>
             </div>
           ) : !messages?.length ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
                 {hasActiveFilters
-                  ? 'No se encontraron cintillos que coincidan con los filtros seleccionados.'
-                  : 'No se encontraron cintillos creados'}
+                  ? t("No se encontraron cintillos que coincidan con los filtros seleccionados.")
+                  : t("No se encontraron cintillos creados")}
               </p>
             </div>
           ) : (
@@ -367,7 +369,7 @@ export function TopMessagesContent() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h3 className="text-lg font-semibold text-card-foreground">Nuevo Cintillo</h3>
+              <h3 className="text-lg font-semibold text-card-foreground">{t("Nuevo Cintillo")}</h3>
               <button onClick={() => setIsCreateModalOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <XIcon className="w-5 h-5" />
               </button>
@@ -375,24 +377,24 @@ export function TopMessagesContent() {
             <form onSubmit={handleCreate} className="p-6 space-y-4">
               {createMutation.isError && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-xs">
-                  {createMutation.error?.message || 'Error al crear el cintillo'}
+                  {createMutation.error?.message || t("Error al crear el cintillo")}
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Título / Texto *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Título / Texto *")}</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  placeholder="Ej: ¡20% de descuento en chocolates!"
+                  placeholder={t("Ej: ¡20% de descuento en chocolates!")}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Orden / Posición *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Orden / Posición *")}</label>
                 <input
                   type="number"
                   min="0"
@@ -400,30 +402,30 @@ export function TopMessagesContent() {
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  placeholder="Ej: 1 (Menor número aparece primero)"
+                  placeholder={t("Ej: 1 (Menor número aparece primero)")}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Enlace (Opcional)</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Enlace (Opcional)")}</label>
                 <input
                   type="url"
                   value={formData.link}
                   onChange={(e) => setFormData({ ...formData, link: e.target.value })}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  placeholder="Ej: https://ejemplo.com/promocion"
+                  placeholder={t("Ej: https://ejemplo.com/promocion")}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Marca *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Marca *")}</label>
                 <select
                   value={formData.brandId}
                   onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 >
-                  <option value="">Selecciona una marca</option>
+                  <option value="">{t("Selecciona una marca")}</option>
                   {brandsData?.data?.map((brand) => (
                     <option key={brand.id} value={brand.id}>{brand.name}</option>
                   ))}
@@ -431,14 +433,14 @@ export function TopMessagesContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Idioma *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Idioma *")}</label>
                 <select
                   value={formData.languageCode}
                   onChange={(e) => setFormData({ ...formData, languageCode: e.target.value })}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 >
-                  <option value="">Selecciona un idioma</option>
+                  <option value="">{t("Selecciona un idioma")}</option>
                   {languagesData?.data?.map((lang) => (
                     <option key={lang.code} value={lang.code}>{lang.name} ({lang.code})</option>
                   ))}
@@ -451,14 +453,14 @@ export function TopMessagesContent() {
                   onClick={() => setIsCreateModalOpen(false)}
                   className="px-4 py-2 border border-border rounded-lg hover:bg-secondary text-sm"
                 >
-                  Cancelar
+                  {t("Cancelar")}
                 </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
                 >
-                  {createMutation.isPending ? 'Updating...' : 'Update'}
+                  {createMutation.isPending ? t("Updating...") : t("Update")}
                 </button>
               </div>
             </form>
@@ -470,7 +472,7 @@ export function TopMessagesContent() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h3 className="text-lg font-semibold text-card-foreground">Editar Cintillo</h3>
+              <h3 className="text-lg font-semibold text-card-foreground">{t("Editar Cintillo")}</h3>
               <button onClick={() => setIsEditModalOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <XIcon className="w-5 h-5" />
               </button>
@@ -478,24 +480,24 @@ export function TopMessagesContent() {
             <form onSubmit={handleUpdate} className="p-6 space-y-4">
               {updateMutation.isError && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-xs">
-                  {updateMutation.error?.message || 'Error al actualizar el cintillo'}
+                  {updateMutation.error?.message || t("Error al actualizar el cintillo")}
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Título / Texto *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Título / Texto *")}</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  placeholder="Ej: ¡20% de descuento en chocolates!"
+                  placeholder={t("Ej: ¡20% de descuento en chocolates!")}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Orden / Posición *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Orden / Posición *")}</label>
                 <input
                   type="number"
                   min="0"
@@ -503,30 +505,30 @@ export function TopMessagesContent() {
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  placeholder="Ej: 1 (Menor número aparece primero)"
+                  placeholder={t("Ej: 1 (Menor número aparece primero)")}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Enlace (Opcional)</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Enlace (Opcional)")}</label>
                 <input
                   type="url"
                   value={formData.link}
                   onChange={(e) => setFormData({ ...formData, link: e.target.value })}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                  placeholder="Ej: https://ejemplo.com/promocion"
+                  placeholder={t("Ej: https://ejemplo.com/promocion")}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Marca *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Marca *")}</label>
                 <select
                   value={formData.brandId}
                   onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 >
-                  <option value="">Selecciona una marca</option>
+                  <option value="">{t("Selecciona una marca")}</option>
                   {brandsData?.data?.map((brand) => (
                     <option key={brand.id} value={brand.id}>{brand.name}</option>
                   ))}
@@ -534,14 +536,14 @@ export function TopMessagesContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">Idioma *</label>
+                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Idioma *")}</label>
                 <select
                   value={formData.languageCode}
                   onChange={(e) => setFormData({ ...formData, languageCode: e.target.value })}
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                 >
-                  <option value="">Selecciona un idioma</option>
+                  <option value="">{t("Selecciona un idioma")}</option>
                   {languagesData?.data?.map((lang) => (
                     <option key={lang.code} value={lang.code}>{lang.name} ({lang.code})</option>
                   ))}
@@ -554,14 +556,14 @@ export function TopMessagesContent() {
                   onClick={() => setIsEditModalOpen(false)}
                   className="px-4 py-2 border border-border rounded-lg hover:bg-secondary text-sm"
                 >
-                  Cancelar
+                  {t("Cancelar")}
                 </button>
                 <button
                   type="submit"
                   disabled={updateMutation.isPending}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
                 >
-                  {updateMutation.isPending ? 'updating...' : 'Update'}
+                  {updateMutation.isPending ? 'updating...' : t("Update")}
                 </button>
               </div>
             </form>
@@ -573,7 +575,7 @@ export function TopMessagesContent() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h3 className="text-lg font-semibold text-card-foreground">Eliminar Cintillo</h3>
+              <h3 className="text-lg font-semibold text-card-foreground">{t("Eliminar Cintillo")}</h3>
               <button onClick={() => setIsDeleteModalOpen(false)} className="text-muted-foreground hover:text-foreground">
                 <XIcon className="w-5 h-5" />
               </button>
@@ -581,12 +583,12 @@ export function TopMessagesContent() {
             <div className="p-6 space-y-4">
               {deleteMutation.isError && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-xs">
-                  {deleteMutation.error?.message || 'Error al eliminar el cintillo'}
+                  {deleteMutation.error?.message || t("Error al eliminar el cintillo")}
                 </div>
               )}
 
               <p className="text-sm text-card-foreground">
-                ¿Estás seguro de que quieres eliminar el cintillo "<strong>{selectedMessage.title}</strong>"? Esta acción no se puede deshacer.
+                {t("¿Estás seguro de que quieres eliminar el cintillo \"")}<strong>{selectedMessage.title}</strong>{t("\"? Esta acción no se puede deshacer.")}
               </p>
 
               <div className="flex gap-3 justify-end pt-4 border-t border-border">
@@ -594,14 +596,14 @@ export function TopMessagesContent() {
                   onClick={() => setIsDeleteModalOpen(false)}
                   className="px-4 py-2 border border-border rounded-lg hover:bg-secondary text-sm"
                 >
-                  Cancelar
+                  {t("Cancelar")}
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={deleteMutation.isPending}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
                 >
-                  {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+                  {deleteMutation.isPending ? t("Eliminando...") : t("Eliminar")}
                 </button>
               </div>
             </div>

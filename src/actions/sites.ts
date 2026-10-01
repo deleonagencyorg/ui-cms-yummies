@@ -1,6 +1,7 @@
 import axiosInstance from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants/api'
 import type { Pagination } from './departments'
+import type { SiteModuleKey } from '@/constants/siteModules'
 
 export interface SiteResponse {
   id: string
@@ -18,6 +19,7 @@ export interface SiteResponse {
   facebookPixelId?: string
   robotsTxt?: string
   sitemapEnabled: boolean
+  enabledModules: SiteModuleKey[]
   createdAt: string
   updatedAt: string
 }
@@ -42,6 +44,7 @@ export interface CreateSiteRequest {
   facebookPixelId?: string
   robotsTxt?: string
   sitemapEnabled?: boolean
+  enabledModules?: SiteModuleKey[]
 }
 
 export interface UpdateSiteRequest {
@@ -59,6 +62,7 @@ export interface UpdateSiteRequest {
   facebookPixelId?: string
   robotsTxt?: string
   sitemapEnabled?: boolean
+  enabledModules?: SiteModuleKey[]
 }
 
 export interface SiteFiltersRequest {

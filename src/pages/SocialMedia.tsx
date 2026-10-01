@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
@@ -85,6 +86,7 @@ function formDataToPayload(
 }
 
 export function SocialMediaContent() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -174,7 +176,7 @@ export function SocialMediaContent() {
   const columns = useMemo<ColumnDef<SocialMedia, any>[]>(
     () => [
       columnHelper.accessor('platform', {
-        header: 'Platform',
+        header: t("Platform"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground capitalize">
             {info.getValue() || '-'}
@@ -182,7 +184,7 @@ export function SocialMediaContent() {
         ),
       }),
       columnHelper.accessor('name', {
-        header: 'Name',
+        header: t("Name"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">{info.getValue() || '-'}</span>
         ),
@@ -207,33 +209,33 @@ export function SocialMediaContent() {
         },
       }),
       columnHelper.accessor('order', {
-        header: 'Order',
+        header: t("Order"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">{info.getValue() ?? 0}</span>
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">{info.getValue()}</span>
         ),
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
-            <button onClick={() => openEditModal(row.original)} className="text-primary hover:text-primary/80" title="Edit">
+            <button onClick={() => openEditModal(row.original)} className="text-primary hover:text-primary/80" title={t("Edit")}>
               <EditIcon className="w-5 h-5" />
             </button>
-            <button onClick={() => openDeleteModal(row.original)} className="text-red-600 hover:text-red-800" title="Delete">
+            <button onClick={() => openDeleteModal(row.original)} className="text-red-600 hover:text-red-800" title={t("Delete")}>
               <DeleteIcon className="w-5 h-5" />
             </button>
           </div>
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -250,8 +252,8 @@ export function SocialMediaContent() {
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Social Media</h2>
-              <p className="text-muted-foreground mt-1">Manage social media links</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Social Media")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage social media links")}</p>
             </div>
             <button
               onClick={() => {
@@ -260,11 +262,11 @@ export function SocialMediaContent() {
                 setIsCreateModalOpen(true)
               }}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? 'Select a site in the sidebar first' : undefined}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Social Media
+              {t("Create Social Media")}
             </button>
           </div>
 
@@ -277,7 +279,7 @@ export function SocialMediaContent() {
               }}
               className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All platforms</option>
+              <option value="">{t("All platforms")}</option>
               {PLATFORM_SUGGESTIONS.map((p) => (
                 <option key={p} value={p} className="capitalize">
                   {p}
@@ -292,7 +294,7 @@ export function SocialMediaContent() {
               }}
               className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All languages</option>
+              <option value="">{t("All languages")}</option>
               {(languagesData?.data || []).map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -304,15 +306,15 @@ export function SocialMediaContent() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading social media...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading social media...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load social media</p>
+              <p className="text-red-500">{t("Failed to load social media")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No social media links found</p>
+              <p className="text-muted-foreground">{t("No social media links found")}</p>
             </div>
           ) : (
             <>
@@ -368,7 +370,7 @@ export function SocialMediaContent() {
 
       {isCreateModalOpen && (
         <SocialMediaFormModal
-          title="Create Social Media"
+          title={t("Create Social Media")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -377,7 +379,7 @@ export function SocialMediaContent() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={() => setIsMediaPickerOpen(true)}
@@ -386,7 +388,7 @@ export function SocialMediaContent() {
 
       {isEditModalOpen && selectedItem && (
         <SocialMediaFormModal
-          title="Edit Social Media"
+          title={t("Edit Social Media")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -396,7 +398,7 @@ export function SocialMediaContent() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={() => setIsMediaPickerOpen(true)}
@@ -405,7 +407,7 @@ export function SocialMediaContent() {
 
       {isDeleteModalOpen && selectedItem && (
         <Modal
-          title="Delete Social Media"
+          title={t("Delete Social Media")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedItem(null)
@@ -413,8 +415,8 @@ export function SocialMediaContent() {
         >
           <div className="p-6 space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedItem.name || selectedItem.platform}</strong>
-              "? This action cannot be undone.
+              {t("Are you sure you want to delete \"")}<strong>{selectedItem.name || selectedItem.platform}</strong>
+              {t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -424,14 +426,14 @@ export function SocialMediaContent() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -442,7 +444,7 @@ export function SocialMediaContent() {
         isOpen={isMediaPickerOpen}
         onClose={() => setIsMediaPickerOpen(false)}
         onSelect={handleMediaSelect}
-        title="Select Icon"
+        title={t("Select Icon")}
       />
     </>
   )
@@ -479,6 +481,7 @@ function SocialMediaFormModal({
   sites: { id: string; name: string }[]
   onOpenMediaPicker: () => void
 }) {
+  const { t } = useTranslation()
   const set = <K extends keyof SocialMediaFormData>(key: K, value: SocialMediaFormData[K]) =>
     setFormData({ ...formData, [key]: value })
 
@@ -487,14 +490,14 @@ function SocialMediaFormModal({
       <form onSubmit={onSubmit} className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-card-foreground mb-2">Site *</label>
+            <label className="block text-sm font-medium text-card-foreground mb-2">{t("Site *")}</label>
             <select
               value={formData.siteId}
               required
               disabled
               className="w-full px-4 py-2 bg-secondary border border-border rounded-lg cursor-not-allowed opacity-75"
             >
-              <option value="">Select a site</option>
+              <option value="">{t("Select a site")}</option>
               {sites.map((site) => (
                 <option key={site.id} value={site.id}>
                   {site.name}
@@ -503,14 +506,14 @@ function SocialMediaFormModal({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-card-foreground mb-2">Language *</label>
+            <label className="block text-sm font-medium text-card-foreground mb-2">{t("Language *")}</label>
             <select
               value={formData.languageCode}
               onChange={(e) => set('languageCode', e.target.value)}
               required
               className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">Select language</option>
+              <option value="">{t("Select language")}</option>
               {languages.map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -522,14 +525,14 @@ function SocialMediaFormModal({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-card-foreground mb-2">Platform *</label>
+            <label className="block text-sm font-medium text-card-foreground mb-2">{t("Platform *")}</label>
             <input
               list="platform-suggestions"
               type="text"
               value={formData.platform}
               onChange={(e) => set('platform', e.target.value)}
               required
-              placeholder="facebook, instagram, tiktok..."
+              placeholder={t("facebook, instagram, tiktok...")}
               className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <datalist id="platform-suggestions">
@@ -539,19 +542,19 @@ function SocialMediaFormModal({
             </datalist>
           </div>
           <TextField
-            label="Order"
+            label={t("Order")}
             type="number"
             value={String(formData.order)}
             onChange={(v) => set('order', Number(v) || 0)}
           />
         </div>
 
-        <TextField label="Name" value={formData.name} onChange={(v) => set('name', v)} />
+        <TextField label={t("Name")} value={formData.name} onChange={(v) => set('name', v)} />
         <TextField label="URL" value={formData.url} onChange={(v) => set('url', v)} placeholder="https://..." />
-        <TextField label="Alt Text" value={formData.alt} onChange={(v) => set('alt', v)} />
+        <TextField label={t("Alt Text")} value={formData.alt} onChange={(v) => set('alt', v)} />
 
         <div>
-          <label className="block text-sm font-medium text-card-foreground mb-2">Icon</label>
+          <label className="block text-sm font-medium text-card-foreground mb-2">{t("Icon")}</label>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -559,14 +562,14 @@ function SocialMediaFormModal({
               className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
             >
               <PhotoIcon className="w-5 h-5" />
-              Select Icon
+              {t("Select Icon")}
             </button>
             {(formData.iconPreviewUrl || formData.iconId) && (
               <>
                 {formData.iconPreviewUrl && (
                   <img
                     src={formData.iconPreviewUrl}
-                    alt={formData.alt || 'Icon'}
+                    alt={formData.alt || t("Icon")}
                     className="w-10 h-10 object-cover rounded border border-border"
                   />
                 )}
@@ -588,14 +591,14 @@ function SocialMediaFormModal({
             onClick={onClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"
             disabled={isSubmitting || !formData.siteId}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : submitLabel}
+            {isSubmitting ? t("Saving...") : submitLabel}
           </button>
         </div>
       </form>

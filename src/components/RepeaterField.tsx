@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 
 interface RepeaterFieldProps<T> {
@@ -25,6 +26,7 @@ export default function RepeaterField<T>({
   itemLabel,
   emptyMessage,
 }: RepeaterFieldProps<T>) {
+  const { t } = useTranslation()
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
@@ -57,7 +59,7 @@ export default function RepeaterField<T>({
                     onClick={() => onMove(index, -1)}
                     disabled={index === 0}
                     className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                    title="Move up"
+                    title={t("Move up")}
                   >
                     <ChevronUpIcon className="w-4 h-4" />
                   </button>
@@ -66,7 +68,7 @@ export default function RepeaterField<T>({
                     onClick={() => onMove(index, 1)}
                     disabled={index === items.length - 1}
                     className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                    title="Move down"
+                    title={t("Move down")}
                   >
                     <ChevronDownIcon className="w-4 h-4" />
                   </button>
@@ -75,7 +77,7 @@ export default function RepeaterField<T>({
                     onClick={() => onRemove(index)}
                     disabled={items.length <= minItems}
                     className="p-1.5 text-red-600 hover:text-red-800 disabled:opacity-30"
-                    title="Remove"
+                    title={t("Remove")}
                   >
                     <XIcon className="w-4 h-4" />
                   </button>
@@ -105,6 +107,7 @@ export function StringRepeaterField({
   placeholder,
   minItems = 0,
 }: StringRepeaterFieldProps) {
+  const { t } = useTranslation()
   const add = () => onChange([...items, ''])
   const remove = (index: number) => onChange(items.filter((_, i) => i !== index))
   const move = (index: number, direction: -1 | 1) => {
@@ -145,7 +148,7 @@ export function StringRepeaterField({
               onClick={() => move(index, -1)}
               disabled={index === 0}
               className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-              title="Move up"
+              title={t("Move up")}
             >
               <ChevronUpIcon className="w-4 h-4" />
             </button>
@@ -154,7 +157,7 @@ export function StringRepeaterField({
               onClick={() => move(index, 1)}
               disabled={index === items.length - 1}
               className="p-1.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-              title="Move down"
+              title={t("Move down")}
             >
               <ChevronDownIcon className="w-4 h-4" />
             </button>
@@ -163,7 +166,7 @@ export function StringRepeaterField({
               onClick={() => remove(index)}
               disabled={items.length <= minItems}
               className="p-1.5 text-red-600 hover:text-red-800 disabled:opacity-30"
-              title="Remove"
+              title={t("Remove")}
             >
               <XIcon className="w-4 h-4" />
             </button>

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import Layout from '@/components/Layout'
 
 export default function Home() {
+  const { t } = useTranslation()
   const { user } = useAuth()
 
   return (
@@ -11,23 +13,23 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center px-4">
           <div className="bg-gradient-to-br from-primary-500 via-accent-500 to-primary-700 dark:from-primary-600 dark:via-accent-600 dark:to-primary-800 rounded-2xl p-12 shadow-2xl">
             <h1 className="text-5xl sm:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-              Welcome back, {user?.name}!
+              {t("Welcome back,")} {user?.name}!
             </h1>
             <p className="text-xl text-white/90 mb-8">
-              You are successfully logged in
+              {t("You are successfully logged in")}
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link
                 to="/dashboard"
                 className="bg-white dark:bg-card text-primary dark:text-card-foreground px-6 py-3 rounded-lg font-semibold hover:bg-white/90 dark:hover:bg-card/80 transition-all shadow-lg hover:shadow-xl"
               >
-                View Dashboard
+                {t("View Dashboard")}
               </Link>
               <Link
                 to="/profile"
                 className="bg-white/20 backdrop-blur-sm text-white border-2 border-white/50 px-6 py-3 rounded-lg font-semibold hover:bg-white/30 transition-all shadow-lg hover:shadow-xl"
               >
-                My Profile
+                {t("My Profile")}
               </Link>
             </div>
           </div>
@@ -40,8 +42,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-card-foreground mb-2">Dashboard</h3>
-              <p className="text-muted-foreground text-sm">View your analytics and insights</p>
+              <h3 className="text-lg font-semibold text-card-foreground mb-2">{t("Dashboard")}</h3>
+              <p className="text-muted-foreground text-sm">{t("View your analytics and insights")}</p>
             </div>
 
             <div className="bg-card rounded-xl p-6 shadow-lg border border-border">
@@ -50,8 +52,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-card-foreground mb-2">Profile</h3>
-              <p className="text-muted-foreground text-sm">Manage your account settings</p>
+              <h3 className="text-lg font-semibold text-card-foreground mb-2">{t("Profile")}</h3>
+              <p className="text-muted-foreground text-sm">{t("Manage your account settings")}</p>
             </div>
 
             <div className="bg-card rounded-xl p-6 shadow-lg border border-border">
@@ -61,8 +63,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-card-foreground mb-2">Settings</h3>
-              <p className="text-muted-foreground text-sm">Customize your experience</p>
+              <h3 className="text-lg font-semibold text-card-foreground mb-2">{t("Settings")}</h3>
+              <p className="text-muted-foreground text-sm">{t("Customize your experience")}</p>
             </div>
           </div>
         </div>

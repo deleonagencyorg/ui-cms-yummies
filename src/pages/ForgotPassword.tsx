@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -7,6 +8,7 @@ import type { ForgotPasswordRequest, SuccessResponse } from '@/types/auth.types'
 import ThemeToggle from '@/components/ThemeToggle'
 
 export default function ForgotPassword() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -20,7 +22,7 @@ export default function ForgotPassword() {
         { email } as ForgotPasswordRequest
       )
 
-      toast.success(response.data.message || 'Password reset link has been sent to your email.')
+      toast.success(response.data.message || t("Password reset link has been sent to your email."))
       setEmail('')
     } catch (err: unknown) {
       const errorMessage = (err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to send reset link. Please try again.'
@@ -37,15 +39,15 @@ export default function ForgotPassword() {
       </div>
 
       <div className="bg-card p-8 rounded-lg shadow-lg border border-border w-full max-w-md">
-        <h1 className="text-3xl font-bold text-card-foreground mb-2 text-center">Forgot Password</h1>
+        <h1 className="text-3xl font-bold text-card-foreground mb-2 text-center">{t("Forgot Password")}</h1>
         <p className="text-muted-foreground text-center mb-6">
-          Enter your email address and we'll send you a link to reset your password.
+          {t("Enter your email address and we'll send you a link to reset your password.")}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-card-foreground mb-1">
-              Email Address
+              {t("Email Address")}
             </label>
             <input
               id="email"
@@ -63,13 +65,13 @@ export default function ForgotPassword() {
             className="w-full bg-primary text-primary-foreground py-2 rounded-md hover:bg-primary/90 transition-colors disabled:bg-primary/50 disabled:cursor-not-allowed font-medium"
             disabled={isLoading}
           >
-            {isLoading ? 'Sending...' : 'Send Reset Link'}
+            {isLoading ? t("Sending...") : t("Send Reset Link")}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <Link to="/login" className="text-sm text-primary hover:underline">
-            Back to Login
+            {t("Back to Login")}
           </Link>
         </div>
       </div>

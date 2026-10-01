@@ -121,10 +121,13 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `/modals/${id}`,
     BY_LANGUAGE: (languageCode: string) => `/modals/language/${languageCode}`,
   },
-  CONTENT_LISTS: {
-    BASE: '/content-lists',
-    BY_ID: (id: string) => `/content-lists/${id}`,
-    BY_LANGUAGE: (languageCode: string) => `/content-lists/language/${languageCode}`,
+  SECTION_LISTS: {
+    FOOTER_PHONES: '/footer-phones',
+    FOOTER_LINKS: '/footer-links',
+    DELIVERY_APPS: '/delivery-apps',
+    HEALTH_ICONS: '/health-icons',
+    HOME_VIDEOS: '/home-videos',
+    ABOUT_TIMELINE: '/about-timeline',
   },
   SITE_TEXTS: {
     BASE: '/site-texts',

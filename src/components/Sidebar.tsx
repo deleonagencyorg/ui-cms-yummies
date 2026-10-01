@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSite } from '@/contexts/SiteContext'
 import { useSites } from '@/queries/sites'
+import { useSiteModules } from '@/lib/siteModules'
+import { PATH_MODULES } from '@/constants/siteModules'
 import { useTranslation } from 'react-i18next'
 import Dropdown, { DropdownItem, DropdownDivider } from '@/components/Dropdown'
 
@@ -17,51 +19,85 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth()
   const { selectedSiteId, setSelectedSiteId } = useSite()
   const { data: sitesData } = useSites({ page: 1, pageSize: 100 })
+  const { isPathEnabled } = useSiteModules()
   const { t, i18n } = useTranslation()
   const language = i18n.language === 'es' ? 'es' : 'en'
 
   const hasSites = sitesData && sitesData.data.length > 0
 
   useEffect(() => {
-    if (!selectedSiteId && sitesData?.data?.length) {
-      setSelectedSiteId(sitesData.data[0].id)
+    if (selectedSiteId && sitesData && !sitesData.data.some((site) => site.id === selectedSiteId)) {
+      setSelectedSiteId(null)
     }
   }, [selectedSiteId, sitesData, setSelectedSiteId])
 
-  const navItems = [
-    { name: t('nav.home'), path: '/', icon: HomeIcon },
-    { name: t('nav.dashboard'), path: '/dashboard', icon: DashboardIcon },
-    { name: t('nav.languages'), path: '/languages', icon: LanguagesIcon },
-    { name: t('nav.departments'), path: '/departments', icon: DepartmentsIcon },
-    { name: t('nav.profiles'), path: '/profiles', icon: ProfilesIcon },
-    { name: t('nav.jobTitles'), path: '/job-titles', icon: JobTitlesIcon },
-    { name: t('nav.brands'), path: '/brands', icon: BrandsIcon },
-    { name: t('nav.products'), path: '/products', icon: ProductsIcon },
-    { name: t('nav.recipes'), path: '/recipes', icon: RecipesIcon },
-    { name: t('nav.news'), path: '/news', icon: NewsIcon },
-    { name: t('nav.health'), path: '/health', icon: HealthIcon },
-    { name: t('nav.descubrenos'), path: '/descubrenos', icon: DescubrenosIcon },
-    { name: t('nav.gallery'), path: '/gallery', icon: GalleryIcon },
-    { name: t('nav.modals'), path: '/modals', icon: ModalsIcon },
-    { name: t('nav.contentLists'), path: '/content-lists', icon: ContentListsIcon },
-    { name: t('nav.siteSettings'), path: '/site-settings', icon: SiteSettingsIcon },
-    { name: t('nav.zambosTruck'), path: '/zambos-truck', icon: ZambosTruckIcon },
-    { name: t('nav.productCategories'), path: '/product-categories', icon: ProductCategoriesIcon },
-    { name: t('nav.multimedia'), path: '/multimedia', icon: MultimediaIcon },
-    { name: t('nav.sites'), path: '/sites', icon: SitesIcon },
-    { name: t('nav.pages'), path: '/pages', icon: PagesIcon },
-    { name: t('nav.apiTokens'), path: '/api-tokens', icon: ApiTokensIcon },
+  const navGroups: { label: string; items: { name: string; path: string; icon: typeof HomeIcon }[] }[] = [
+    {
+      label: '',
+      items: [
+        { name: t('nav.home'), path: '/', icon: HomeIcon },
+        { name: t('nav.dashboard'), path: '/dashboard', icon: DashboardIcon },
+      ],
+    },
+    {
+      label: t("Catalog"),
+      items: [
+        { name: t('nav.products'), path: '/products', icon: ProductsIcon },
+        { name: t('nav.productCategories'), path: '/product-categories', icon: ProductCategoriesIcon },
+        { name: t('nav.recipes'), path: '/recipes', icon: RecipesIcon },
+        { name: t('nav.news'), path: '/news', icon: NewsIcon },
+        { name: t('nav.brands'), path: '/brands', icon: BrandsIcon },
+      ],
+    },
+    {
+      label: t("Site pages"),
+      items: [
+        { name: t("Home page"), path: '/home-content', icon: HomeIcon },
+        { name: t("About us"), path: '/about-us', icon: ProfilesIcon },
+        { name: t('nav.pages'), path: '/pages', icon: PagesIcon },
+        { name: t('nav.health'), path: '/health', icon: HealthIcon },
+        { name: t('nav.descubrenos'), path: '/descubrenos', icon: DescubrenosIcon },
+        { name: t('nav.gallery'), path: '/gallery', icon: GalleryIcon },
+        { name: t('nav.zambosTruck'), path: '/zambos-truck', icon: ZambosTruckIcon },
+        { name: t("Page not found"), path: '/not-found-page', icon: PagesIcon },
+      ],
+    },
+    {
+      label: t("Whole site"),
+      items: [
+        { name: t('nav.footer'), path: '/footer', icon: SiteSettingsIcon },
+        { name: t('nav.navigation'), path: '/navigation', icon: ContentListsIcon },
+        { name: t('nav.socialMedia'), path: '/social-media', icon: DescubrenosIcon },
+        { name: t('nav.topMessages'), path: '/top-messages', icon: ModalsIcon },
+        { name: t('nav.contact'), path: '/contact', icon: LanguageIcon },
+        { name: t("Messages and forms"), path: '/messages', icon: ModalsIcon },
+        { name: t('nav.modals'), path: '/modals', icon: ModalsIcon },
+      ],
+    },
+    {
+      label: t("Files"),
+      items: [{ name: t('nav.multimedia'), path: '/multimedia', icon: MultimediaIcon }],
+    },
+    {
+      label: t("Administration"),
+      items: [
+        { name: t('nav.sites'), path: '/sites', icon: SitesIcon },
+        { name: t('nav.languages'), path: '/languages', icon: LanguagesIcon },
+        { name: t('nav.departments'), path: '/departments', icon: DepartmentsIcon },
+        { name: t('nav.profiles'), path: '/profiles', icon: ProfilesIcon },
+        { name: t('nav.jobTitles'), path: '/job-titles', icon: JobTitlesIcon },
+        { name: t('nav.apiTokens'), path: '/api-tokens', icon: ApiTokensIcon },
+      ],
+    },
   ]
 
   const isActive = (path: string) => location.pathname === path
 
-  const isNavItemDisabled = (path: string) => {
-    // Disable Pages if no site is selected
-    if (path === '/pages' && !selectedSiteId) {
-      return true
-    }
-    return false
-  }
+  const siteScopedPaths = new Set([
+    ...Object.keys(PATH_MODULES),
+    '/multimedia',
+  ])
+  const isNavItemDisabled = (path: string) => siteScopedPaths.has(path) && !selectedSiteId
 
   const handleLogout = () => {
     logout()
@@ -140,41 +176,54 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const disabled = isNavItemDisabled(item.path)
-
-              if (disabled) {
-                return (
-                  <div
-                    key={item.path}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground/50 cursor-not-allowed opacity-50"
-                    title={item.path === '/pages' ? (t('nav.selectSiteFirst') || 'Please select a site first') : ''}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.name}</span>
-                    {item.path === '/pages' && (
-                      <LockIcon className="w-4 h-4 ml-auto" />
-                    )}
-                  </div>
-                )
-              }
-
+          <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+            {navGroups.map((group) => {
+              const items = group.items.filter((item) => !selectedSiteId || isPathEnabled(item.path))
+              if (items.length === 0) return null
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive(item.path)
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.name}</span>
-                </Link>
+                <div key={group.label || 'general'} className="space-y-1">
+                  {group.label && (
+                    <p className="px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
+                      {group.label}
+                    </p>
+                  )}
+                  {items.map((item) => {
+                    const Icon = item.icon
+                    const disabled = isNavItemDisabled(item.path)
+
+                    if (disabled) {
+                      return (
+                        <div
+                          key={item.path}
+                          className="flex items-center gap-3 px-4 py-2 rounded-lg text-muted-foreground/50 cursor-not-allowed opacity-50"
+                          title={t('nav.selectSiteFirst') || 'Please select a site first'}
+                        >
+                          <Icon className="w-5 h-5" />
+                          <span>{item.name}</span>
+                          {siteScopedPaths.has(item.path) && (
+                            <LockIcon className="w-4 h-4 ml-auto" />
+                          )}
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={onClose}
+                        className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                          isActive(item.path)
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{item.name}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
               )
             })}
           </nav>
@@ -714,4 +763,3 @@ function DescubrenosIcon({ className }: { className?: string }) {
     </svg>
   )
 }
-

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
@@ -80,6 +81,7 @@ function formDataToPayload(
 }
 
 export default function ModalsPage() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -169,7 +171,7 @@ export default function ModalsPage() {
   const columns = useMemo<ColumnDef<ModalConfig, any>[]>(
     () => [
       columnHelper.accessor('slug', {
-        header: 'Slug',
+        header: t("Slug"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground font-mono">
             {info.getValue()}
@@ -177,7 +179,7 @@ export default function ModalsPage() {
         ),
       }),
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t("Title"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground line-clamp-1">
             {info.getValue() || '-'}
@@ -185,14 +187,14 @@ export default function ModalsPage() {
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">{info.getValue()}</span>
         ),
       }),
       columnHelper.display({
         id: 'paragraphs',
-        header: 'Paragraphs',
+        header: t("Paragraphs"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {row.original.paragraphs?.length ?? 0}
@@ -200,7 +202,7 @@ export default function ModalsPage() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -209,20 +211,20 @@ export default function ModalsPage() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
-            <button onClick={() => openEditModal(row.original)} className="text-primary hover:text-primary/80" title="Edit">
+            <button onClick={() => openEditModal(row.original)} className="text-primary hover:text-primary/80" title={t("Edit")}>
               <EditIcon className="w-5 h-5" />
             </button>
-            <button onClick={() => openDeleteModal(row.original)} className="text-red-600 hover:text-red-800" title="Delete">
+            <button onClick={() => openDeleteModal(row.original)} className="text-red-600 hover:text-red-800" title={t("Delete")}>
               <DeleteIcon className="w-5 h-5" />
             </button>
           </div>
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -239,9 +241,9 @@ export default function ModalsPage() {
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Modals</h2>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Modals")}</h2>
               <p className="text-muted-foreground mt-1">
-                Manage popup/intro modal content
+                {t("Manage popup/intro modal content")}
               </p>
             </div>
             <button
@@ -251,18 +253,18 @@ export default function ModalsPage() {
                 setIsCreateModalOpen(true)
               }}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? 'Select a site in the sidebar first' : undefined}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Modal
+              {t("Create Modal")}
             </button>
           </div>
 
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search by slug..."
+              placeholder={t("Search by slug...")}
               value={searchSlug}
               onChange={(e) => {
                 setSearchSlug(e.target.value)
@@ -278,7 +280,7 @@ export default function ModalsPage() {
               }}
               className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All languages</option>
+              <option value="">{t("All languages")}</option>
               {(languagesData?.data || []).map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -290,15 +292,15 @@ export default function ModalsPage() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading modals...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading modals...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load modals</p>
+              <p className="text-red-500">{t("Failed to load modals")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No modals found</p>
+              <p className="text-muted-foreground">{t("No modals found")}</p>
             </div>
           ) : (
             <>
@@ -354,7 +356,7 @@ export default function ModalsPage() {
 
       {isCreateModalOpen && (
         <ModalFormModal
-          title="Create Modal"
+          title={t("Create Modal")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -363,7 +365,7 @@ export default function ModalsPage() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={() => setIsMediaPickerOpen(true)}
@@ -372,7 +374,7 @@ export default function ModalsPage() {
 
       {isEditModalOpen && selectedItem && (
         <ModalFormModal
-          title="Edit Modal"
+          title={t("Edit Modal")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -382,7 +384,7 @@ export default function ModalsPage() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={() => setIsMediaPickerOpen(true)}
@@ -391,7 +393,7 @@ export default function ModalsPage() {
 
       {isDeleteModalOpen && selectedItem && (
         <Modal
-          title="Delete Modal"
+          title={t("Delete Modal")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedItem(null)
@@ -399,8 +401,7 @@ export default function ModalsPage() {
         >
           <div className="p-6 space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedItem.slug}</strong>"? This action
-              cannot be undone.
+              {t("Are you sure you want to delete \"")}<strong>{selectedItem.slug}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -410,14 +411,14 @@ export default function ModalsPage() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -428,7 +429,7 @@ export default function ModalsPage() {
         isOpen={isMediaPickerOpen}
         onClose={() => setIsMediaPickerOpen(false)}
         onSelect={handleMediaSelect}
-        title="Select Image"
+        title={t("Select Image")}
       />
     </Layout>
   )
@@ -457,6 +458,7 @@ function ModalFormModal({
   sites: { id: string; name: string }[]
   onOpenMediaPicker: () => void
 }) {
+  const { t } = useTranslation()
   const set = <K extends keyof ModalFormData>(key: K, value: ModalFormData[K]) =>
     setFormData({ ...formData, [key]: value })
 
@@ -465,18 +467,18 @@ function ModalFormModal({
       <form onSubmit={onSubmit} className="p-6 space-y-6">
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-            Basic Information
+            {t("Basic Information")}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">Site *</label>
+              <label className="block text-sm font-medium text-card-foreground mb-2">{t("Site *")}</label>
               <select
                 value={formData.siteId}
                 required
                 disabled
                 className="w-full px-4 py-2 bg-secondary border border-border rounded-lg cursor-not-allowed opacity-75"
               >
-                <option value="">Select a site</option>
+                <option value="">{t("Select a site")}</option>
                 {sites.map((site) => (
                   <option key={site.id} value={site.id}>
                     {site.name}
@@ -485,14 +487,14 @@ function ModalFormModal({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">Language *</label>
+              <label className="block text-sm font-medium text-card-foreground mb-2">{t("Language *")}</label>
               <select
                 value={formData.languageCode}
                 onChange={(e) => set('languageCode', e.target.value)}
                 required
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Select language</option>
+                <option value="">{t("Select language")}</option>
                 {languages.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.name} ({lang.nativeName})
@@ -502,21 +504,21 @@ function ModalFormModal({
             </div>
           </div>
           <TextField
-            label="Slug"
+            label={t("Slug")}
             value={formData.slug}
             onChange={(v) => set('slug', v)}
             required
-            placeholder="e.g. brand-intro"
+            placeholder={t("e.g. brand-intro")}
           />
-          <TextField label="Title" value={formData.title} onChange={(v) => set('title', v)} />
+          <TextField label={t("Title")} value={formData.title} onChange={(v) => set('title', v)} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <TextField
-              label="Trigger Label"
+              label={t("Trigger Label")}
               value={formData.triggerLabel}
               onChange={(v) => set('triggerLabel', v)}
             />
             <TextField
-              label="Close Label"
+              label={t("Close Label")}
               value={formData.closeLabel}
               onChange={(v) => set('closeLabel', v)}
             />
@@ -525,7 +527,7 @@ function ModalFormModal({
 
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-            Image
+            {t("Image")}
           </h4>
           <div className="flex items-center gap-3">
             <button
@@ -534,14 +536,14 @@ function ModalFormModal({
               className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
             >
               <PhotoIcon className="w-5 h-5" />
-              Select Image
+              {t("Select Image")}
             </button>
             {(formData.imagePreviewUrl || formData.imageId) && (
               <>
                 {formData.imagePreviewUrl && (
                   <img
                     src={formData.imagePreviewUrl}
-                    alt={formData.imageAlt || 'Modal'}
+                    alt={formData.imageAlt || t("Modal")}
                     className="w-12 h-12 object-cover rounded border border-border"
                   />
                 )}
@@ -556,7 +558,7 @@ function ModalFormModal({
             )}
           </div>
           <TextField
-            label="Image Alt Text"
+            label={t("Image Alt Text")}
             value={formData.imageAlt}
             onChange={(v) => set('imageAlt', v)}
           />
@@ -564,13 +566,13 @@ function ModalFormModal({
 
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-            Paragraphs
+            {t("Paragraphs")}
           </h4>
           <StringRepeaterField
             items={formData.paragraphs}
             onChange={(paragraphs) => set('paragraphs', paragraphs)}
-            addLabel="Add Paragraph"
-            placeholder="Paragraph text"
+            addLabel={t("Add Paragraph")}
+            placeholder={t("Paragraph text")}
           />
         </div>
 
@@ -580,14 +582,14 @@ function ModalFormModal({
             onClick={onClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"
             disabled={isSubmitting || !formData.siteId}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : submitLabel}
+            {isSubmitting ? t("Saving...") : submitLabel}
           </button>
         </div>
       </form>

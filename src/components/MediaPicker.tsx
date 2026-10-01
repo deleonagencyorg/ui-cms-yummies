@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import { useFolderContents, useFolderById } from '@/queries/folders'
 import type { MultimediaResponse } from '@/actions/multimedia'
@@ -20,6 +21,7 @@ interface BreadcrumbItem {
 }
 
 export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select Media' }: MediaPickerProps) {
+  const { t } = useTranslation()
   const [page, setPage] = useState(1)
   const [pageSize] = useState(24)
   const [searchFileName, setSearchFileName] = useState('')
@@ -114,7 +116,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
       return (
         <div className="w-full h-full  flex flex-col items-center justify-center p-4 text-center relative">
           <p className="text-[10px] text-white/70 mt-1">
-            {media.provider?.toUpperCase() || 'VIDEO'}
+            {media.provider?.toUpperCase() || t("VIDEO")}
           </p>
         </div>
       )
@@ -134,7 +136,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
       return (
         <div className="w-full h-full  flex items-center justify-center">
           <div className="text-center">
-            <p className="text-xs text-white">VIDEO</p>
+            <p className="text-xs text-white">{t("VIDEO")}</p>
           </div>
         </div>
       )
@@ -186,7 +188,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
           {/* Search */}
           <input
             type="text"
-            placeholder="Search by filename..."
+            placeholder={t("Search by filename...")}
             value={searchFileName}
             onChange={(e) => {
               setSearchFileName(e.target.value)
@@ -201,11 +203,11 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading media...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading media...")}</p>
             </div>
           ) : !data?.folders?.length && !data?.multimedia?.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">This folder is empty</p>
+              <p className="text-muted-foreground">{t("This folder is empty")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -224,7 +226,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
                     <p className="text-xs font-medium text-card-foreground truncate" title={folder.name}>
                       {folder.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">Folder</p>
+                    <p className="text-xs text-muted-foreground">{t("Folder")}</p>
                   </div>
                 </div>
               ))}
@@ -248,7 +250,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
                       {media.fileName}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {media.isExternal ? (media.provider?.toUpperCase() || 'VIDEO') : formatFileSize(media.fileSize)}
+                      {media.isExternal ? (media.provider?.toUpperCase() || t("VIDEO")) : formatFileSize(media.fileSize)}
                     </p>
                   </div>
                 </div>
@@ -264,17 +266,17 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
                 disabled={page === 1}
                 className="px-3 py-1 border border-border rounded hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                {t("Previous")}
               </button>
               <span className="px-4 py-1 text-sm text-muted-foreground">
-                Page {page} of {data.pagination.pageCount}
+                {t("Page")} {page} of {data.pagination.pageCount}
               </span>
               <button
                 onClick={() => setPage(Math.min(data.pagination.pageCount, page + 1))}
                 disabled={page === data.pagination.pageCount}
                 className="px-3 py-1 border border-border rounded hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {t("Next")}
               </button>
             </div>
           )}
@@ -308,7 +310,7 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-card-foreground mb-1">Selected Media</h4>
+                <h4 className="text-sm font-semibold text-card-foreground mb-1">{t("Selected Media")}</h4>
                 <p className="text-sm text-muted-foreground truncate">{selectedMedia.fileName}</p>
                 <p className="text-xs text-muted-foreground mb-2">
                   {selectedMedia.isExternal 
@@ -318,13 +320,13 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
                 </p>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {selectedMedia.originalUrl && (
-                    <span className="px-2 py-0.5 bg-background border border-border rounded">Original</span>
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">{t("Original")}</span>
                   )}
                   {selectedMedia.optimizedUrl && (
-                    <span className="px-2 py-0.5 bg-background border border-border rounded">Optimized</span>
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">{t("Optimized")}</span>
                   )}
                   {selectedMedia.thumbnailUrl && (
-                    <span className="px-2 py-0.5 bg-background border border-border rounded">Thumbnail</span>
+                    <span className="px-2 py-0.5 bg-background border border-border rounded">{t("Thumbnail")}</span>
                   )}
                   {selectedMedia.seoUrl && (
                     <span className="px-2 py-0.5 bg-background border border-border rounded">SEO</span>
@@ -341,14 +343,14 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Select
             onClick={resetAndClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             onClick={handleSelect}
             disabled={!selectedMedia}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Select
+            {t("Select")}
           </button>
         </div>
       </div>

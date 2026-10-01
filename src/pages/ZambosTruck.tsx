@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
 import Pagination from '@/components/Pagination'
@@ -327,6 +328,7 @@ type MediaPickerTarget =
   | { kind: 'galleryImage'; index: number }
 
 export default function ZambosTruck() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -455,27 +457,27 @@ export default function ZambosTruck() {
   const columns = useMemo<ColumnDef<ZambosTruckConfig, any>[]>(
     () => [
       columnHelper.accessor('heroTitle', {
-        header: 'Hero Title',
+        header: t("Hero Title"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">{info.getValue() || '-'}</span>
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">{info.getValue()}</span>
         ),
       }),
       columnHelper.display({
         id: 'recipesCount',
-        header: 'Recipes',
+        header: t("Recipes"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">{row.original.recipes?.length ?? 0}</span>
         ),
       }),
       columnHelper.display({
         id: 'galleryCount',
-        header: 'Gallery',
+        header: t("Gallery"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {row.original.galleryImages?.length ?? 0}
@@ -483,7 +485,7 @@ export default function ZambosTruck() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -492,20 +494,20 @@ export default function ZambosTruck() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
-            <button onClick={() => openEditModal(row.original)} className="text-primary hover:text-primary/80" title="Edit">
+            <button onClick={() => openEditModal(row.original)} className="text-primary hover:text-primary/80" title={t("Edit")}>
               <EditIcon className="w-5 h-5" />
             </button>
-            <button onClick={() => openDeleteModal(row.original)} className="text-red-600 hover:text-red-800" title="Delete">
+            <button onClick={() => openDeleteModal(row.original)} className="text-red-600 hover:text-red-800" title={t("Delete")}>
               <DeleteIcon className="w-5 h-5" />
             </button>
           </div>
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -525,10 +527,9 @@ export default function ZambosTruck() {
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Zambos Truck</h2>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Zambos Truck")}</h2>
               <p className="text-muted-foreground mt-1">
-                Manage the Zambos Truck campaign microsite content (hero, packages, how-to,
-                models, recipes, gallery, inquiry form, join CTA and WhatsApp contact)
+                {t("Manage the Zambos Truck campaign microsite content (hero, packages, how-to, models, recipes, gallery, inquiry form, join CTA and WhatsApp contact)")}
               </p>
             </div>
             <button
@@ -538,11 +539,11 @@ export default function ZambosTruck() {
                 setIsCreateModalOpen(true)
               }}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? 'Select a site in the sidebar first' : undefined}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Content
+              {t("Create Content")}
             </button>
           </div>
 
@@ -555,7 +556,7 @@ export default function ZambosTruck() {
               }}
               className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All languages</option>
+              <option value="">{t("All languages")}</option>
               {(languagesData?.data || []).map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -567,15 +568,15 @@ export default function ZambosTruck() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading Zambos Truck content...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading Zambos Truck content...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load Zambos Truck content</p>
+              <p className="text-red-500">{t("Failed to load Zambos Truck content")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No Zambos Truck content found</p>
+              <p className="text-muted-foreground">{t("No Zambos Truck content found")}</p>
             </div>
           ) : (
             <>
@@ -631,7 +632,7 @@ export default function ZambosTruck() {
 
       {isCreateModalOpen && (
         <ZambosTruckFormModal
-          title="Create Zambos Truck Content"
+          title={t("Create Zambos Truck Content")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -640,7 +641,7 @@ export default function ZambosTruck() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
@@ -649,7 +650,7 @@ export default function ZambosTruck() {
 
       {isEditModalOpen && selectedItem && (
         <ZambosTruckFormModal
-          title="Edit Zambos Truck Content"
+          title={t("Edit Zambos Truck Content")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -659,7 +660,7 @@ export default function ZambosTruck() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
@@ -668,7 +669,7 @@ export default function ZambosTruck() {
 
       {isDeleteModalOpen && selectedItem && (
         <Modal
-          title="Delete Zambos Truck Content"
+          title={t("Delete Zambos Truck Content")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedItem(null)
@@ -676,8 +677,8 @@ export default function ZambosTruck() {
         >
           <div className="p-6 space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedItem.heroTitle || 'Untitled'}</strong>
-              " ({selectedItem.languageCode})? This action cannot be undone.
+              {t("Are you sure you want to delete \"")}<strong>{selectedItem.heroTitle || t("Untitled")}</strong>
+              " ({selectedItem.languageCode}{t(")? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -687,14 +688,14 @@ export default function ZambosTruck() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -722,6 +723,7 @@ function ImagePickerControl({
   onSelect: () => void
   onClear: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div>
       <label className="block text-sm font-medium text-card-foreground mb-2">{label}</label>
@@ -732,7 +734,7 @@ function ImagePickerControl({
           className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
         >
           <PhotoIcon className="w-5 h-5" />
-          Select
+          {t("Select")}
         </button>
         {previewUrl && (
           <>
@@ -770,23 +772,24 @@ function ZambosTruckFormModal({
   sites: { id: string; name: string }[]
   onOpenMediaPicker: (target: MediaPickerTarget) => void
 }) {
+  const { t } = useTranslation()
   const set = <K extends keyof ZambosTruckFormData>(key: K, value: ZambosTruckFormData[K]) =>
     setFormData({ ...formData, [key]: value })
 
   return (
     <Modal title={title} onClose={onClose} maxWidth="max-w-5xl" scrollBody>
       <form onSubmit={onSubmit} className="p-6 space-y-8">
-        <Section title="Basic Information">
+        <Section title={t("Basic Information")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">Site *</label>
+              <label className="block text-sm font-medium text-card-foreground mb-2">{t("Site *")}</label>
               <select
                 value={formData.siteId}
                 required
                 disabled
                 className="w-full px-4 py-2 bg-secondary border border-border rounded-lg cursor-not-allowed opacity-75"
               >
-                <option value="">Select a site</option>
+                <option value="">{t("Select a site")}</option>
                 {sites.map((site) => (
                   <option key={site.id} value={site.id}>
                     {site.name}
@@ -794,18 +797,18 @@ function ZambosTruckFormModal({
                 ))}
               </select>
               <p className="text-xs text-muted-foreground mt-1">
-                Site is automatically set from the sidebar selector
+                {t("Site is automatically set from the sidebar selector")}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">Language *</label>
+              <label className="block text-sm font-medium text-card-foreground mb-2">{t("Language *")}</label>
               <select
                 value={formData.languageCode}
                 onChange={(e) => set('languageCode', e.target.value)}
                 required
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Select language</option>
+                <option value="">{t("Select language")}</option>
                 {languages.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.name} ({lang.nativeName})
@@ -816,22 +819,22 @@ function ZambosTruckFormModal({
           </div>
         </Section>
 
-        <Section title="Hero">
+        <Section title={t("Hero")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TextField label="Title" value={formData.heroTitle} onChange={(v) => set('heroTitle', v)} />
-            <TextField label="Subtitle" value={formData.heroSubtitle} onChange={(v) => set('heroSubtitle', v)} />
-            <TextField label="CTA Label" value={formData.heroCtaLabel} onChange={(v) => set('heroCtaLabel', v)} />
-            <TextField label="CTA URL" value={formData.heroCtaUrl} onChange={(v) => set('heroCtaUrl', v)} />
+            <TextField label={t("Title")} value={formData.heroTitle} onChange={(v) => set('heroTitle', v)} />
+            <TextField label={t("Subtitle")} value={formData.heroSubtitle} onChange={(v) => set('heroSubtitle', v)} />
+            <TextField label={t("CTA Label")} value={formData.heroCtaLabel} onChange={(v) => set('heroCtaLabel', v)} />
+            <TextField label={t("CTA URL")} value={formData.heroCtaUrl} onChange={(v) => set('heroCtaUrl', v)} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ImagePickerControl
-              label="Banner Image"
+              label={t("Banner Image")}
               previewUrl={formData.heroBannerPreviewUrl}
               onSelect={() => onOpenMediaPicker({ kind: 'heroBanner' })}
               onClear={() => setFormData((prev) => ({ ...prev, heroBannerId: null, heroBannerPreviewUrl: '' }))}
             />
             <ImagePickerControl
-              label="Video"
+              label={t("Video")}
               previewUrl={formData.heroVideoPreviewUrl}
               onSelect={() => onOpenMediaPicker({ kind: 'heroVideo' })}
               onClear={() => setFormData((prev) => ({ ...prev, heroVideoId: null, heroVideoPreviewUrl: '' }))}
@@ -839,15 +842,15 @@ function ZambosTruckFormModal({
           </div>
         </Section>
 
-        <Section title="Packages">
+        <Section title={t("Packages")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TextField label="Title" value={formData.packagesTitle} onChange={(v) => set('packagesTitle', v)} />
-            <TextField label="Subtitle" value={formData.packagesSubtitle} onChange={(v) => set('packagesSubtitle', v)} />
+            <TextField label={t("Title")} value={formData.packagesTitle} onChange={(v) => set('packagesTitle', v)} />
+            <TextField label={t("Subtitle")} value={formData.packagesSubtitle} onChange={(v) => set('packagesSubtitle', v)} />
           </div>
           <RepeaterField
             items={formData.packageImages}
             getKey={(item) => item.key}
-            addLabel="Add Package Image"
+            addLabel={t("Add Package Image")}
             onAdd={() =>
               setFormData((prev) => ({
                 ...prev,
@@ -868,10 +871,10 @@ function ZambosTruckFormModal({
               })
             }
             itemLabel={(_, index) => `Image ${index + 1}`}
-            emptyMessage="No package images yet."
+            emptyMessage={t("No package images yet.")}
             renderItem={(item, index) => (
               <ImagePickerControl
-                label="Image"
+                label={t("Image")}
                 previewUrl={item.imagePreviewUrl}
                 onSelect={() => onOpenMediaPicker({ kind: 'packageImage', index })}
                 onClear={() =>
@@ -887,15 +890,15 @@ function ZambosTruckFormModal({
           />
         </Section>
 
-        <Section title="How To">
+        <Section title={t("How To")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TextField label="Title" value={formData.howToTitle} onChange={(v) => set('howToTitle', v)} />
-            <TextField label="Subtitle" value={formData.howToSubtitle} onChange={(v) => set('howToSubtitle', v)} />
+            <TextField label={t("Title")} value={formData.howToTitle} onChange={(v) => set('howToTitle', v)} />
+            <TextField label={t("Subtitle")} value={formData.howToSubtitle} onChange={(v) => set('howToSubtitle', v)} />
           </div>
           <RepeaterField
             items={formData.howToSteps}
             getKey={(item) => item.key}
-            addLabel="Add Step"
+            addLabel={t("Add Step")}
             onAdd={() =>
               setFormData((prev) => ({
                 ...prev,
@@ -916,13 +919,13 @@ function ZambosTruckFormModal({
               })
             }
             itemLabel={(item, index) => item.title || `Step ${index + 1}`}
-            emptyMessage="No steps yet."
+            emptyMessage={t("No steps yet.")}
             renderItem={(item, index) => (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <TextField
-                  label="Icon"
+                  label={t("Icon")}
                   value={item.icon}
-                  placeholder="wand, bag, store..."
+                  placeholder={t("wand, bag, store...")}
                   onChange={(v) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -931,7 +934,7 @@ function ZambosTruckFormModal({
                   }
                 />
                 <TextField
-                  label="Title"
+                  label={t("Title")}
                   value={item.title}
                   onChange={(v) =>
                     setFormData((prev) => ({
@@ -941,7 +944,7 @@ function ZambosTruckFormModal({
                   }
                 />
                 <TextField
-                  label="Description"
+                  label={t("Description")}
                   value={item.description}
                   onChange={(v) =>
                     setFormData((prev) => ({
@@ -955,12 +958,12 @@ function ZambosTruckFormModal({
           />
         </Section>
 
-        <Section title="Truck Models">
-          <TextField label="Title" value={formData.modelsTitle} onChange={(v) => set('modelsTitle', v)} />
+        <Section title={t("Truck Models")}>
+          <TextField label={t("Title")} value={formData.modelsTitle} onChange={(v) => set('modelsTitle', v)} />
           <RepeaterField
             items={formData.models}
             getKey={(item) => item.key}
-            addLabel="Add Model"
+            addLabel={t("Add Model")}
             onAdd={() =>
               setFormData((prev) => ({
                 ...prev,
@@ -979,11 +982,11 @@ function ZambosTruckFormModal({
               })
             }
             itemLabel={(item, index) => item.name || `Model ${index + 1}`}
-            emptyMessage="No truck models yet."
+            emptyMessage={t("No truck models yet.")}
             renderItem={(item, index) => (
               <div className="space-y-3">
                 <TextField
-                  label="Name"
+                  label={t("Name")}
                   value={item.name}
                   onChange={(v) =>
                     setFormData((prev) => ({
@@ -993,7 +996,7 @@ function ZambosTruckFormModal({
                   }
                 />
                 <ImagePickerControl
-                  label="Image"
+                  label={t("Image")}
                   previewUrl={item.imagePreviewUrl}
                   onSelect={() => onOpenMediaPicker({ kind: 'modelImage', index })}
                   onClear={() =>
@@ -1008,15 +1011,15 @@ function ZambosTruckFormModal({
           />
         </Section>
 
-        <Section title="Recipes">
+        <Section title={t("Recipes")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TextField label="Title" value={formData.recipesTitle} onChange={(v) => set('recipesTitle', v)} />
-            <TextField label="Subtitle" value={formData.recipesSubtitle} onChange={(v) => set('recipesSubtitle', v)} />
+            <TextField label={t("Title")} value={formData.recipesTitle} onChange={(v) => set('recipesTitle', v)} />
+            <TextField label={t("Subtitle")} value={formData.recipesSubtitle} onChange={(v) => set('recipesSubtitle', v)} />
           </div>
           <RepeaterField
             items={formData.recipes}
             getKey={(item) => item.key}
-            addLabel="Add Recipe"
+            addLabel={t("Add Recipe")}
             onAdd={() =>
               setFormData((prev) => ({
                 ...prev,
@@ -1038,12 +1041,12 @@ function ZambosTruckFormModal({
               })
             }
             itemLabel={(item, index) => item.title || `Recipe ${index + 1}`}
-            emptyMessage="No recipes yet."
+            emptyMessage={t("No recipes yet.")}
             renderItem={(item, index) => (
               <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <TextField
-                    label="Title"
+                    label={t("Title")}
                     value={item.title}
                     onChange={(v) =>
                       setFormData((prev) => ({
@@ -1053,9 +1056,9 @@ function ZambosTruckFormModal({
                     }
                   />
                   <TextField
-                    label="Price"
+                    label={t("Price")}
                     value={item.price}
-                    placeholder="Q12.00"
+                    placeholder={t("Q12.00")}
                     onChange={(v) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -1065,7 +1068,7 @@ function ZambosTruckFormModal({
                   />
                 </div>
                 <TextField
-                  label="Description"
+                  label={t("Description")}
                   value={item.description}
                   onChange={(v) =>
                     setFormData((prev) => ({
@@ -1075,7 +1078,7 @@ function ZambosTruckFormModal({
                   }
                 />
                 <ImagePickerControl
-                  label="Image"
+                  label={t("Image")}
                   previewUrl={item.imagePreviewUrl}
                   onSelect={() => onOpenMediaPicker({ kind: 'recipeImage', index })}
                   onClear={() =>
@@ -1090,16 +1093,15 @@ function ZambosTruckFormModal({
           />
         </Section>
 
-        <Section title="Gallery">
-          <TextField label="Title" value={formData.galleryTitle} onChange={(v) => set('galleryTitle', v)} />
+        <Section title={t("Gallery")}>
+          <TextField label={t("Title")} value={formData.galleryTitle} onChange={(v) => set('galleryTitle', v)} />
           <p className="text-xs text-muted-foreground">
-            Filter chips shown on the site are derived automatically from each image's category
-            (plus an "All" option), so there is nothing else to configure here.
+            {t("Filter chips shown on the site are derived automatically from each image's category (plus an \"All\" option), so there is nothing else to configure here.")}
           </p>
           <RepeaterField
             items={formData.galleryImages}
             getKey={(item) => item.key}
-            addLabel="Add Image"
+            addLabel={t("Add Image")}
             onAdd={() =>
               setFormData((prev) => ({
                 ...prev,
@@ -1123,13 +1125,13 @@ function ZambosTruckFormModal({
               })
             }
             itemLabel={(item, index) => item.category || `Image ${index + 1}`}
-            emptyMessage="No gallery images yet."
+            emptyMessage={t("No gallery images yet.")}
             renderItem={(item, index) => (
               <div className="space-y-3">
                 <TextField
-                  label="Category"
+                  label={t("Category")}
                   value={item.category}
-                  placeholder="Eventos"
+                  placeholder={t("Eventos")}
                   onChange={(v) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -1138,7 +1140,7 @@ function ZambosTruckFormModal({
                   }
                 />
                 <ImagePickerControl
-                  label="Image"
+                  label={t("Image")}
                   previewUrl={item.imagePreviewUrl}
                   onSelect={() => onOpenMediaPicker({ kind: 'galleryImage', index })}
                   onClear={() =>
@@ -1155,19 +1157,19 @@ function ZambosTruckFormModal({
           />
         </Section>
 
-        <Section title="Inquiry Form">
-          <TextField label="Title" value={formData.formTitle} onChange={(v) => set('formTitle', v)} />
+        <Section title={t("Inquiry Form")}>
+          <TextField label={t("Title")} value={formData.formTitle} onChange={(v) => set('formTitle', v)} />
           <TextField
-            label="Description"
+            label={t("Description")}
             value={formData.formDescription}
             onChange={(v) => set('formDescription', v)}
             textarea
           />
-          <TextField label="Submit Button Label" value={formData.formSubmitLabel} onChange={(v) => set('formSubmitLabel', v)} />
+          <TextField label={t("Submit Button Label")} value={formData.formSubmitLabel} onChange={(v) => set('formSubmitLabel', v)} />
           <RepeaterField
             items={formData.formFields}
             getKey={(item) => item.key}
-            addLabel="Add Field"
+            addLabel={t("Add Field")}
             onAdd={() =>
               setFormData((prev) => ({
                 ...prev,
@@ -1191,15 +1193,15 @@ function ZambosTruckFormModal({
               })
             }
             itemLabel={(item, index) => item.label || item.name || `Field ${index + 1}`}
-            emptyMessage="No fields yet."
+            emptyMessage={t("No fields yet.")}
             renderItem={(item, index) => (
               <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <TextField
-                    label="Name (form key)"
+                    label={t("Name (form key)")}
                     value={item.name}
                     required
-                    placeholder="nombre, email, telefono..."
+                    placeholder={t("nombre, email, telefono...")}
                     onChange={(v) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -1208,7 +1210,7 @@ function ZambosTruckFormModal({
                     }
                   />
                   <TextField
-                    label="Label"
+                    label={t("Label")}
                     value={item.label}
                     onChange={(v) =>
                       setFormData((prev) => ({
@@ -1220,7 +1222,7 @@ function ZambosTruckFormModal({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
                   <div>
-                    <label className="block text-sm font-medium text-card-foreground mb-2">Type</label>
+                    <label className="block text-sm font-medium text-card-foreground mb-2">{t("Type")}</label>
                     <select
                       value={item.type}
                       onChange={(e) =>
@@ -1251,14 +1253,14 @@ function ZambosTruckFormModal({
                         }))
                       }
                     />
-                    Required
+                    {t("Required")}
                   </label>
                 </div>
                 {item.type === 'select' && (
                   <TextField
-                    label="Options (comma-separated)"
+                    label={t("Options (comma-separated)")}
                     value={item.optionsText}
-                    placeholder="Guatemala, Honduras, El Salvador"
+                    placeholder={t("Guatemala, Honduras, El Salvador")}
                     onChange={(v) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -1272,17 +1274,17 @@ function ZambosTruckFormModal({
           />
         </Section>
 
-        <Section title="Join Us CTA">
+        <Section title={t("Join Us CTA")}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TextField label="Title" value={formData.ctaJoinTitle} onChange={(v) => set('ctaJoinTitle', v)} />
-            <TextField label="Button Label" value={formData.ctaJoinButtonLabel} onChange={(v) => set('ctaJoinButtonLabel', v)} />
+            <TextField label={t("Title")} value={formData.ctaJoinTitle} onChange={(v) => set('ctaJoinTitle', v)} />
+            <TextField label={t("Button Label")} value={formData.ctaJoinButtonLabel} onChange={(v) => set('ctaJoinButtonLabel', v)} />
           </div>
-          <TextField label="Button URL" value={formData.ctaJoinButtonUrl} onChange={(v) => set('ctaJoinButtonUrl', v)} />
+          <TextField label={t("Button URL")} value={formData.ctaJoinButtonUrl} onChange={(v) => set('ctaJoinButtonUrl', v)} />
         </Section>
 
-        <Section title="WhatsApp Contact">
-          <TextField label="Phone (with country code)" value={formData.whatsappPhone} placeholder="50488368730" onChange={(v) => set('whatsappPhone', v)} />
-          <TextField label="Prefilled Message" value={formData.whatsappMessage} onChange={(v) => set('whatsappMessage', v)} textarea />
+        <Section title={t("WhatsApp Contact")}>
+          <TextField label={t("Phone (with country code)")} value={formData.whatsappPhone} placeholder="50488368730" onChange={(v) => set('whatsappPhone', v)} />
+          <TextField label={t("Prefilled Message")} value={formData.whatsappMessage} onChange={(v) => set('whatsappMessage', v)} textarea />
         </Section>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-border">
@@ -1291,14 +1293,14 @@ function ZambosTruckFormModal({
             onClick={onClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"
             disabled={isSubmitting || !formData.siteId}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : submitLabel}
+            {isSubmitting ? t("Saving...") : submitLabel}
           </button>
         </div>
       </form>

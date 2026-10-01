@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import Layout from '@/components/Layout'
 
 export default function Dashboard() {
+  const { t } = useTranslation()
   const { user } = useAuth()
 
   return (
@@ -9,34 +11,34 @@ export default function Dashboard() {
       <div className="space-y-6">
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <h2 className="text-2xl font-bold text-card-foreground mb-4">
-            Welcome back, {user?.name}!
+            {t("Welcome back,")} {user?.name}!
           </h2>
           <p className="text-muted-foreground mb-6">
-            This is your dashboard overview. Here you can see all your important metrics and data.
+            {t("This is your dashboard overview. Here you can see all your important metrics and data.")}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-primary-50 dark:bg-primary-950/20 p-6 rounded-lg border border-primary-200 dark:border-primary-800">
-              <h3 className="text-lg font-semibold text-primary-900 dark:text-primary-100 mb-2">Total Users</h3>
+              <h3 className="text-lg font-semibold text-primary-900 dark:text-primary-100 mb-2">{t("Total Users")}</h3>
               <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">1,234</p>
-              <p className="text-sm text-primary-600/70 dark:text-primary-400/70 mt-2">+12% from last month</p>
+              <p className="text-sm text-primary-600/70 dark:text-primary-400/70 mt-2">{t("+12% from last month")}</p>
             </div>
             <div className="bg-green-50 dark:bg-green-950/20 p-6 rounded-lg border border-green-200 dark:border-green-800">
-              <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">Active Sessions</h3>
+              <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">{t("Active Sessions")}</h3>
               <p className="text-3xl font-bold text-green-600 dark:text-green-400">456</p>
-              <p className="text-sm text-green-600/70 dark:text-green-400/70 mt-2">+8% from last month</p>
+              <p className="text-sm text-green-600/70 dark:text-green-400/70 mt-2">{t("+8% from last month")}</p>
             </div>
             <div className="bg-purple-50 dark:bg-purple-950/20 p-6 rounded-lg border border-purple-200 dark:border-purple-800">
-              <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100 mb-2">Revenue</h3>
+              <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100 mb-2">{t("Revenue")}</h3>
               <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">$12,345</p>
-              <p className="text-sm text-purple-600/70 dark:text-purple-400/70 mt-2">+23% from last month</p>
+              <p className="text-sm text-purple-600/70 dark:text-purple-400/70 mt-2">{t("+23% from last month")}</p>
             </div>
           </div>
         </div>
 
         {/* Recent Activity */}
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
-          <h3 className="text-xl font-bold text-card-foreground mb-4">Recent Activity</h3>
+          <h3 className="text-xl font-bold text-card-foreground mb-4">{t("Recent Activity")}</h3>
           <div className="space-y-3">
             {[1, 2, 3, 4].map((item) => (
               <div key={item} className="flex items-center gap-4 p-3 bg-secondary rounded-lg">
@@ -46,8 +48,8 @@ export default function Dashboard() {
                   </svg>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-card-foreground">User Activity {item}</p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
+                  <p className="text-sm font-medium text-card-foreground">{t("User Activity")} {item}</p>
+                  <p className="text-xs text-muted-foreground">{t("2 hours ago")}</p>
                 </div>
               </div>
             ))}

@@ -1,5 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
+import ModulePage from '@/components/ModulePage'
+import SectionTextsForm from '@/components/SectionTextsForm'
+import { useSiteModules } from '@/lib/siteModules'
+import { BREADCRUMB_FIELDS, BREADCRUMB_SITES } from '@/constants/siteSections'
 import Pagination from '@/components/Pagination'
 import Modal from '@/components/Modal'
 import TextField from '@/components/TextField'
@@ -104,6 +109,7 @@ function formDataToPayload(
 }
 
 export function NavigationPageContent() {
+  const { t } = useTranslation()
   const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -215,7 +221,7 @@ export function NavigationPageContent() {
   const columns = useMemo<ColumnDef<NavigationConfig, any>[]>(
     () => [
       columnHelper.accessor('openMenuLabel', {
-        header: 'Open Label',
+        header: t("Open Label"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue() || '-'}
@@ -223,20 +229,20 @@ export function NavigationPageContent() {
         ),
       }),
       columnHelper.accessor('closeMenuLabel', {
-        header: 'Close Label',
+        header: t("Close Label"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">{info.getValue() || '-'}</span>
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">{info.getValue()}</span>
         ),
       }),
       columnHelper.display({
         id: 'itemsCount',
-        header: 'Items',
+        header: t("Items"),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {row.original.items?.length ?? 0}
@@ -244,7 +250,7 @@ export function NavigationPageContent() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -253,20 +259,20 @@ export function NavigationPageContent() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
-            <button onClick={() => openEditModal(row.original)} className="text-primary hover:text-primary/80" title="Edit">
+            <button onClick={() => openEditModal(row.original)} className="text-primary hover:text-primary/80" title={t("Edit")}>
               <EditIcon className="w-5 h-5" />
             </button>
-            <button onClick={() => openDeleteModal(row.original)} className="text-red-600 hover:text-red-800" title="Delete">
+            <button onClick={() => openDeleteModal(row.original)} className="text-red-600 hover:text-red-800" title={t("Delete")}>
               <DeleteIcon className="w-5 h-5" />
             </button>
           </div>
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -283,8 +289,8 @@ export function NavigationPageContent() {
         <div className="bg-card rounded-lg shadow-lg border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Navigation</h2>
-              <p className="text-muted-foreground mt-1">Manage site menu labels and links</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Navigation")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage site menu labels and links")}</p>
             </div>
             <button
               onClick={() => {
@@ -293,11 +299,11 @@ export function NavigationPageContent() {
                 setIsCreateModalOpen(true)
               }}
               disabled={!selectedSiteId}
-              title={!selectedSiteId ? 'Select a site in the sidebar first' : undefined}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Navigation
+              {t("Create Navigation")}
             </button>
           </div>
 
@@ -310,7 +316,7 @@ export function NavigationPageContent() {
               }}
               className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All languages</option>
+              <option value="">{t("All languages")}</option>
               {(languagesData?.data || []).map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name} ({lang.nativeName})
@@ -322,15 +328,15 @@ export function NavigationPageContent() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading navigation...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading navigation...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load navigation</p>
+              <p className="text-red-500">{t("Failed to load navigation")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No navigation configs found</p>
+              <p className="text-muted-foreground">{t("No navigation configs found")}</p>
             </div>
           ) : (
             <>
@@ -386,7 +392,7 @@ export function NavigationPageContent() {
 
       {isCreateModalOpen && (
         <NavigationFormModal
-          title="Create Navigation"
+          title={t("Create Navigation")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -395,7 +401,7 @@ export function NavigationPageContent() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onAddItem={addItem}
@@ -407,7 +413,7 @@ export function NavigationPageContent() {
 
       {isEditModalOpen && selectedItem && (
         <NavigationFormModal
-          title="Edit Navigation"
+          title={t("Edit Navigation")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -417,7 +423,7 @@ export function NavigationPageContent() {
             setFormData(createInitialFormData(selectedSiteId || ''))
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           sites={sitesData?.data || []}
           onAddItem={addItem}
@@ -429,7 +435,7 @@ export function NavigationPageContent() {
 
       {isDeleteModalOpen && selectedItem && (
         <Modal
-          title="Delete Navigation"
+          title={t("Delete Navigation")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedItem(null)
@@ -437,7 +443,7 @@ export function NavigationPageContent() {
         >
           <div className="p-6 space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete this navigation config? This action cannot be undone.
+              {t("Are you sure you want to delete this navigation config? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -447,14 +453,14 @@ export function NavigationPageContent() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -465,10 +471,36 @@ export function NavigationPageContent() {
 }
 
 export default function NavigationPage() {
+  const { t } = useTranslation()
+  const { selectedSite } = useSiteModules()
+
+  if (!selectedSite || !BREADCRUMB_SITES.includes(selectedSite.slug)) {
+    return (
+      <Layout>
+        <NavigationPageContent />
+      </Layout>
+    )
+  }
+
   return (
-    <Layout>
-      <NavigationPageContent />
-    </Layout>
+    <ModulePage
+      title={t("Navigation")}
+      description={t("Header menu and breadcrumbs.")}
+      tabs={[
+        { key: 'menu', label: t("Menu"), content: <NavigationPageContent /> },
+        {
+          key: 'breadcrumbs',
+          label: t("Breadcrumbs"),
+          content: (
+            <SectionTextsForm
+              title={t("Breadcrumbs")}
+              description={t("Names shown in the path at the top of each page (Home > Products). Leave empty to use the section name.")}
+              fields={BREADCRUMB_FIELDS}
+            />
+          ),
+        },
+      ]}
+    />
   )
 }
 
@@ -505,6 +537,7 @@ function NavigationFormModal({
     value: MenuItemFormItem[K]
   ) => void
 }) {
+  const { t } = useTranslation()
   const set = <K extends keyof NavigationFormData>(key: K, value: NavigationFormData[K]) =>
     setFormData({ ...formData, [key]: value })
 
@@ -513,18 +546,18 @@ function NavigationFormModal({
       <form onSubmit={onSubmit} className="p-6 space-y-6">
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-            Basic Information
+            {t("Basic Information")}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">Site *</label>
+              <label className="block text-sm font-medium text-card-foreground mb-2">{t("Site *")}</label>
               <select
                 value={formData.siteId}
                 required
                 disabled
                 className="w-full px-4 py-2 bg-secondary border border-border rounded-lg cursor-not-allowed opacity-75"
               >
-                <option value="">Select a site</option>
+                <option value="">{t("Select a site")}</option>
                 {sites.map((site) => (
                   <option key={site.id} value={site.id}>
                     {site.name}
@@ -533,14 +566,14 @@ function NavigationFormModal({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-card-foreground mb-2">Language *</label>
+              <label className="block text-sm font-medium text-card-foreground mb-2">{t("Language *")}</label>
               <select
                 value={formData.languageCode}
                 onChange={(e) => set('languageCode', e.target.value)}
                 required
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Select language</option>
+                <option value="">{t("Select language")}</option>
                 {languages.map((lang) => (
                   <option key={lang.code} value={lang.code}>
                     {lang.name} ({lang.nativeName})
@@ -551,12 +584,12 @@ function NavigationFormModal({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <TextField
-              label="Open Menu Label"
+              label={t("Open Menu Label")}
               value={formData.openMenuLabel}
               onChange={(v) => set('openMenuLabel', v)}
             />
             <TextField
-              label="Close Menu Label"
+              label={t("Close Menu Label")}
               value={formData.closeMenuLabel}
               onChange={(v) => set('closeMenuLabel', v)}
             />
@@ -565,7 +598,7 @@ function NavigationFormModal({
 
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-            Menu Items
+            {t("Menu Items")}
           </h4>
           <RepeaterField
             items={formData.items}
@@ -574,7 +607,7 @@ function NavigationFormModal({
             onRemove={onRemoveItem}
             onMove={onMoveItem}
             itemLabel={(item, index) => item.label || `Item ${index + 1}`}
-            emptyMessage="No menu items yet. Add one to get started."
+            emptyMessage={t("No menu items yet. Add one to get started.")}
             renderItem={(item, index) => {
               const parentOptions = formData.items.filter(
                 (candidate) => candidate.id && candidate.key !== item.key
@@ -583,13 +616,13 @@ function NavigationFormModal({
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <TextField
-                      label="Label"
+                      label={t("Label")}
                       value={item.label}
                       onChange={(v) => onUpdateItemField(index, 'label', v)}
                       required
                     />
                     <TextField
-                      label="Href"
+                      label={t("Href")}
                       value={item.href}
                       onChange={(v) => onUpdateItemField(index, 'href', v)}
                       placeholder="/products"
@@ -598,14 +631,14 @@ function NavigationFormModal({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-card-foreground mb-2">
-                        Parent (submenu of)
+                        {t("Parent (submenu of)")}
                       </label>
                       <select
                         value={item.parentId ?? ''}
                         onChange={(e) => onUpdateItemField(index, 'parentId', e.target.value || null)}
                         className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                       >
-                        <option value="">Top level</option>
+                        <option value="">{t("Top level")}</option>
                         {parentOptions.map((opt) => (
                           <option key={opt.id} value={opt.id}>
                             {opt.label || opt.id}
@@ -613,8 +646,7 @@ function NavigationFormModal({
                         ))}
                       </select>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Only saved items can be selected as a parent. Save first, then edit to
-                        build submenus.
+                        {t("Only saved items can be selected as a parent. Save first, then edit to build submenus.")}
                       </p>
                     </div>
                     <div className="flex items-end pb-2">
@@ -625,7 +657,7 @@ function NavigationFormModal({
                           onChange={(e) => onUpdateItemField(index, 'isExternal', e.target.checked)}
                           className="rounded border-border text-primary focus:ring-primary"
                         />
-                        External link
+                        {t("External link")}
                       </label>
                     </div>
                   </div>
@@ -641,14 +673,14 @@ function NavigationFormModal({
             onClick={onClose}
             className="px-4 py-2 border border-border rounded-lg hover:bg-secondary transition-colors"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"
             disabled={isSubmitting || !formData.siteId}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : submitLabel}
+            {isSubmitting ? t("Saving...") : submitLabel}
           </button>
         </div>
       </form>

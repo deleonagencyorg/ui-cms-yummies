@@ -10,6 +10,7 @@ import { useLanguages } from '@/queries/languages'
 import { useBrands } from '@/queries/brands'
 import { useCreateNews, useUpdateNews, useDeleteNews } from '@/mutations/news'
 import type { NewsResponse } from '@/actions/news'
+import { useSite } from '@/contexts/SiteContext'
 import {
   useReactTable,
   getCoreRowModel,
@@ -68,6 +69,7 @@ type MediaPickerTarget =
 
 export default function News() {
   const { t } = useTranslation()
+  const { selectedSiteId } = useSite()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchTitle, setSearchTitle] = useState('')
@@ -83,12 +85,13 @@ export default function News() {
   const [mediaPickerTarget, setMediaPickerTarget] = useState<MediaPickerTarget | null>(null)
 
   const { data, isLoading, error } = useNews({
+    siteId: selectedSiteId || undefined,
     page,
     pageSize,
     title: searchTitle || undefined,
     category: filterCategory || undefined,
     isPublished: filterPublished === '' ? undefined : filterPublished === 'true',
-  })
+  }, { enabled: !!selectedSiteId })
   const { data: languagesData } = useLanguages({ page: 1, pageSize: 100, isActive: true })
   const { data: brandsData } = useBrands({ page: 1, pageSize: 100 })
   const createMutation = useCreateNews()
@@ -127,7 +130,7 @@ export default function News() {
   const columns = useMemo<ColumnDef<NewsResponse, any>[]>(
     () => [
       columnHelper.accessor('title', {
-        header: 'Title',
+        header: t("Title"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -135,18 +138,18 @@ export default function News() {
         ),
       }),
       columnHelper.accessor('image', {
-        header: 'Image',
+        header: t("Image"),
         cell: (info) => {
           const url = info.getValue()
           return url ? (
-            <img src={url} alt="News" className="h-10 w-10 object-cover rounded" />
+            <img src={url} alt={t("News")} className="h-10 w-10 object-cover rounded" />
           ) : (
             <span className="text-sm text-muted-foreground">-</span>
           )
         },
       }),
       columnHelper.accessor('category', {
-        header: 'Category',
+        header: t("Category"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue() || '-'}
@@ -154,7 +157,7 @@ export default function News() {
         ),
       }),
       columnHelper.accessor('author', {
-        header: 'Author',
+        header: t("Author"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue() || '-'}
@@ -162,7 +165,7 @@ export default function News() {
         ),
       }),
       columnHelper.accessor('isPublished', {
-        header: 'Status',
+        header: t("Status"),
         cell: (info) => (
           <span
             className={`px-2 py-1 text-xs rounded-full ${
@@ -171,12 +174,12 @@ export default function News() {
                 : 'bg-yellow-100 text-yellow-800'
             }`}
           >
-            {info.getValue() ? 'Published' : 'Draft'}
+            {info.getValue() ? t("Published") : t("Draft")}
           </span>
         ),
       }),
       columnHelper.accessor('isFeatured', {
-        header: 'Featured',
+        header: t("Featured"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue() ? <StarIcon className="w-5 h-5 text-yellow-500" /> : '-'}
@@ -184,7 +187,7 @@ export default function News() {
         ),
       }),
       columnHelper.accessor('languageCode', {
-        header: 'Language',
+        header: t("Language"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground font-mono">
             {info.getValue()}
@@ -192,7 +195,7 @@ export default function News() {
         ),
       }),
       columnHelper.accessor('createdAt', {
-        header: 'Created At',
+        header: t("Created At"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {new Date(info.getValue()).toLocaleDateString()}
@@ -201,20 +204,20 @@ export default function News() {
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -222,7 +225,7 @@ export default function News() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -235,8 +238,10 @@ export default function News() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedSiteId) return
     try {
       await createMutation.mutateAsync({
+        siteId: selectedSiteId,
         title: formData.title,
         slug: formData.slug,
         subtitle: formData.subtitle || undefined,
@@ -386,7 +391,7 @@ export default function News() {
                 {t('nav.news')}
               </h2>
               <p className="text-muted-foreground mt-1">
-                Manage your news articles
+                {t("Manage your news articles")}
               </p>
             </div>
             <button
@@ -394,7 +399,7 @@ export default function News() {
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create News
+              {t("Create News")}
             </button>
           </div>
 
@@ -402,7 +407,7 @@ export default function News() {
           <div className="mb-6 flex flex-wrap gap-4">
             <input
               type="text"
-              placeholder="Search news..."
+              placeholder={t("Search news...")}
               value={searchTitle}
               onChange={(e) => {
                 setSearchTitle(e.target.value)
@@ -412,7 +417,7 @@ export default function News() {
             />
             <input
               type="text"
-              placeholder="Filter by category..."
+              placeholder={t("Filter by category...")}
               value={filterCategory}
               onChange={(e) => {
                 setFilterCategory(e.target.value)
@@ -428,9 +433,9 @@ export default function News() {
               }}
               className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Status</option>
-              <option value="true">Published</option>
-              <option value="false">Draft</option>
+              <option value="">{t("All Status")}</option>
+              <option value="true">{t("Published")}</option>
+              <option value="false">{t("Draft")}</option>
             </select>
           </div>
 
@@ -438,15 +443,15 @@ export default function News() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading news...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading news...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load news</p>
+              <p className="text-red-500">{t("Failed to load news")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No news found</p>
+              <p className="text-muted-foreground">{t("No news found")}</p>
             </div>
           ) : (
             <>
@@ -507,7 +512,7 @@ export default function News() {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <NewsFormModal
-          title="Create News"
+          title={t("Create News")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleCreate}
@@ -516,7 +521,7 @@ export default function News() {
             setFormData(initialFormData)
           }}
           isSubmitting={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t("Create")}
           languages={languagesData?.data || []}
           brands={brandsData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
@@ -531,7 +536,7 @@ export default function News() {
       {/* Edit Modal */}
       {isEditModalOpen && selectedNews && (
         <NewsFormModal
-          title="Edit News"
+          title={t("Edit News")}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
@@ -541,7 +546,7 @@ export default function News() {
             setFormData(initialFormData)
           }}
           isSubmitting={updateMutation.isPending}
-          submitLabel="Update"
+          submitLabel={t("Update")}
           languages={languagesData?.data || []}
           brands={brandsData?.data || []}
           onOpenMediaPicker={setMediaPickerTarget}
@@ -556,7 +561,7 @@ export default function News() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedNews && (
         <Modal
-          title="Delete News"
+          title={t("Delete News")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedNews(null)
@@ -564,8 +569,7 @@ export default function News() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete the news article "<strong>{selectedNews.title}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete the news article \"")}<strong>{selectedNews.title}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -575,14 +579,14 @@ export default function News() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -594,7 +598,7 @@ export default function News() {
         isOpen={mediaPickerTarget !== null}
         onClose={() => setMediaPickerTarget(null)}
         onSelect={handleMediaSelect}
-        title="Select Image"
+        title={t("Select Image")}
       />
     </Layout>
   )
@@ -636,6 +640,7 @@ function NewsFormModal({
   onUpdateTag,
   onToggleBrand,
 }: NewsFormModalProps) {
+  const { t } = useTranslation()
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full border border-border max-h-[90vh] overflow-y-auto">
@@ -649,12 +654,12 @@ function NewsFormModal({
           {/* Basic Info Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Basic Information
+              {t("Basic Information")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Title *
+                  {t("Title *")}
                 </label>
                 <input
                   type="text"
@@ -663,12 +668,12 @@ function NewsFormModal({
                   required
                   maxLength={255}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="News title"
+                  placeholder={t("News title")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Slug *
+                  {t("Slug *")}
                 </label>
                 <input
                   type="text"
@@ -682,7 +687,7 @@ function NewsFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Language *
+                  {t("Language *")}
                 </label>
                 <select
                   value={formData.languageCode}
@@ -690,7 +695,7 @@ function NewsFormModal({
                   required
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">Select language</option>
+                  <option value="">{t("Select language")}</option>
                   {languages.map((lang) => (
                     <option key={lang.code} value={lang.code}>
                       {lang.name} ({lang.nativeName})
@@ -700,7 +705,7 @@ function NewsFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Subtitle
+                  {t("Subtitle")}
                 </label>
                 <input
                   type="text"
@@ -708,12 +713,12 @@ function NewsFormModal({
                   onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
                   maxLength={255}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Optional subtitle"
+                  placeholder={t("Optional subtitle")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Category
+                  {t("Category")}
                 </label>
                 <input
                   type="text"
@@ -721,12 +726,12 @@ function NewsFormModal({
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   maxLength={100}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="e.g., Announcements"
+                  placeholder={t("e.g., Announcements")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Author
+                  {t("Author")}
                 </label>
                 <input
                   type="text"
@@ -734,12 +739,12 @@ function NewsFormModal({
                   onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                   maxLength={100}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Author name"
+                  placeholder={t("Author name")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Published At
+                  {t("Published At")}
                 </label>
                 <input
                   type="datetime-local"
@@ -756,7 +761,7 @@ function NewsFormModal({
                     onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
                     className="w-4 h-4 rounded border-border focus:ring-primary"
                   />
-                  <span className="text-sm text-card-foreground">Published</span>
+                  <span className="text-sm text-card-foreground">{t("Published")}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -765,30 +770,30 @@ function NewsFormModal({
                     onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
                     className="w-4 h-4 rounded border-border focus:ring-primary"
                   />
-                  <span className="text-sm text-card-foreground">Featured</span>
+                  <span className="text-sm text-card-foreground">{t("Featured")}</span>
                 </label>
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Excerpt
+                {t("Excerpt")}
               </label>
               <textarea
                 value={formData.excerpt}
                 onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
                 rows={2}
                 className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Short summary of the news article"
+                placeholder={t("Short summary of the news article")}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Content
+                {t("Content")}
               </label>
               <RichTextEditor
                 value={formData.content}
                 onChange={(html) => setFormData({ ...formData, content: html })}
-                placeholder="Full content of the news article"
+                placeholder={t("Full content of the news article")}
               />
             </div>
           </div>
@@ -796,12 +801,12 @@ function NewsFormModal({
           {/* Images Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Images
+              {t("Images")}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Main Image
+                  {t("Main Image")}
                 </label>
                 <div className="flex items-center gap-3">
                   <button
@@ -810,13 +815,13 @@ function NewsFormModal({
                     className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                   >
                     <PhotoIcon className="w-5 h-5" />
-                    Select
+                    {t("Select")}
                   </button>
                   {formData.image && (
                     <>
                       <img
                         src={formData.image}
-                        alt="News"
+                        alt={t("News")}
                         className="w-12 h-12 object-cover rounded border border-border"
                       />
                       <button
@@ -832,7 +837,7 @@ function NewsFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
-                  Mobile Image
+                  {t("Mobile Image")}
                 </label>
                 <div className="flex items-center gap-3">
                   <button
@@ -841,13 +846,13 @@ function NewsFormModal({
                     className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                   >
                     <PhotoIcon className="w-5 h-5" />
-                    Select
+                    {t("Select")}
                   </button>
                   {formData.imageMobile && (
                     <>
                       <img
                         src={formData.imageMobile}
-                        alt="News Mobile"
+                        alt={t("News Mobile")}
                         className="w-12 h-12 object-cover rounded border border-border"
                       />
                       <button
@@ -866,7 +871,7 @@ function NewsFormModal({
             {/* Video Section */}
             <div>
               <label className="block text-sm font-medium text-card-foreground mb-2">
-                Video
+                {t("Video")}
               </label>
               <div className="flex items-center gap-3">
                 <button
@@ -875,7 +880,7 @@ function NewsFormModal({
                   className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2"
                 >
                   <VideoIcon className="w-5 h-5" />
-                  Select
+                  {t("Select")}
                 </button>
                 {formData.video && (
                   <>
@@ -900,19 +905,19 @@ function NewsFormModal({
             {/* Gallery */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-card-foreground">Gallery</label>
+                <label className="block text-sm font-medium text-card-foreground">{t("Gallery")}</label>
                 <button
                   type="button"
                   onClick={() => onOpenMediaPicker({ type: 'gallery' })}
                   className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  Add Image
+                  {t("Add Image")}
                 </button>
               </div>
               {formData.gallery.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-                  No gallery images added
+                  {t("No gallery images added")}
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-3">
@@ -940,18 +945,18 @@ function NewsFormModal({
           {/* Tags Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-2">
-              <h4 className="text-sm font-semibold text-card-foreground">Tags</h4>
+              <h4 className="text-sm font-semibold text-card-foreground">{t("Tags")}</h4>
               <button
                 type="button"
                 onClick={onAddTag}
                 className="px-3 py-1 text-sm bg-secondary text-foreground rounded-lg hover:bg-secondary/80 flex items-center gap-1"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Tag
+                {t("Add Tag")}
               </button>
             </div>
             {formData.tags.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No tags added</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("No tags added")}</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {formData.tags.map((tag, index) => (
@@ -963,7 +968,7 @@ function NewsFormModal({
                       type="text"
                       value={tag}
                       onChange={(e) => onUpdateTag(index, e.target.value)}
-                      placeholder="Tag"
+                      placeholder={t("Tag")}
                       className="w-24 px-2 py-0.5 bg-background border border-border rounded text-sm"
                     />
                     <button
@@ -982,10 +987,10 @@ function NewsFormModal({
           {/* Brands Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-              Related Brands
+              {t("Related Brands")}
             </h4>
             {brands.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No brands available</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("No brands available")}</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {brands.map((brand) => (
@@ -1013,14 +1018,14 @@ function NewsFormModal({
               onClick={onClose}
               className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving...' : submitLabel}
+              {isSubmitting ? t("Saving...") : submitLabel}
             </button>
           </div>
         </form>

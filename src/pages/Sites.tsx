@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
+import SiteModulesField from '@/components/SiteModulesField'
 import Pagination from '@/components/Pagination'
 import MediaPicker, { type MediaUrlVariant } from '@/components/MediaPicker'
 import type { MultimediaResponse } from '@/actions/multimedia'
@@ -20,6 +21,7 @@ const columnHelper = createColumnHelper<SiteResponse>()
 const SITE_STATUSES = ['active', 'inactive', 'maintenance'] as const
 
 export default function Sites() {
+  const { t } = useTranslation()
   useTranslation()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -38,6 +40,7 @@ export default function Sites() {
     defaultLanguageCode: 'en',
     status: 'active',
     sitemapEnabled: true,
+    enabledModules: [],
   })
 
   const { data, isLoading, error } = useSites({
@@ -85,6 +88,7 @@ export default function Sites() {
       defaultLanguageCode: 'en',
       status: 'active',
       sitemapEnabled: true,
+      enabledModules: [],
     })
   }
 
@@ -105,6 +109,7 @@ export default function Sites() {
       facebookPixelId: site.facebookPixelId || '',
       robotsTxt: site.robotsTxt || '',
       sitemapEnabled: site.sitemapEnabled,
+      enabledModules: site.enabledModules ?? [],
     })
     setIsEditModalOpen(true)
   }
@@ -118,7 +123,7 @@ export default function Sites() {
   const columns = useMemo<ColumnDef<SiteResponse, any>[]>(
     () => [
       columnHelper.accessor('name', {
-        header: 'Name',
+        header: t("Name"),
         cell: (info) => (
           <span className="text-sm font-medium text-card-foreground">
             {info.getValue()}
@@ -126,7 +131,7 @@ export default function Sites() {
         ),
       }),
       columnHelper.accessor('domain', {
-        header: 'Domain',
+        header: t("Domain"),
         cell: (info) => (
           <a
             href={`https://${info.getValue()}`}
@@ -139,7 +144,7 @@ export default function Sites() {
         ),
       }),
       columnHelper.accessor('slug', {
-        header: 'Slug',
+        header: t("Slug"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
             {info.getValue()}
@@ -147,7 +152,7 @@ export default function Sites() {
         ),
       }),
       columnHelper.accessor('status', {
-        header: 'Status',
+        header: t("Status"),
         cell: (info) => {
           const status = info.getValue()
           const statusColors: Record<string, string> = {
@@ -163,29 +168,37 @@ export default function Sites() {
         },
       }),
       columnHelper.accessor('sitemapEnabled', {
-        header: 'Sitemap',
+        header: t("Sitemap"),
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
-            {info.getValue() ? 'Enabled' : 'Disabled'}
+            {info.getValue() ? t("Enabled") : t("Disabled")}
+          </span>
+        ),
+      }),
+      columnHelper.accessor('enabledModules', {
+        header: t("Modules"),
+        cell: (info) => (
+          <span className="text-sm text-muted-foreground">
+            {t("{{count}} active", { count: info.getValue()?.length ?? 0 })}
           </span>
         ),
       }),
       columnHelper.display({
         id: 'actions',
-        header: () => <span className="text-right block">Actions</span>,
+        header: () => <span className="text-right block">{t("Actions")}</span>,
         cell: ({ row }) => (
           <div className="flex gap-2 justify-end">
             <button
               onClick={() => openEditModal(row.original)}
               className="text-primary hover:text-primary/80"
-              title="Edit"
+              title={t("Edit")}
             >
               <EditIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDeleteModal(row.original)}
               className="text-red-600 hover:text-red-800"
-              title="Delete"
+              title={t("Delete")}
             >
               <DeleteIcon className="w-5 h-5" />
             </button>
@@ -193,7 +206,7 @@ export default function Sites() {
         ),
       }),
     ],
-    []
+    [t]
   )
 
   const table = useReactTable({
@@ -221,6 +234,7 @@ export default function Sites() {
       facebookPixelId: formData.facebookPixelId || undefined,
       robotsTxt: formData.robotsTxt || undefined,
       sitemapEnabled: formData.sitemapEnabled,
+      enabledModules: formData.enabledModules ?? [],
     })
   }
 
@@ -245,6 +259,7 @@ export default function Sites() {
         facebookPixelId: formData.facebookPixelId || undefined,
         robotsTxt: formData.robotsTxt || undefined,
         sitemapEnabled: formData.sitemapEnabled,
+        enabledModules: formData.enabledModules ?? [],
       }
     })
   }
@@ -261,15 +276,15 @@ export default function Sites() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-card-foreground">Sites</h2>
-              <p className="text-muted-foreground mt-1">Manage your websites</p>
+              <h2 className="text-2xl font-bold text-card-foreground">{t("Sites")}</h2>
+              <p className="text-muted-foreground mt-1">{t("Manage your websites")}</p>
             </div>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
-              Create Site
+              {t("Create Site")}
             </button>
           </div>
 
@@ -277,7 +292,7 @@ export default function Sites() {
           <div className="mb-6 flex gap-4 flex-wrap">
             <input
               type="text"
-              placeholder="Search by name..."
+              placeholder={t("Search by name...")}
               value={searchName}
               onChange={(e) => {
                 setSearchName(e.target.value)
@@ -293,7 +308,7 @@ export default function Sites() {
               }}
               className="px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Statuses</option>
+              <option value="">{t("All Statuses")}</option>
               {SITE_STATUSES.map((status) => (
                 <option key={status} value={status}>
                   {status}
@@ -306,15 +321,15 @@ export default function Sites() {
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading sites...</p>
+              <p className="mt-4 text-muted-foreground">{t("Loading sites...")}</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-500">Failed to load sites</p>
+              <p className="text-red-500">{t("Failed to load sites")}</p>
             </div>
           ) : !data?.data.length ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No sites found</p>
+              <p className="text-muted-foreground">{t("No sites found")}</p>
             </div>
           ) : (
             <>
@@ -375,7 +390,7 @@ export default function Sites() {
       {/* Create/Edit Modal */}
       {(isCreateModalOpen || isEditModalOpen) && (
         <LargeModal
-          title={isCreateModalOpen ? 'Create Site' : 'Edit Site'}
+          title={isCreateModalOpen ? t("Create Site") : t("Edit Site")}
           onClose={() => {
             if (isCreateModalOpen) { setIsCreateModalOpen(false) } else { setIsEditModalOpen(false) }
             setSelectedSite(null)
@@ -385,11 +400,11 @@ export default function Sites() {
           <form onSubmit={isCreateModalOpen ? handleCreate : handleEdit} className="space-y-6">
             {/* Basic Information */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Basic Information</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Basic Information")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Name *
+                    {t("Name *")}
                   </label>
                   <input
                     type="text"
@@ -402,7 +417,7 @@ export default function Sites() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Domain *
+                    {t("Domain *")}
                   </label>
                   <input
                     type="text"
@@ -416,7 +431,7 @@ export default function Sites() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Slug *
+                    {t("Slug *")}
                   </label>
                   <input
                     type="text"
@@ -430,20 +445,20 @@ export default function Sites() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Default Language Code
+                    {t("Default Language Code")}
                   </label>
                   <select
                     value={formData.defaultLanguageCode}
                     onChange={(e) => setFormData({ ...formData, defaultLanguageCode: e.target.value })}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <option value="en">English (en)</option>
-                    <option value="es">Spanish (es)</option>
+                    <option value="en">{t("English (en)")}</option>
+                    <option value="es">{t("Spanish (es)")}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Status
+                    {t("Status")}
                   </label>
                   <select
                     value={formData.status}
@@ -463,19 +478,24 @@ export default function Sites() {
                       onChange={(e) => setFormData({ ...formData, sitemapEnabled: e.target.checked })}
                       className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                     />
-                    <span className="text-sm font-medium text-card-foreground">Enable Sitemap</span>
+                    <span className="text-sm font-medium text-card-foreground">{t("Enable Sitemap")}</span>
                   </label>
                 </div>
               </div>
             </div>
 
+            <SiteModulesField
+              value={formData.enabledModules ?? []}
+              onChange={(enabledModules) => setFormData({ ...formData, enabledModules })}
+            />
+
             {/* SEO */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">SEO Settings</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("SEO Settings")}</h4>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Default Meta Title
+                    {t("Default Meta Title")}
                   </label>
                   <input
                     type="text"
@@ -487,7 +507,7 @@ export default function Sites() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Default Meta Description
+                    {t("Default Meta Description")}
                   </label>
                   <textarea
                     value={formData.defaultMetaDescription}
@@ -498,7 +518,7 @@ export default function Sites() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Robots.txt
+                    {t("Robots.txt")}
                   </label>
                   <textarea
                     value={formData.robotsTxt}
@@ -513,11 +533,11 @@ export default function Sites() {
 
             {/* Assets */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Assets</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Assets")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Favicon
+                    {t("Favicon")}
                   </label>
                   <div className="flex gap-2">
                     <button
@@ -526,14 +546,14 @@ export default function Sites() {
                       className="px-4 py-2 bg-background border border-border rounded-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <PhotoIcon className="w-5 h-5 inline mr-2" />
-                      Select from Media
+                      {t("Select from Media")}
                     </button>
                     {formData.faviconUrl && (
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, faviconUrl: '' })}
                         className="px-3 py-2 text-red-600 border border-border rounded-lg hover:bg-red-50"
-                        title="Clear"
+                        title={t("Clear")}
                       >
                         <XIcon className="w-5 h-5" />
                       </button>
@@ -544,7 +564,7 @@ export default function Sites() {
                       <div className="flex items-center gap-2">
                         <img
                           src={formData.faviconUrl}
-                          alt="Favicon preview"
+                          alt={t("Favicon preview")}
                           className="w-8 h-8 object-contain"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none'
@@ -557,7 +577,7 @@ export default function Sites() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Logo
+                    {t("Logo")}
                   </label>
                   <div className="flex gap-2">
                     <button
@@ -566,14 +586,14 @@ export default function Sites() {
                       className="px-4 py-2 bg-background border border-border rounded-lg hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <PhotoIcon className="w-5 h-5 inline mr-2" />
-                      Select from Media
+                      {t("Select from Media")}
                     </button>
                     {formData.logoUrl && (
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, logoUrl: '' })}
                         className="px-3 py-2 text-red-600 border border-border rounded-lg hover:bg-red-50"
-                        title="Clear"
+                        title={t("Clear")}
                       >
                         <XIcon className="w-5 h-5" />
                       </button>
@@ -584,7 +604,7 @@ export default function Sites() {
                       <div className="flex items-center gap-2">
                         <img
                           src={formData.logoUrl}
-                          alt="Logo preview"
+                          alt={t("Logo preview")}
                           className="w-16 h-16 object-contain"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none'
@@ -600,37 +620,37 @@ export default function Sites() {
 
             {/* Analytics & Tracking */}
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3">Analytics & Tracking</h4>
+              <h4 className="text-sm font-semibold text-card-foreground mb-3">{t("Analytics & Tracking")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Google Analytics ID
+                    {t("Google Analytics ID")}
                   </label>
                   <input
                     type="text"
                     value={formData.googleAnalyticsId}
                     onChange={(e) => setFormData({ ...formData, googleAnalyticsId: e.target.value })}
                     maxLength={50}
-                    placeholder="G-XXXXXXXXXX"
+                    placeholder={t("G-XXXXXXXXXX")}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Google Tag Manager ID
+                    {t("Google Tag Manager ID")}
                   </label>
                   <input
                     type="text"
                     value={formData.googleTagManagerId}
                     onChange={(e) => setFormData({ ...formData, googleTagManagerId: e.target.value })}
                     maxLength={50}
-                    placeholder="GTM-XXXXXXX"
+                    placeholder={t("GTM-XXXXXXX")}
                     className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-card-foreground mb-2">
-                    Facebook Pixel ID
+                    {t("Facebook Pixel ID")}
                   </label>
                   <input
                     type="text"
@@ -654,7 +674,7 @@ export default function Sites() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 type="submit"
@@ -662,8 +682,8 @@ export default function Sites() {
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
               >
                 {createMutation.isPending || updateMutation.isPending
-                  ? isCreateModalOpen ? 'Creating...' : 'Updating...'
-                  : isCreateModalOpen ? 'Create' : 'Update'}
+                  ? isCreateModalOpen ? t("Creating...") : t("Updating...")
+                  : isCreateModalOpen ? t("Create") : t("Update")}
               </button>
             </div>
           </form>
@@ -673,7 +693,7 @@ export default function Sites() {
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedSite && (
         <Modal
-          title="Delete Site"
+          title={t("Delete Site")}
           onClose={() => {
             setIsDeleteModalOpen(false)
             setSelectedSite(null)
@@ -681,8 +701,7 @@ export default function Sites() {
         >
           <div className="space-y-4">
             <p className="text-card-foreground">
-              Are you sure you want to delete "<strong>{selectedSite.name}</strong>"?
-              This action cannot be undone.
+              {t("Are you sure you want to delete \"")}<strong>{selectedSite.name}</strong>{t("\"? This action cannot be undone.")}
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -692,14 +711,14 @@ export default function Sites() {
                 }}
                 className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteMutation.isPending ? t("Deleting...") : t("Delete")}
               </button>
             </div>
           </div>
@@ -712,7 +731,7 @@ export default function Sites() {
         onClose={() => setIsFaviconPickerOpen(false)}
         onSelect={(media, variant) => setFormData({ ...formData, faviconUrl: getMediaUrl(media, variant) })}
         currentUrl={formData.faviconUrl}
-        title="Select Favicon"
+        title={t("Select Favicon")}
       />
 
       <MediaPicker
@@ -720,7 +739,7 @@ export default function Sites() {
         onClose={() => setIsLogoPickerOpen(false)}
         onSelect={(media, variant) => setFormData({ ...formData, logoUrl: getMediaUrl(media, variant) })}
         currentUrl={formData.logoUrl}
-        title="Select Logo"
+        title={t("Select Logo")}
       />
     </Layout>
   )
