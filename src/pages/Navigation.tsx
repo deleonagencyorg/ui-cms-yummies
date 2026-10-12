@@ -4,7 +4,7 @@ import Layout from '@/components/Layout'
 import ModulePage from '@/components/ModulePage'
 import SectionTextsForm from '@/components/SectionTextsForm'
 import { useSiteModules } from '@/lib/siteModules'
-import { BREADCRUMB_FIELDS, BREADCRUMB_SITES } from '@/constants/siteSections'
+import { BREADCRUMB_FIELD_KEYS, BREADCRUMB_FIELDS, BREADCRUMB_SITES, HEADER_TEXT_FIELDS, HEADER_TEXT_SITES, MENU_ITEM_ACTIONS, pickVariant } from '@/constants/siteSections'
 import Pagination from '@/components/Pagination'
 import Modal from '@/components/Modal'
 import TextField from '@/components/TextField'
@@ -40,6 +40,7 @@ interface MenuItemFormItem {
   href: string
   parentId: string | null
   isExternal: boolean
+  action: string
 }
 
 interface NavigationFormData {
@@ -57,6 +58,7 @@ function emptyMenuItem(index: number): MenuItemFormItem {
     href: '',
     parentId: null,
     isExternal: false,
+    action: '',
   }
 }
 
@@ -79,6 +81,7 @@ function itemToFormData(item: NavigationConfig): NavigationFormData {
       href: menuItem.href ?? '',
       parentId: menuItem.parentId ?? null,
       isExternal: menuItem.isExternal ?? false,
+      action: menuItem.action ?? '',
     }))
 
   return {
@@ -104,6 +107,7 @@ function formDataToPayload(
       order: index,
       parentId: item.parentId || null,
       isExternal: item.isExternal,
+      action: item.action,
     })),
   }
 }
@@ -474,7 +478,32 @@ export default function NavigationPage() {
   const { t } = useTranslation()
   const { selectedSite } = useSiteModules()
 
-  if (!selectedSite || !BREADCRUMB_SITES.includes(selectedSite.slug)) {
+  const template = selectedSite?.template ?? ''
+  const tabs = [{ key: 'menu', label: t("Menu"), content: <NavigationPageContent /> }]
+  if (HEADER_TEXT_SITES.includes(template)) {
+    tabs.push({
+      key: 'header-texts',
+      label: t("Header buttons"),
+      content: <SectionTextsForm title={t("Header buttons")} description={t("Texts of the buttons in the header menu.")} fields={HEADER_TEXT_FIELDS} />,
+    })
+  }
+  if (BREADCRUMB_SITES.includes(template)) {
+    const breadcrumbKeys = pickVariant(BREADCRUMB_FIELD_KEYS, template)
+    const breadcrumbFields = breadcrumbKeys === 'all' ? BREADCRUMB_FIELDS : BREADCRUMB_FIELDS.filter((field) => breadcrumbKeys.includes(field.key))
+    tabs.push({
+      key: 'breadcrumbs',
+      label: t("Breadcrumbs"),
+      content: (
+        <SectionTextsForm
+          title={t("Breadcrumbs")}
+          description={t("Names shown in the path at the top of each page (Home > Product). Leave empty to use the section name.")}
+          fields={breadcrumbFields}
+        />
+      ),
+    })
+  }
+
+  if (tabs.length === 1) {
     return (
       <Layout>
         <NavigationPageContent />
@@ -482,26 +511,7 @@ export default function NavigationPage() {
     )
   }
 
-  return (
-    <ModulePage
-      title={t("Navigation")}
-      description={t("Header menu and breadcrumbs.")}
-      tabs={[
-        { key: 'menu', label: t("Menu"), content: <NavigationPageContent /> },
-        {
-          key: 'breadcrumbs',
-          label: t("Breadcrumbs"),
-          content: (
-            <SectionTextsForm
-              title={t("Breadcrumbs")}
-              description={t("Names shown in the path at the top of each page (Home > Products). Leave empty to use the section name.")}
-              fields={BREADCRUMB_FIELDS}
-            />
-          ),
-        },
-      ]}
-    />
-  )
+  return <ModulePage title={t("Navigation")} description={t("Header menu and breadcrumbs.")} tabs={tabs} />
 }
 
 function NavigationFormModal({
@@ -527,7 +537,7 @@ function NavigationFormModal({
   isSubmitting: boolean
   submitLabel: string
   languages: { code: string; name: string; nativeName: string }[]
-  sites: { id: string; name: string }[]
+  sites: { id: string; name: string; template?: string }[]
   onAddItem: () => void
   onRemoveItem: (index: number) => void
   onMoveItem: (index: number, direction: -1 | 1) => void
@@ -540,6 +550,7 @@ function NavigationFormModal({
   const { t } = useTranslation()
   const set = <K extends keyof NavigationFormData>(key: K, value: NavigationFormData[K]) =>
     setFormData({ ...formData, [key]: value })
+  const actionOptions = pickVariant(MENU_ITEM_ACTIONS, sites.find((site) => site.id === formData.siteId)?.template)
 
   return (
     <Modal title={title} onClose={onClose} maxWidth="max-w-4xl" scrollBody>
@@ -661,6 +672,26 @@ function NavigationFormModal({
                       </label>
                     </div>
                   </div>
+                  {actionOptions.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-card-foreground mb-2">
+                        {t("When clicked")}
+                      </label>
+                      <select
+                        value={item.action}
+                        onChange={(e) => onUpdateItemField(index, 'action', e.target.value)}
+                        className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="">{t("Go to the link")}</option>
+                        {actionOptions.map((option) => (
+                          <option key={option.value} value={option.value}>{t(option.label)}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t("Choose what this menu item does on the website.")}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )
             }}

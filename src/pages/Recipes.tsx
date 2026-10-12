@@ -1210,7 +1210,7 @@ export default function Recipes() {
   const { t } = useTranslation()
   const { selectedSite } = useSiteModules()
 
-  if (!selectedSite || !RECIPES_PAGE_SITES.includes(selectedSite.slug)) {
+  if (!selectedSite || !RECIPES_PAGE_SITES.includes(selectedSite.template)) {
     return (
       <Layout>
         <RecipesPageContent />

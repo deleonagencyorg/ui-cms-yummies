@@ -10,10 +10,6 @@ export interface SiteText {
   value: string
   createdAt: string
   updatedAt: string
-  section?: string
-  page?: string
-  field?: string
-  label?: string
 }
 
 export interface SiteTextListResponse {

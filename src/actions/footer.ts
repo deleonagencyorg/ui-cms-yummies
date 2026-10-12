@@ -13,6 +13,8 @@ export interface FooterConfig {
   contactUs: string
   instagramText: string
   facebookText: string
+  tiktokText: string
+  mainText2: string
   email: string
   copyright: string
   privacyPolicyText: string
@@ -55,6 +57,8 @@ export interface CreateFooterConfigRequest {
   contactUs?: string
   instagramText?: string
   facebookText?: string
+  tiktokText?: string
+  mainText2?: string
   email?: string
   copyright?: string
   privacyPolicyText?: string

@@ -2,6 +2,7 @@ import axiosInstance from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants/api'
 import type { Pagination } from './departments'
 import type { SiteModuleKey } from '@/constants/siteModules'
+import type { SiteTemplateKey } from '@/constants/siteTemplates'
 
 export interface SiteResponse {
   id: string
@@ -20,6 +21,7 @@ export interface SiteResponse {
   robotsTxt?: string
   sitemapEnabled: boolean
   enabledModules: SiteModuleKey[]
+  template: SiteTemplateKey
   createdAt: string
   updatedAt: string
 }
@@ -45,6 +47,7 @@ export interface CreateSiteRequest {
   robotsTxt?: string
   sitemapEnabled?: boolean
   enabledModules?: SiteModuleKey[]
+  template?: SiteTemplateKey
 }
 
 export interface UpdateSiteRequest {
@@ -63,6 +66,7 @@ export interface UpdateSiteRequest {
   robotsTxt?: string
   sitemapEnabled?: boolean
   enabledModules?: SiteModuleKey[]
+  template?: SiteTemplateKey
 }
 
 export interface SiteFiltersRequest {

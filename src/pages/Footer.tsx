@@ -29,11 +29,11 @@ const PHONE_FIELD_DEFINITIONS: Record<string, SectionListField> = {
 
 const phoneFieldsCache = new Map<string, SectionListField[]>()
 
-function phoneFields(siteSlug: string | undefined): SectionListField[] {
-  const cacheKey = siteSlug ?? ''
+function phoneFields(siteTemplate: string | undefined): SectionListField[] {
+  const cacheKey = siteTemplate ?? ''
   const cached = phoneFieldsCache.get(cacheKey)
   if (cached) return cached
-  const fields = pickVariant(FOOTER_PHONE_FIELDS, siteSlug).map((name) => PHONE_FIELD_DEFINITIONS[name])
+  const fields = pickVariant(FOOTER_PHONE_FIELDS, siteTemplate).map((name) => PHONE_FIELD_DEFINITIONS[name])
   phoneFieldsCache.set(cacheKey, fields)
   return fields
 }
@@ -50,7 +50,7 @@ function FooterTextsForm() {
   const { selectedSiteId } = useSite()
   const { selectedSite } = useSiteModules()
   const languageCode = useContentLanguage()
-  const variant = pickVariant(FOOTER_FIELDS, selectedSite?.slug)
+  const variant = pickVariant(FOOTER_FIELDS, selectedSite?.template)
   const groups = useMemo(
     () => FOOTER_FIELD_GROUPS
       .map((group) => ({ ...group, fields: group.fields.filter((field) => variant === 'all' || variant.includes(field.name)) }))
@@ -138,6 +138,7 @@ function FooterTextsFields({ config, groups, siteId, languageCode }: {
                     value={values[field.name] ?? ''}
                     onChange={(value) => setValues((current) => ({ ...current, [field.name]: value }))}
                     textarea={field.textarea}
+                    placeholder={field.placeholder}
                   />
                 </div>
               ))}
@@ -152,10 +153,10 @@ function FooterTextsFields({ config, groups, siteId, languageCode }: {
 export default function FooterPage() {
   const { t } = useTranslation()
   const { selectedSite } = useSiteModules()
-  const showPhones = pickVariant(FOOTER_PHONE_SITES, selectedSite?.slug)
+  const showPhones = pickVariant(FOOTER_PHONE_SITES, selectedSite?.template)
 
   const tabs = [{ key: 'texts', label: t("Footer texts"), content: <FooterTextsForm /> }]
-  if (pickVariant(FOOTER_LINK_SITES, selectedSite?.slug)) {
+  if (pickVariant(FOOTER_LINK_SITES, selectedSite?.template)) {
     tabs.push({
       key: 'links',
       label: t("Footer links"),
@@ -182,7 +183,7 @@ export default function FooterPage() {
           title={t("Phone numbers by country")}
           description={t("Numbers listed in the footer, in this order.")}
           endpoint={API_ENDPOINTS.SECTION_LISTS.FOOTER_PHONES}
-          fields={phoneFields(selectedSite?.slug)}
+          fields={phoneFields(selectedSite?.template)}
           itemLabel="Phone"
           addLabel="Add phone number"
           emptyMessage="There are no phone numbers yet."

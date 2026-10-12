@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
+import TextField from '@/components/TextField'
 import ModulePage from '@/components/ModulePage'
 import SectionTextsForm from '@/components/SectionTextsForm'
 import { useSiteModules } from '@/lib/siteModules'
-import { PRODUCTS_PAGE_FIELDS, PRODUCTS_PAGE_SITES } from '@/constants/siteSections'
+import { PRODUCT_DESIGN_SITES, PRODUCTS_PAGE_FIELDS, PRODUCTS_PAGE_SITES } from '@/constants/siteSections'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import type { MultimediaResponse } from '@/actions/multimedia'
@@ -48,6 +49,9 @@ interface ProductFormData {
   nutrition: ProductNutritionRequest
   brandId: string
   isNew: boolean
+  nameDescription: string
+  secondColorButton: string
+  borderColor: string
   sortOrder: number
 }
 
@@ -75,6 +79,9 @@ const initialFormData: ProductFormData = {
   },
   brandId: '',
   isNew: false,
+  nameDescription: '',
+  secondColorButton: '',
+  borderColor: '',
   sortOrder: 0,
 }
 
@@ -140,6 +147,9 @@ export function ProductsPageContent() {
       },
       brandId: product.brandId,
       isNew: product.isNew ?? false,
+      nameDescription: product.nameDescription || '',
+      secondColorButton: product.secondColorButton || '',
+      borderColor: product.borderColor || '',
       sortOrder: product.sortOrder ?? 0,
     })
     setIsEditModalOpen(true)
@@ -276,6 +286,9 @@ export function ProductsPageContent() {
           : undefined,
         brandId: formData.brandId,
         isNew: formData.isNew,
+        nameDescription: formData.nameDescription,
+        secondColorButton: formData.secondColorButton,
+        borderColor: formData.borderColor,
         sortOrder: formData.sortOrder,
       })
       setIsCreateModalOpen(false)
@@ -310,6 +323,9 @@ export function ProductsPageContent() {
           nutrition: formData.nutrition,
           brandId: formData.brandId,
           isNew: formData.isNew,
+          nameDescription: formData.nameDescription,
+          secondColorButton: formData.secondColorButton,
+          borderColor: formData.borderColor,
           sortOrder: formData.sortOrder,
         },
       })
@@ -708,6 +724,8 @@ function ProductFormModal({
   onUpdateNutrition,
 }: ProductFormModalProps) {
   const { t } = useTranslation()
+  const { selectedSite } = useSiteModules()
+  const showDesignFields = !!selectedSite && PRODUCT_DESIGN_SITES.includes(selectedSite.template)
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full border border-border max-h-[90vh] overflow-y-auto">
@@ -898,6 +916,31 @@ function ProductFormModal({
               />
             </div>
           </div>
+
+          {showDesignFields && (
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
+                {t("Additional design")}
+              </h4>
+              <TextField
+                label={t("Short description")}
+                value={formData.nameDescription}
+                onChange={(v) => setFormData({ ...formData, nameDescription: v })}
+              />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <ColorField
+                  label={t("Second button")}
+                  value={formData.secondColorButton}
+                  onChange={(v) => setFormData({ ...formData, secondColorButton: v })}
+                />
+                <ColorField
+                  label={t("Border")}
+                  value={formData.borderColor}
+                  onChange={(v) => setFormData({ ...formData, borderColor: v })}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Sizes Section */}
           <div className="space-y-4">
@@ -1287,7 +1330,7 @@ export default function Products() {
   const { t } = useTranslation()
   const { selectedSite } = useSiteModules()
 
-  if (!selectedSite || !PRODUCTS_PAGE_SITES.includes(selectedSite.slug)) {
+  if (!selectedSite || !PRODUCTS_PAGE_SITES.includes(selectedSite.template)) {
     return (
       <Layout>
         <ProductsPageContent />

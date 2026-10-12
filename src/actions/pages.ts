@@ -3,7 +3,17 @@ import { API_ENDPOINTS } from '@/constants/api'
 import type { Pagination } from './departments'
 import type { MultimediaResponse } from './multimedia'
 
-export type PageBannerType = 'image' | 'video' | 'html'
+export type PageBannerType = 'image' | 'video' | 'html' | 'product'
+
+export interface PageBannerProduct {
+  hero?: string
+  topText?: string
+  leftText?: string
+  rightText?: string
+  buttonText?: string
+  buttonUrl?: string
+  colorTheme?: string
+}
 
 export interface PageBannerHTMLResponse {
   backgroundImage?: MultimediaResponse | null
@@ -28,6 +38,7 @@ export interface PageBannerResponse {
   description?: string
   link?: string
   html?: PageBannerHTMLResponse | null
+  product?: PageBannerProduct | null
   order: number
 }
 
@@ -53,6 +64,7 @@ export interface CreatePageBannerRequest {
   description?: string
   link?: string
   html?: PageBannerHTMLRequest
+  product?: PageBannerProduct
   order?: number
 }
 

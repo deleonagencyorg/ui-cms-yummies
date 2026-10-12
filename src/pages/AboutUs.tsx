@@ -5,6 +5,8 @@ import SectionListEditor, { type SectionListField } from '@/components/SectionLi
 import { API_ENDPOINTS } from '@/constants/api'
 import { useSiteModules } from '@/lib/siteModules'
 import {
+  ABOUT_EXTRA_GROUPS,
+  ABOUT_LAYOUT,
   ABOUT_TEXT_GROUPS,
   ABOUT_TIMELINE_FIELDS,
   ABOUT_TIMELINE_YEAR_REQUIRED,
@@ -21,12 +23,12 @@ const TIMELINE_FIELD_DEFINITIONS: Record<string, SectionListField> = {
 
 const timelineFieldsCache = new Map<string, SectionListField[]>()
 
-function timelineFields(siteSlug: string | undefined): SectionListField[] {
-  const cacheKey = siteSlug ?? ''
+function timelineFields(siteTemplate: string | undefined): SectionListField[] {
+  const cacheKey = siteTemplate ?? ''
   const cached = timelineFieldsCache.get(cacheKey)
   if (cached) return cached
-  const yearRequired = pickVariant(ABOUT_TIMELINE_YEAR_REQUIRED, siteSlug)
-  const fields = pickVariant(ABOUT_TIMELINE_FIELDS, siteSlug).map((name) => (
+  const yearRequired = pickVariant(ABOUT_TIMELINE_YEAR_REQUIRED, siteTemplate)
+  const fields = pickVariant(ABOUT_TIMELINE_FIELDS, siteTemplate).map((name) => (
     name === 'year' ? { ...TIMELINE_FIELD_DEFINITIONS.year, required: yearRequired } : TIMELINE_FIELD_DEFINITIONS[name]
   ))
   timelineFieldsCache.set(cacheKey, fields)
@@ -37,39 +39,53 @@ export default function AboutUs() {
   const { t } = useTranslation()
   const { selectedSite } = useSiteModules()
   const [header, closing] = ABOUT_TEXT_GROUPS
+  const layout = pickVariant(ABOUT_LAYOUT, selectedSite?.template)
+
+  const defaultTabs = [
+    {
+      key: 'header',
+      label: t(header.title),
+      content: <SectionTextsForm title={t(header.title)} description={t(header.description)} fields={header.fields} />,
+    },
+    {
+      key: 'timeline',
+      label: t("History timeline"),
+      content: (
+        <SectionListEditor
+          title={t("History timeline")}
+          description={t("Milestones of the history, shown from top to bottom in this order.")}
+          endpoint={API_ENDPOINTS.SECTION_LISTS.ABOUT_TIMELINE}
+          fields={timelineFields(selectedSite?.template)}
+          itemLabel="Milestone"
+          addLabel="Add milestone"
+          emptyMessage="There are no milestones yet."
+          itemTitle={(item) => [item.year, item.title].filter(Boolean).join(' · ')}
+        />
+      ),
+    },
+    {
+      key: 'closing',
+      label: t(closing.title),
+      content: <SectionTextsForm title={t(closing.title)} description={t(closing.description)} fields={closing.fields} />,
+    },
+  ]
+
+  const tabs = layout.map((id) => {
+    const standard = defaultTabs.find((tab) => tab.key === id)
+    if (standard) return standard
+    const group = ABOUT_EXTRA_GROUPS[id]
+    return {
+      key: id,
+      label: t(group.title),
+      content: <SectionTextsForm title={t(group.title)} description={t(group.description)} fields={group.fields} />,
+    }
+  })
 
   return (
     <ModulePage
       title={t("About us")}
       description={t("Content of the About us page.")}
-      tabs={[
-        {
-          key: 'header',
-          label: t(header.title),
-          content: <SectionTextsForm title={t(header.title)} description={t(header.description)} fields={header.fields} />,
-        },
-        {
-          key: 'timeline',
-          label: t("History timeline"),
-          content: (
-            <SectionListEditor
-              title={t("History timeline")}
-              description={t("Milestones of the history, shown from top to bottom in this order.")}
-              endpoint={API_ENDPOINTS.SECTION_LISTS.ABOUT_TIMELINE}
-              fields={timelineFields(selectedSite?.slug)}
-              itemLabel="Milestone"
-              addLabel="Add milestone"
-              emptyMessage="There are no milestones yet."
-              itemTitle={(item) => [item.year, item.title].filter(Boolean).join(' · ')}
-            />
-          ),
-        },
-        {
-          key: 'closing',
-          label: t(closing.title),
-          content: <SectionTextsForm title={t(closing.title)} description={t(closing.description)} fields={closing.fields} />,
-        },
-      ]}
+      tabs={tabs}
     />
   )
 }
