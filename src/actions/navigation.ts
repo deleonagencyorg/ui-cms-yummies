@@ -10,6 +10,7 @@ export interface MenuItem {
   order: number
   parentId: string | null
   isExternal: boolean
+  action: string
 }
 
 export interface NavigationConfig {
@@ -34,6 +35,7 @@ export interface CreateMenuItemRequest {
   order: number
   parentId?: string | null
   isExternal?: boolean
+  action?: string
 }
 
 export interface CreateNavigationConfigRequest {

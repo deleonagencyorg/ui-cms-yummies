@@ -131,6 +131,7 @@ export default function SectionTextsForm({ title, description, fields }: Section
                   onChange={(value) => setValues((current) => ({ ...current, [field.key]: value }))}
                   textarea={field.textarea}
                   rows={field.textarea ? 4 : undefined}
+                  type={field.type}
                 />
               )}
               {field.help && <p className="text-xs text-muted-foreground mt-1">{t(field.help)}</p>}

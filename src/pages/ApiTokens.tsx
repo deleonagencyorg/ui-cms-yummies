@@ -29,7 +29,6 @@ const AVAILABLE_SCOPES = [
   'navigation',
   'social_media',
   'modals',
-  'content_lists',
   'site_texts',
   'zambos_truck',
   'gallery',

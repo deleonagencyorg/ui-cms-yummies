@@ -35,6 +35,9 @@ export interface ProductResponse {
   available: string
   backgroundImage: string
   isNew: boolean
+  nameDescription?: string
+  secondColorButton?: string
+  borderColor?: string
   sortOrder: number
   languageCode: string
   sizes: ProductSizeResponse[]
@@ -81,6 +84,9 @@ export interface CreateProductRequest {
   available?: string
   backgroundImage?: string
   isNew?: boolean
+  nameDescription?: string
+  secondColorButton?: string
+  borderColor?: string
   sortOrder?: number
   languageCode: string
   sizes?: ProductSizeRequest[]
@@ -103,6 +109,9 @@ export interface UpdateProductRequest {
   available?: string
   backgroundImage?: string
   isNew?: boolean
+  nameDescription?: string
+  secondColorButton?: string
+  borderColor?: string
   sortOrder?: number
   languageCode?: string
   sizes?: ProductSizeRequest[]

@@ -6,7 +6,8 @@ import SectionTextsForm from '@/components/SectionTextsForm'
 import SectionListEditor, { type SectionListField } from '@/components/SectionListEditor'
 import { useSiteModules } from '@/lib/siteModules'
 import { API_ENDPOINTS } from '@/constants/api'
-import { HOME_SECTIONS, HOME_TEXT_GROUPS, pickVariant } from '@/constants/siteSections'
+import { HOME_SECTIONS, HOME_SITE_SECTIONS, HOME_TEXT_GROUPS, pickVariant } from '@/constants/siteSections'
+import { CappyBackToSchoolForm, CappyGamesForm } from '@/components/CappyHomeContent'
 
 const HOME_VIDEO_FIELDS: SectionListField[] = [
   { name: 'title', label: 'Title', required: true },
@@ -26,17 +27,35 @@ const TAB_LABELS: Record<string, string> = {
   recipes: 'Recipes section',
   videos: 'Recipe videos',
   newsletter: 'Newsletter',
+  games: 'Games',
+  backToSchool: 'Back-to-school promotion',
+  cardVideo: 'Video feature card',
+  cardQuiz: 'Quiz feature card',
+  textHome: 'Home introduction',
+  yummiPopsTextHome: 'Home introduction',
+  discover: 'Discover section',
   brands: 'Brands section',
   newProducts: 'New products',
   quiz: 'Quiz invitation',
   social: 'Social networks and newsletter',
   delivery: 'Where to find us',
+  productsHeading: 'Products section',
+  gallery: 'Gallery section',
+  whereToBuy: 'Where to buy',
 }
 
 export default function HomeContent() {
   const { t } = useTranslation()
   const { selectedSite, isModuleEnabled } = useSiteModules()
-  const sections = pickVariant(HOME_SECTIONS, selectedSite?.slug)
+  const siteKeys = [selectedSite?.slug, selectedSite?.name]
+    .filter((value): value is string => !!value)
+    .map((value) => value.toLowerCase().replace(/[^a-z0-9]/g, ''))
+  const siteSections = Object.entries(HOME_SITE_SECTIONS)
+    .find(([key]) => siteKeys.some((siteKey) => siteKey === key || siteKey.startsWith(key)))?.[1] ?? []
+  const sections = [...new Set([
+    ...pickVariant(HOME_SECTIONS, selectedSite?.template),
+    ...siteSections,
+  ])]
 
   const extras: Record<string, ReactNode> = {
     videos: (
@@ -63,6 +82,26 @@ export default function HomeContent() {
         itemTitle={(item) => item.name}
       />
     ),
+    whereToBuy: (
+      <SectionListEditor
+        title={t("Where to buy")}
+        description={t("Stores and apps shown in the carousel, in this order.")}
+        endpoint={API_ENDPOINTS.SECTION_LISTS.DELIVERY_APPS}
+        fields={DELIVERY_APP_FIELDS}
+        itemLabel="Store"
+        addLabel="Add store"
+        emptyMessage="There are no stores yet."
+        itemTitle={(item) => item.name}
+      />
+    ),
+    games: <CappyGamesForm />,
+    backToSchool: <CappyBackToSchoolForm />,
+    gallery: isModuleEnabled('gallery') ? (
+      <p className="text-sm text-muted-foreground rounded-lg border border-border bg-card p-4">
+        {t("The images of this block are managed in")}{' '}
+        <Link to="/gallery" className="text-primary font-medium hover:underline">{t('nav.gallery')}</Link>.
+      </p>
+    ) : null,
     social: isModuleEnabled('descubrenos') ? (
       <p className="text-sm text-muted-foreground rounded-lg border border-border bg-card p-4">
         {t("The Instagram posts of this block are managed in")}{' '}
@@ -78,7 +117,9 @@ export default function HomeContent() {
       label: t(TAB_LABELS[id]),
       content: (
         <div className="space-y-6">
-          <SectionTextsForm title={t(group.title)} description={t(group.description)} fields={group.fields} />
+          {group?.fields.length ? (
+            <SectionTextsForm title={t(group.title)} description={t(group.description)} fields={group.fields} />
+          ) : null}
           {extras[id]}
         </div>
       ),

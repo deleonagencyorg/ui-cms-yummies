@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
 import SiteModulesField from '@/components/SiteModulesField'
+import { SITE_TEMPLATE_OPTIONS, type SiteTemplateKey } from '@/constants/siteTemplates'
 import Pagination from '@/components/Pagination'
 import MediaPicker, { type MediaUrlVariant } from '@/components/MediaPicker'
 import type { MultimediaResponse } from '@/actions/multimedia'
@@ -41,6 +42,7 @@ export default function Sites() {
     status: 'active',
     sitemapEnabled: true,
     enabledModules: [],
+    template: 'standard',
   })
 
   const { data, isLoading, error } = useSites({
@@ -89,6 +91,7 @@ export default function Sites() {
       status: 'active',
       sitemapEnabled: true,
       enabledModules: [],
+      template: 'standard',
     })
   }
 
@@ -110,6 +113,7 @@ export default function Sites() {
       robotsTxt: site.robotsTxt || '',
       sitemapEnabled: site.sitemapEnabled,
       enabledModules: site.enabledModules ?? [],
+      template: site.template ?? 'standard',
     })
     setIsEditModalOpen(true)
   }
@@ -175,6 +179,14 @@ export default function Sites() {
           </span>
         ),
       }),
+      columnHelper.accessor('template', {
+        header: t("Site template"),
+        cell: (info) => (
+          <span className="text-sm text-muted-foreground">
+            {t(SITE_TEMPLATE_OPTIONS.find((option) => option.key === info.getValue())?.label ?? 'Standard (no special design)')}
+          </span>
+        ),
+      }),
       columnHelper.accessor('enabledModules', {
         header: t("Modules"),
         cell: (info) => (
@@ -235,6 +247,7 @@ export default function Sites() {
       robotsTxt: formData.robotsTxt || undefined,
       sitemapEnabled: formData.sitemapEnabled,
       enabledModules: formData.enabledModules ?? [],
+      template: formData.template ?? 'standard',
     })
   }
 
@@ -260,6 +273,7 @@ export default function Sites() {
         robotsTxt: formData.robotsTxt || undefined,
         sitemapEnabled: formData.sitemapEnabled,
         enabledModules: formData.enabledModules ?? [],
+        template: formData.template ?? 'standard',
       }
     })
   }
@@ -469,6 +483,23 @@ export default function Sites() {
                       <option key={status} value={status}>{status}</option>
                     ))}
                   </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-card-foreground mb-2">
+                    {t("Site template")}
+                  </label>
+                  <select
+                    value={formData.template ?? 'standard'}
+                    onChange={(e) => setFormData({ ...formData, template: e.target.value as SiteTemplateKey })}
+                    className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    {SITE_TEMPLATE_OPTIONS.map((option) => (
+                      <option key={option.key} value={option.key}>{t(option.label)}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("Choose the design this website uses. It decides which fields and sections the CMS shows for it. The slug can be anything you want.")}
+                  </p>
                 </div>
                 <div className="flex items-center">
                   <label className="flex items-center gap-2 cursor-pointer">

@@ -1104,7 +1104,7 @@ export default function Health() {
   const { t } = useTranslation()
   const { selectedSite } = useSiteModules()
 
-  if (!pickVariant(HEALTH_ICON_SITES, selectedSite?.slug)) {
+  if (!pickVariant(HEALTH_ICON_SITES, selectedSite?.template)) {
     return (
       <Layout>
         <HealthPageContent />

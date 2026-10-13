@@ -26,7 +26,7 @@ import {
   type ColumnDef,
 } from '@tanstack/react-table'
 
-const MIN_POSTS = 4
+const MIN_POSTS = 1
 const columnHelper = createColumnHelper<Descubrenos>()
 
 interface PostFormItem {
@@ -61,10 +61,6 @@ function emptyPost(index: number): PostFormItem {
   }
 }
 
-function createInitialPosts(): PostFormItem[] {
-  return Array.from({ length: MIN_POSTS }, (_, i) => emptyPost(i))
-}
-
 const createInitialFormData = (siteId = ''): DescubrenosFormData => ({
   siteId,
   title: '',
@@ -72,7 +68,7 @@ const createInitialFormData = (siteId = ''): DescubrenosFormData => ({
   showOnHome: true,
   showOnProducts: false,
   showOnHealth: false,
-  posts: createInitialPosts(),
+  posts: [],
 })
 
 type MediaPickerTarget =
@@ -92,10 +88,6 @@ function itemToFormData(item: Descubrenos): DescubrenosFormData {
       alt: post.alt ?? '',
       position: post.position ?? index,
     }))
-
-  while (posts.length < MIN_POSTS) {
-    posts.push(emptyPost(posts.length))
-  }
 
   return {
     siteId: item.siteId ?? '',
@@ -261,7 +253,6 @@ export default function DescubrenosPage() {
 
   const removePost = (index: number) => {
     setFormData((prev) => {
-      if (prev.posts.length <= MIN_POSTS) return prev
       return {
         ...prev,
         posts: prev.posts.filter((_, i) => i !== index),
@@ -783,7 +774,7 @@ function DescubrenosFormModal({
                   {t("Instagram Posts")}
                 </h4>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t("Minimum")} {MIN_POSTS} {t("posts required (")}{formData.posts.length} {t("added)")}
+                  {formData.posts.length} {t("posts added")}
                 </p>
               </div>
               <button
@@ -797,6 +788,11 @@ function DescubrenosFormModal({
             </div>
 
             <div className="space-y-4">
+              {formData.posts.length === 0 && (
+                <p className="text-sm text-muted-foreground rounded-lg border border-dashed border-border p-6 text-center">
+                  {t("No posts found. Add the first post with the button above.")}
+                </p>
+              )}
               {formData.posts.map((post, index) => (
                 <div
                   key={post.key}
@@ -828,7 +824,6 @@ function DescubrenosFormModal({
                       <button
                         type="button"
                         onClick={() => onRemovePost(index)}
-                        disabled={formData.posts.length <= MIN_POSTS}
                         className="p-1.5 text-red-600 hover:text-red-800 disabled:opacity-30"
                         title={t("Remove")}
                       >

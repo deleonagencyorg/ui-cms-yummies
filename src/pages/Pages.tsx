@@ -8,7 +8,9 @@ import { usePages } from '@/queries/pages'
 import { useSites } from '@/queries/sites'
 import { useLanguages } from '@/queries/languages'
 import { useCreatePage, useUpdatePage, useDeletePage } from '@/mutations/pages'
-import type { PageResponse, CreatePageRequest, CreatePageBannerRequest, PageBannerType } from '@/actions/pages'
+import type { PageResponse, CreatePageRequest, CreatePageBannerRequest, PageBannerProduct, PageBannerType } from '@/actions/pages'
+import { useSiteModules } from '@/lib/siteModules'
+import { PRODUCT_BANNER_SITES } from '@/constants/siteSections'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import {
   useReactTable,
@@ -21,7 +23,26 @@ import {
 const columnHelper = createColumnHelper<PageResponse>()
 
 const PAGE_STATUSES = ['draft', 'published', 'scheduled', 'trash'] as const
-const BANNER_TYPES: PageBannerType[] = ['image', 'video', 'html']
+const BANNER_TYPES: PageBannerType[] = ['image', 'video', 'html', 'product']
+
+function ProductBannerInput({ label, value, onChange, multiline }: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  multiline?: boolean
+}) {
+  const className = 'w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary'
+  return (
+    <div>
+      <label className="block text-sm font-medium text-card-foreground mb-2">{label}</label>
+      {multiline ? (
+        <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={2} className={className} />
+      ) : (
+        <input type="text" value={value} onChange={(e) => onChange(e.target.value)} className={className} />
+      )}
+    </div>
+  )
+}
 
 interface PageBannerHtmlForm {
   background: MultimediaResponse | null
@@ -46,6 +67,7 @@ interface PageBannerFormItem {
   desktop: MultimediaResponse | null
   mobile: MultimediaResponse | null
   html: PageBannerHtmlForm
+  product: Required<PageBannerProduct>
 }
 
 type BannerMediaTarget = {
@@ -71,6 +93,16 @@ const emptyHtmlForm = (): PageBannerHtmlForm => ({
   buttonUrl: '',
 })
 
+const emptyProductForm = (): Required<PageBannerProduct> => ({
+  hero: '',
+  topText: '',
+  leftText: '',
+  rightText: '',
+  buttonText: '',
+  buttonUrl: '',
+  colorTheme: '',
+})
+
 const createEmptyBanner = (index = 0): PageBannerFormItem => ({
   key: `banner-${Date.now()}-${index}`,
   type: 'image',
@@ -82,6 +114,7 @@ const createEmptyBanner = (index = 0): PageBannerFormItem => ({
   desktop: null,
   mobile: null,
   html: emptyHtmlForm(),
+  product: emptyProductForm(),
 })
 
 function bannersFromPage(page: PageResponse): PageBannerFormItem[] {
@@ -109,6 +142,7 @@ function bannersFromPage(page: PageResponse): PageBannerFormItem[] {
         buttonText: banner.html?.buttonText ?? '',
         buttonUrl: banner.html?.buttonUrl ?? '',
       },
+      product: { ...emptyProductForm(), ...(banner.product ?? {}) },
     }))
 }
 
@@ -122,6 +156,7 @@ function bannersToPayload(banners: PageBannerFormItem[]): CreatePageBannerReques
     subtitle: banner.subtitle,
     description: banner.description,
     link: banner.link,
+    product: banner.type === 'product' ? banner.product : undefined,
     html:
       banner.type === 'html'
         ? {
@@ -1094,6 +1129,8 @@ function PageBannerCard({
   onOpenMediaPicker,
 }: PageBannerCardProps) {
   const { t } = useTranslation()
+  const { selectedSite } = useSiteModules()
+  const allowProductBanner = !!selectedSite && PRODUCT_BANNER_SITES.includes(selectedSite.template)
   return (
     <div className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3">
       <div className="flex items-center justify-between gap-2">
@@ -1139,13 +1176,52 @@ function PageBannerCard({
           onChange={(e) => onChange(index, { type: e.target.value as PageBannerType })}
           className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          {BANNER_TYPES.map((type) => (
+          {BANNER_TYPES.filter((type) => type !== 'product' || allowProductBanner || banner.type === 'product').map((type) => (
             <option key={type} value={type}>
-              {type === 'html' ? t("HTML (hero)") : type === 'video' ? t("Video") : t("Image")}
+              {type === 'html' ? t("HTML (hero)") : type === 'video' ? t("Video") : type === 'product' ? t("Product") : t("Image")}
             </option>
           ))}
         </select>
       </div>
+
+      {banner.type === 'product' && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <ProductBannerInput label={t("Big title")} value={banner.product.hero} onChange={(value) => onChange(index, { product: { ...banner.product, hero: value } })} />
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">{t("Color theme")}</label>
+              <select
+                value={banner.product.colorTheme}
+                onChange={(e) => onChange(index, { product: { ...banner.product, colorTheme: e.target.value } })}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">{t("Red (default)")}</option>
+                <option value="purple">{t("Purple")}</option>
+              </select>
+            </div>
+            <ProductBannerInput label={t("Top text")} value={banner.product.topText} multiline onChange={(value) => onChange(index, { product: { ...banner.product, topText: value } })} />
+            <ProductBannerInput label={t("Left text")} value={banner.product.leftText} multiline onChange={(value) => onChange(index, { product: { ...banner.product, leftText: value } })} />
+            <ProductBannerInput label={t("Right text")} value={banner.product.rightText} multiline onChange={(value) => onChange(index, { product: { ...banner.product, rightText: value } })} />
+            <ProductBannerInput label={t("Image alt text")} value={banner.alt} onChange={(value) => onChange(index, { alt: value })} />
+            <ProductBannerInput label={t("Button text")} value={banner.product.buttonText} onChange={(value) => onChange(index, { product: { ...banner.product, buttonText: value } })} />
+            <ProductBannerInput label={t("Button link")} value={banner.product.buttonUrl} onChange={(value) => onChange(index, { product: { ...banner.product, buttonUrl: value } })} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <MediaField
+              label={t("Desktop media")}
+              media={banner.desktop}
+              onSelect={() => onOpenMediaPicker({ index, field: 'desktop' })}
+              onClear={() => onChange(index, { desktop: null })}
+            />
+            <MediaField
+              label={t("Mobile media")}
+              media={banner.mobile}
+              onSelect={() => onOpenMediaPicker({ index, field: 'mobile' })}
+              onClear={() => onChange(index, { mobile: null })}
+            />
+          </div>
+        </>
+      )}
 
       {(banner.type === 'image' || banner.type === 'video') && (
         <>

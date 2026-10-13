@@ -7,7 +7,7 @@ import { MESSAGE_FIELDS, MESSAGE_SECTIONS, pickVariant } from '@/constants/siteS
 export default function Messages() {
   const { t } = useTranslation()
   const { selectedSite } = useSiteModules()
-  const fields = pickVariant(MESSAGE_SECTIONS, selectedSite?.slug).map((id) => MESSAGE_FIELDS[id])
+  const fields = pickVariant(MESSAGE_SECTIONS, selectedSite?.template).map((id) => MESSAGE_FIELDS[id])
 
   return (
     <ModulePage

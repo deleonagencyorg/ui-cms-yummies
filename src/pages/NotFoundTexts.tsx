@@ -7,7 +7,7 @@ import { NOT_FOUND_FIELDS, NOT_FOUND_SECTIONS, pickVariant } from '@/constants/s
 export default function NotFoundTexts() {
   const { t } = useTranslation()
   const { selectedSite } = useSiteModules()
-  const fields = pickVariant(NOT_FOUND_SECTIONS, selectedSite?.slug).map((id) => NOT_FOUND_FIELDS[id])
+  const fields = pickVariant(NOT_FOUND_SECTIONS, selectedSite?.template).map((id) => NOT_FOUND_FIELDS[id])
 
   return (
     <ModulePage

@@ -69,7 +69,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         { name: t('nav.navigation'), path: '/navigation', icon: ContentListsIcon },
         { name: t('nav.socialMedia'), path: '/social-media', icon: DescubrenosIcon },
         { name: t('nav.topMessages'), path: '/top-messages', icon: ModalsIcon },
-        { name: t('nav.contact'), path: '/contact', icon: LanguageIcon },
+        { name: t('nav.contact'), path: '/contact', icon: ContactIcon },
         { name: t("Messages and forms"), path: '/messages', icon: ModalsIcon },
         { name: t('nav.modals'), path: '/modals', icon: ModalsIcon },
       ],
@@ -155,7 +155,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Site Selector */}
           {hasSites && (
             <div className="px-4 pt-4 pb-2 border-b border-border">
-              <label className="block text-xs font-medium text-muted-foreground mb-2">
+              <label className="block text-base font-medium text-muted-foreground mb-2">
                 {t('nav.selectSite') || 'Select Site'}
               </label>
               <select
@@ -760,6 +760,32 @@ function DescubrenosIcon({ className }: { className?: string }) {
         strokeLinejoin="round"
         d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
       />
+    </svg>
+  )
+}
+
+function ContactIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className={className}
+    >
+      {/* Cabeza */}
+      <circle cx="9" cy="7" r="3" />
+      {/* Torso */}
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4.5 19.5c0-3.75 2.5-6 4.5-6s4.5 2.25 4.5 6"
+      />
+      {/* Líneas horizontales */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5h5.25" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 14.25h5.25" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 18h5.25" />
     </svg>
   )
 }
