@@ -27,6 +27,7 @@ const columnHelper = createColumnHelper<RecipeResponse>()
 
 interface RecipeFormData {
   title: string
+  description: string
   slug: string
   date: string
   people: string
@@ -47,6 +48,7 @@ interface RecipeFormData {
 
 const initialFormData: RecipeFormData = {
   title: '',
+  description: '',
   slug: '',
   date: '',
   people: '',
@@ -116,6 +118,7 @@ export function RecipesPageContent() {
     setSelectedRecipe(recipe)
     setFormData({
       title: recipe.title,
+      description: recipe.description || '',
       slug: recipe.slug,
       date: recipe.date || '',
       people: recipe.people || '',
@@ -259,6 +262,7 @@ export function RecipesPageContent() {
       await createMutation.mutateAsync({
         siteId: selectedSiteId,
         title: formData.title,
+        description: formData.description,
         slug: formData.slug,
         date: formData.date || undefined,
         people: formData.people || undefined,
@@ -295,6 +299,7 @@ export function RecipesPageContent() {
         id: selectedRecipe.id,
         data: {
           title: formData.title,
+          description: formData.description,
           slug: formData.slug,
           date: formData.date || undefined,
           people: formData.people || undefined,
@@ -854,6 +859,18 @@ function RecipeFormModal({
                 />
                 {t("Mark as new")}
               </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-card-foreground mb-2">
+                {t("Description")}
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={t("Short description of the recipe")}
+              />
             </div>
           </div>
 

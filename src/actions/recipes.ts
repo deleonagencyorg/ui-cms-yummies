@@ -18,6 +18,7 @@ export interface RecipeResponse {
   id: string
   siteId: string | null
   title: string
+  description: string
   slug: string
   date: string
   people: string
@@ -45,6 +46,7 @@ export interface RecipeListResponse {
 export interface CreateRecipeRequest {
   siteId: string
   title: string
+  description?: string
   slug: string
   date?: string
   people?: string
@@ -65,6 +67,7 @@ export interface CreateRecipeRequest {
 
 export interface UpdateRecipeRequest {
   title?: string
+  description?: string
   slug?: string
   date?: string
   people?: string
