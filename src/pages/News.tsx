@@ -27,7 +27,7 @@ interface NewsFormData {
   subtitle: string
   image: string
   imageMobile: string
-  video?: MultimediaResponse | null
+  video: string
   gallery: string[]
   content: string
   excerpt: string
@@ -48,7 +48,7 @@ const initialFormData: NewsFormData = {
   image: '',
   imageMobile: '',
   gallery: [],
-  video: null,
+  video: '',
   content: '',
   excerpt: '',
   category: '',
@@ -106,6 +106,7 @@ export default function News() {
       subtitle: news.subtitle || '',
       image: news.image || '',
       imageMobile: news.imageMobile || '',
+      video: news.video || '',
       gallery: news.gallery || [],
       content: news.content || '',
       excerpt: news.excerpt || '',
@@ -247,6 +248,7 @@ export default function News() {
         subtitle: formData.subtitle || undefined,
         image: formData.image || undefined,
         imageMobile: formData.imageMobile || undefined,
+        video: formData.video,
         gallery: formData.gallery.length > 0 ? formData.gallery : undefined,
         content: formData.content || undefined,
         excerpt: formData.excerpt || undefined,
@@ -278,6 +280,7 @@ export default function News() {
           subtitle: formData.subtitle || undefined,
           image: formData.image || undefined,
           imageMobile: formData.imageMobile || undefined,
+          video: formData.video,
           gallery: formData.gallery,
           content: formData.content || undefined,
           excerpt: formData.excerpt || undefined,
@@ -320,7 +323,7 @@ export default function News() {
       setFormData((prev) => ({ ...prev, imageMobile: media.originalUrl }))
     }
     else if (mediaPickerTarget.type === 'video' || mediaPickerTarget.type === 'all') {
-      setFormData((prev) => ({ ...prev, video: media }))
+      setFormData((prev) => ({ ...prev, video: media.externalUrl || media.originalUrl }))
     } 
     else if (mediaPickerTarget.type === 'gallery') {
       if (mediaPickerTarget.index !== undefined) {
@@ -882,22 +885,22 @@ function NewsFormModal({
                   <VideoIcon className="w-5 h-5" />
                   {t("Select")}
                 </button>
+                <input
+                  type="url"
+                  value={formData.video}
+                  onChange={(e) => setFormData({ ...formData, video: e.target.value })}
+                  maxLength={500}
+                  className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  placeholder="https://"
+                />
                 {formData.video && (
-                  <>
-                    <div className="flex items-center gap-2 bg-secondary px-3 py-1 rounded border border-border">
-                      <VideoIcon className="w-4 h-4" />
-                      <span className="text-sm text-foreground truncate max-w-[200px]">
-                        {formData.video.fileName}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, video: null })}
-                      className="p-2 text-red-600 hover:text-red-800"
-                    >
-                      <XIcon className="w-4 h-4" />
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, video: '' })}
+                    className="p-2 text-red-600 hover:text-red-800"
+                  >
+                    <XIcon className="w-4 h-4" />
+                  </button>
                 )}
               </div>
             </div>

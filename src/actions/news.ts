@@ -16,6 +16,7 @@ export interface NewsResponse {
   subtitle: string
   image: string
   imageMobile: string
+  video: string
   gallery: string[]
   content: string
   excerpt: string
@@ -42,6 +43,7 @@ export interface CreateNewsRequest {
   subtitle?: string
   image?: string
   imageMobile?: string
+  video?: string
   gallery?: string[]
   content?: string
   excerpt?: string
@@ -61,6 +63,7 @@ export interface UpdateNewsRequest {
   subtitle?: string
   image?: string
   imageMobile?: string
+  video?: string
   gallery?: string[]
   content?: string
   excerpt?: string
