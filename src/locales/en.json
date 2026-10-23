@@ -354,7 +354,6 @@
   "Site pages": "Site pages",
   "Sections of the home page: titles, recipe videos and newsletter.": "Sections of the home page: titles, recipe videos and newsletter.",
   "About us page: header, history timeline and closing text.": "About us page: header, history timeline and closing text.",
-  "Health page with slides, videos and icons.": "Health page with slides, videos and icons.",
   "Page not found": "Page not found",
   "Texts of the 404 page.": "Texts of the 404 page.",
   "Whole site": "Whole site",
@@ -632,5 +631,13 @@
   "Show the products list": "Show the products list",
   "Show the games list": "Show the games list",
   "Show only in the mobile menu": "Show only in the mobile menu",
-  "Choose what this menu item does on the website.": "Choose what this menu item does on the website."
+  "Choose what this menu item does on the website.": "Choose what this menu item does on the website.",
+  "Home page sections": "Home page sections",
+  "Choose the blocks this site shows on its home page. Only these blocks appear in the Home page module.": "Choose the blocks this site shows on its home page. Only these blocks appear in the Home page module.",
+  "Only some sites show it.": "Only some sites show it.",
+  "Subtitle": "Subtitle",
+  "Column titles": "Column titles",
+  "\"Links\" column title": "\"Links\" column title",
+  "\"Social networks\" column title": "\"Social networks\" column title",
+  "Health page with videos and icons.": "Health page with videos and icons."
 }

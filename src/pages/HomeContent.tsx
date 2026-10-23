@@ -6,7 +6,7 @@ import SectionTextsForm from '@/components/SectionTextsForm'
 import SectionListEditor, { type SectionListField } from '@/components/SectionListEditor'
 import { useSiteModules } from '@/lib/siteModules'
 import { API_ENDPOINTS } from '@/constants/api'
-import { HOME_SECTIONS, HOME_SITE_SECTIONS, HOME_TEXT_GROUPS, pickVariant } from '@/constants/siteSections'
+import { HOME_SECTION_OPTIONS, HOME_TEXT_GROUPS } from '@/constants/siteSections'
 import { CappyBackToSchoolForm, CappyGamesForm } from '@/components/CappyHomeContent'
 
 const HOME_VIDEO_FIELDS: SectionListField[] = [
@@ -22,40 +22,10 @@ const DELIVERY_APP_FIELDS: SectionListField[] = [
   { name: 'iconId', label: 'Logo', type: 'image' },
 ]
 
-const TAB_LABELS: Record<string, string> = {
-  products: 'Products section',
-  recipes: 'Recipes section',
-  videos: 'Recipe videos',
-  newsletter: 'Newsletter',
-  games: 'Games',
-  backToSchool: 'Back-to-school promotion',
-  cardVideo: 'Video feature card',
-  cardQuiz: 'Quiz feature card',
-  textHome: 'Home introduction',
-  yummiPopsTextHome: 'Home introduction',
-  discover: 'Discover section',
-  brands: 'Brands section',
-  newProducts: 'New products',
-  quiz: 'Quiz invitation',
-  social: 'Social networks and newsletter',
-  delivery: 'Where to find us',
-  productsHeading: 'Products section',
-  gallery: 'Gallery section',
-  whereToBuy: 'Where to buy',
-}
-
 export default function HomeContent() {
   const { t } = useTranslation()
   const { selectedSite, isModuleEnabled } = useSiteModules()
-  const siteKeys = [selectedSite?.slug, selectedSite?.name]
-    .filter((value): value is string => !!value)
-    .map((value) => value.toLowerCase().replace(/[^a-z0-9]/g, ''))
-  const siteSections = Object.entries(HOME_SITE_SECTIONS)
-    .find(([key]) => siteKeys.some((siteKey) => siteKey === key || siteKey.startsWith(key)))?.[1] ?? []
-  const sections = [...new Set([
-    ...pickVariant(HOME_SECTIONS, selectedSite?.template),
-    ...siteSections,
-  ])]
+  const sections = (selectedSite?.homeSections ?? []).filter((id) => HOME_SECTION_OPTIONS.some((option) => option.key === id))
 
   const extras: Record<string, ReactNode> = {
     videos: (
@@ -114,7 +84,7 @@ export default function HomeContent() {
     const group = HOME_TEXT_GROUPS[id]
     return {
       key: id,
-      label: t(TAB_LABELS[id]),
+      label: t(HOME_SECTION_OPTIONS.find((option) => option.key === id)?.label ?? id),
       content: (
         <div className="space-y-6">
           {group?.fields.length ? (

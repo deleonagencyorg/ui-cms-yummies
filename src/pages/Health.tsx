@@ -101,7 +101,6 @@ function formDataToPayload(
     title: formData.title,
     description: formData.description,
     imageId: formData.image?.id ?? null,
-    slider: [],
     videosSectionTitle: formData.videosSectionTitle,
     videosSectionDescription: formData.videosSectionDescription,
     videos: formData.videos.map((video, index) => ({
@@ -1115,7 +1114,7 @@ export default function Health() {
   return (
     <ModulePage
       title={t("Health")}
-      description={t("Health page with slides, videos and icons.")}
+      description={t("Health page with videos and icons.")}
       tabs={[
         { key: 'page', label: t("Health page"), content: <HealthPageContent /> },
         {

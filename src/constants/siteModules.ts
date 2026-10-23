@@ -49,7 +49,7 @@ export const SITE_MODULE_GROUPS: SiteModuleGroup[] = [
       { key: 'home', label: 'Home page', description: 'Sections of the home page: titles, recipe videos and newsletter.' },
       { key: 'about_us', label: 'About us', description: 'About us page: header, history timeline and closing text.' },
       { key: 'pages', label: 'Pages', description: 'Banners and SEO of each page.' },
-      { key: 'health', label: 'Health', description: 'Health page with slides, videos and icons.' },
+      { key: 'health', label: 'Health', description: 'Health page with videos and icons.' },
       { key: 'descubrenos', label: 'Descúbrenos', description: 'Instagram posts section.' },
       { key: 'gallery', label: 'Gallery', description: 'Image gallery.' },
       { key: 'zambos_truck', label: 'Zambos Truck', description: 'Zambos Truck page and request form.' },

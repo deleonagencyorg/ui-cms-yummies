@@ -1008,7 +1008,6 @@
   "Site pages": "Páginas del sitio",
   "Sections of the home page: titles, recipe videos and newsletter.": "Secciones de la página de inicio: títulos, videos de recetas y newsletter.",
   "About us page: header, history timeline and closing text.": "Página Nosotros: encabezado, línea de tiempo de la historia y texto de cierre.",
-  "Health page with slides, videos and icons.": "Página de salud con slides, videos e íconos.",
   "Page not found": "Página 404",
   "Texts of the 404 page.": "Textos de la página 404.",
   "Whole site": "Global",
@@ -1265,5 +1264,12 @@
   "Show the products list": "Mostrar la lista de productos",
   "Show the games list": "Mostrar la lista de juegos",
   "Show only in the mobile menu": "Mostrar solo en el menú del celular",
-  "Choose what this menu item does on the website.": "Elige qué hace esta opción del menú en el sitio web."
+  "Choose what this menu item does on the website.": "Elige qué hace esta opción del menú en el sitio web.",
+  "Home page sections": "Secciones de la página de inicio",
+  "Choose the blocks this site shows on its home page. Only these blocks appear in the Home page module.": "Elige los bloques que este sitio muestra en su página de inicio. Solo estos bloques aparecen en el módulo Página de inicio.",
+  "Only some sites show it.": "Solo algunos sitios lo muestran.",
+  "Column titles": "Títulos de columnas",
+  "\"Links\" column title": "Título de la columna de enlaces",
+  "\"Social networks\" column title": "Título de la columna de redes sociales",
+  "Health page with videos and icons.": "Página de salud con videos e íconos."
 }

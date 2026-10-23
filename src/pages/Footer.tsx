@@ -13,7 +13,6 @@ import { API_ENDPOINTS } from '@/constants/api'
 import {
   FOOTER_FIELD_GROUPS,
   FOOTER_FIELDS,
-  FOOTER_LINK_SITES,
   FOOTER_PHONE_FIELDS,
   FOOTER_PHONE_SITES,
   pickVariant,
@@ -156,24 +155,22 @@ export default function FooterPage() {
   const showPhones = pickVariant(FOOTER_PHONE_SITES, selectedSite?.template)
 
   const tabs = [{ key: 'texts', label: t("Footer texts"), content: <FooterTextsForm /> }]
-  if (pickVariant(FOOTER_LINK_SITES, selectedSite?.template)) {
-    tabs.push({
-      key: 'links',
-      label: t("Footer links"),
-      content: (
-        <SectionListEditor
-          title={t("Footer links")}
-          description={t("Links listed in the footer, in this order.")}
-          endpoint={API_ENDPOINTS.SECTION_LISTS.FOOTER_LINKS}
-          fields={LINK_FIELDS}
-          itemLabel="Link"
-          addLabel="Add link"
-          emptyMessage="There are no links yet."
-          itemTitle={(item) => item.label}
-        />
-      ),
-    })
-  }
+  tabs.push({
+    key: 'links',
+    label: t("Footer links"),
+    content: (
+      <SectionListEditor
+        title={t("Footer links")}
+        description={t("Links listed in the footer, in this order.")}
+        endpoint={API_ENDPOINTS.SECTION_LISTS.FOOTER_LINKS}
+        fields={LINK_FIELDS}
+        itemLabel="Link"
+        addLabel="Add link"
+        emptyMessage="There are no links yet."
+        itemTitle={(item) => item.label}
+      />
+    ),
+  })
   if (showPhones) {
     tabs.push({
       key: 'phones',
