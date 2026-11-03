@@ -28,6 +28,7 @@ interface SectionListEditorProps {
   addLabel: string
   emptyMessage: string
   itemTitle: (item: Record<string, string>, index: number) => string
+  section?: string
 }
 
 type FormItem = Record<string, string> & { _key: string }
@@ -77,15 +78,16 @@ export default function SectionListEditor({
   addLabel,
   emptyMessage,
   itemTitle,
+  section,
 }: SectionListEditorProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { selectedSiteId } = useSite()
   const languageCode = useContentLanguage()
-  const queryKey = ['section-list', endpoint, selectedSiteId, languageCode]
+  const queryKey = ['section-list', endpoint, selectedSiteId, languageCode, section ?? '']
   const { data, isLoading, error } = useQuery({
     queryKey,
-    queryFn: () => sectionListActions.getAll<Record<string, unknown>>(endpoint, selectedSiteId!, languageCode),
+    queryFn: () => sectionListActions.getAll<Record<string, unknown>>(endpoint, selectedSiteId!, languageCode, section),
     enabled: !!selectedSiteId && !!languageCode,
   })
   const [items, setItems] = useState<FormItem[]>([])
@@ -134,7 +136,7 @@ export default function SectionListEditor({
     }
     setIsSaving(true)
     try {
-      const response = await sectionListActions.replace(endpoint, selectedSiteId, languageCode, toPayload(items, fields))
+      const response = await sectionListActions.replace(endpoint, selectedSiteId, languageCode, toPayload(items, fields), section)
       queryClient.setQueryData(queryKey, response)
       setItems(toFormItems(response.data as Record<string, unknown>[], fields))
       setIsDirty(false)

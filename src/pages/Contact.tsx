@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
 import Layout from '@/components/Layout'
+import MediaPicker from '@/components/MediaPicker'
+import type { MultimediaResponse } from '@/actions/multimedia'
 import Pagination from '@/components/Pagination'
 import { useSite } from '@/contexts/SiteContext'
 import type {
@@ -46,6 +48,8 @@ interface OfficeFormItem {
   fax: string
   email: string
   mapEmbed: string
+  imageId: string
+  imagePreviewUrl: string
   order: number
 }
 
@@ -54,6 +58,7 @@ interface ContactFormData {
   languageCode: string
   title: string
   subtitle: string
+  subtitleTwo: string
   description: string
   email: string
   phone: string
@@ -100,6 +105,8 @@ function emptyOffice(index: number): OfficeFormItem {
     fax: '',
     email: '',
     mapEmbed: '',
+    imageId: '',
+    imagePreviewUrl: '',
     order: index,
   }
 }
@@ -109,6 +116,7 @@ const createInitialFormData = (siteId = ''): ContactFormData => ({
   languageCode: '',
   title: '',
   subtitle: '',
+  subtitleTwo: '',
   description: '',
   email: '',
   phone: '',
@@ -148,6 +156,7 @@ function configToFormData(config: ContactConfig): ContactFormData {
     languageCode: config.languageCode ?? '',
     title: config.title ?? '',
     subtitle: config.subtitle ?? '',
+    subtitleTwo: config.subtitleTwo ?? '',
     description: config.description ?? '',
     email: config.email ?? '',
     phone: config.phone ?? '',
@@ -180,6 +189,8 @@ function configToFormData(config: ContactConfig): ContactFormData {
           fax: office.fax ?? '',
           email: office.email ?? '',
           mapEmbed: office.mapEmbed ?? '',
+          imageId: office.imageId ?? '',
+          imagePreviewUrl: office.imageUrl ?? '',
           order: office.order ?? index,
         })),
     },
@@ -205,6 +216,7 @@ function formDataToPayload(
     languageCode: formData.languageCode,
     title: formData.title,
     subtitle: formData.subtitle,
+    subtitleTwo: formData.subtitleTwo,
     description: formData.description,
     email: formData.email,
     phone: formData.phone,
@@ -235,6 +247,7 @@ function formDataToPayload(
         fax: office.fax || undefined,
         email: office.email,
         mapEmbed: office.mapEmbed,
+        imageId: office.imageId || null,
         order: index,
       })),
     },
@@ -774,7 +787,25 @@ function ContactFormModal({
   onUpdateOfficeField,
 }: ContactFormModalProps) {
   const { t } = useTranslation()
-  const setTop = (key: 'title' | 'subtitle' | 'description' | 'email' | 'phone' | 'languageCode', value: string) =>
+  const [officeImageIndex, setOfficeImageIndex] = useState<number | null>(null)
+  const setOfficeImage = (index: number, media: MultimediaResponse | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      offices: {
+        ...prev.offices,
+        locations: prev.offices.locations.map((office, i) =>
+          i === index
+            ? {
+                ...office,
+                imageId: media?.id ?? '',
+                imagePreviewUrl: media ? media.thumbnailUrl || media.originalUrl : '',
+              }
+            : office
+        ),
+      },
+    }))
+  }
+  const setTop = (key: 'title' | 'subtitle' | 'subtitleTwo' | 'description' | 'email' | 'phone' | 'languageCode', value: string) =>
     setFormData({ ...formData, [key]: value })
 
   const setFormField = <K extends keyof ContactFormData['form']>(
@@ -846,6 +877,14 @@ function ContactFormModal({
                 value={formData.subtitle}
                 onChange={(v) => setTop('subtitle', v)}
               />
+              <div>
+                <TextField
+                  label={t("Second subtitle")}
+                  value={formData.subtitleTwo}
+                  onChange={(v) => setTop('subtitleTwo', v)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">{t("Only some sites show it.")}</p>
+              </div>
               <TextField label={t("Email")} value={formData.email} onChange={(v) => setTop('email', v)} />
               <TextField label={t("Phone")} value={formData.phone} onChange={(v) => setTop('phone', v)} />
             </div>
@@ -1028,6 +1067,32 @@ function ContactFormModal({
                       </div>
                     </div>
 
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setOfficeImageIndex(index)}
+                        className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors text-sm"
+                      >
+                        {t("Office image")}
+                      </button>
+                      {office.imagePreviewUrl && (
+                        <img
+                          src={office.imagePreviewUrl}
+                          alt={office.name || t("Office")}
+                          className="w-12 h-12 object-cover rounded border border-border"
+                        />
+                      )}
+                      {office.imageId && (
+                        <button
+                          type="button"
+                          onClick={() => setOfficeImage(index, null)}
+                          className="p-1.5 text-red-600 hover:text-red-800"
+                          title={t("Remove")}
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <TextField
                         label={t("Country Code")}
@@ -1125,6 +1190,17 @@ function ContactFormModal({
             </button>
           </div>
         </form>
+        <MediaPicker
+          isOpen={officeImageIndex !== null}
+          onClose={() => setOfficeImageIndex(null)}
+          title={t("Office image")}
+          type="image"
+          onSelect={(media) => {
+            if (officeImageIndex === null) return
+            setOfficeImage(officeImageIndex, media)
+            setOfficeImageIndex(null)
+          }}
+        />
       </div>
     </div>
   )

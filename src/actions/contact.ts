@@ -32,6 +32,8 @@ export interface ContactOffice {
   fax?: string
   email: string
   mapEmbed: string
+  imageId?: string | null
+  imageUrl?: string
   order: number
 }
 
@@ -51,6 +53,7 @@ export interface ContactConfig {
   languageCode: string
   title: string
   subtitle: string
+  subtitleTwo: string
   description: string
   email: string
   phone: string
@@ -95,6 +98,7 @@ export interface CreateContactOfficeRequest {
   fax?: string
   email?: string
   mapEmbed?: string
+  imageId?: string | null
   order?: number
 }
 
@@ -103,6 +107,7 @@ export interface CreateContactConfigRequest {
   languageCode: string
   title?: string
   subtitle?: string
+  subtitleTwo?: string
   description?: string
   email?: string
   phone?: string
@@ -122,6 +127,7 @@ export interface UpdateContactConfigRequest {
   languageCode?: string
   title?: string
   subtitle?: string
+  subtitleTwo?: string
   description?: string
   email?: string
   phone?: string

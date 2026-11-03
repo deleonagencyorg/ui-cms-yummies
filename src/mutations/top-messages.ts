@@ -21,7 +21,7 @@ export const useCreateTopMessage = (
     ...options,
     mutationFn: topMessageActions.create,
     onSuccess: (data, variables, context, mutation) => {
-      queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.lists() })
+      queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.all })
       toast.success('Top Message created successfully!')
       options?.onSuccess?.(data, variables, context, mutation)
     },
@@ -41,7 +41,7 @@ export const useUpdateTopMessage = (
     ...options,
     mutationFn: ({ id, data }) => topMessageActions.update(id, data),
     onSuccess: (data, variables, context, mutation) => {
-      queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.lists() })
+      queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.all })
       toast.success('Top Message updated successfully!')
       options?.onSuccess?.(data, variables, context, mutation)
     },
@@ -61,7 +61,7 @@ export const useDeleteTopMessage = (
     ...options,
     mutationFn: topMessageActions.delete,
     onSuccess: (data, variables, context, mutation) => {
-      queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.lists() })
+      queryClient.invalidateQueries({ queryKey: TOP_MESSAGE_KEYS.all })
       toast.success('Top Message deleted successfully!')
       options?.onSuccess?.(data, variables, context, mutation)
     },

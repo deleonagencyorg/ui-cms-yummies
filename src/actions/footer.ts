@@ -11,9 +11,6 @@ export interface FooterConfig {
   choose: string
   followUs: string
   contactUs: string
-  instagramText: string
-  facebookText: string
-  tiktokText: string
   mainText2: string
   email: string
   copyright: string
@@ -23,15 +20,6 @@ export interface FooterConfig {
   newsletterDescription: string
   emailPlaceholder: string
   home: string
-  products: string
-  health: string
-  latestNews: string
-  contact: string
-  support: string
-  privacyPolicy: string
-  cookiePolicy: string
-  termsConditions: string
-  complaintsBook: string
   help: string
   contactTitle: string
   address: string
@@ -55,9 +43,6 @@ export interface CreateFooterConfigRequest {
   choose?: string
   followUs?: string
   contactUs?: string
-  instagramText?: string
-  facebookText?: string
-  tiktokText?: string
   mainText2?: string
   email?: string
   copyright?: string
@@ -67,15 +52,6 @@ export interface CreateFooterConfigRequest {
   newsletterDescription?: string
   emailPlaceholder?: string
   home?: string
-  products?: string
-  health?: string
-  latestNews?: string
-  contact?: string
-  support?: string
-  privacyPolicy?: string
-  cookiePolicy?: string
-  termsConditions?: string
-  complaintsBook?: string
   help?: string
   contactTitle?: string
   address?: string

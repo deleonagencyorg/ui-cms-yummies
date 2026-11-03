@@ -3,17 +3,6 @@ import { API_ENDPOINTS } from '@/constants/api'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import type { Pagination } from './departments'
 
-export interface HealthSlide {
-  id: string
-  desktop: MultimediaResponse | null
-  mobile: MultimediaResponse | null
-  alt: string
-  title: string
-  description: string
-  link: string
-  order: number
-}
-
 export interface HealthVideo {
   id: string
   title: string
@@ -31,7 +20,6 @@ export interface HealthConfig {
   title: string
   description: string
   image: MultimediaResponse | null
-  slider: HealthSlide[]
   videosSectionTitle: string
   videosSectionDescription: string
   videos: HealthVideo[]
@@ -42,16 +30,6 @@ export interface HealthConfig {
 export interface HealthListResponse {
   data: HealthConfig[]
   pagination: Pagination
-}
-
-export interface CreateHealthSlideRequest {
-  desktopImageId?: string | null
-  mobileImageId?: string | null
-  alt?: string
-  title?: string
-  description?: string
-  link?: string
-  order?: number
 }
 
 export interface CreateHealthVideoRequest {
@@ -67,7 +45,6 @@ export interface CreateHealthConfigRequest {
   title?: string
   description?: string
   imageId?: string | null
-  slider?: CreateHealthSlideRequest[]
   videosSectionTitle?: string
   videosSectionDescription?: string
   videos?: CreateHealthVideoRequest[]
@@ -79,7 +56,6 @@ export interface UpdateHealthConfigRequest {
   title?: string
   description?: string
   imageId?: string | null
-  slider?: CreateHealthSlideRequest[]
   videosSectionTitle?: string
   videosSectionDescription?: string
   videos?: CreateHealthVideoRequest[]

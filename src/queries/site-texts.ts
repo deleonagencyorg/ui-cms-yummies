@@ -22,6 +22,7 @@ export const useSiteTextList = (
     queryKey: SITE_TEXT_KEYS.list(filters),
     queryFn: () => siteTextActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

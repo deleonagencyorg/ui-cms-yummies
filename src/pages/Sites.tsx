@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
 import SiteModulesField from '@/components/SiteModulesField'
+import HomeSectionsField from '@/components/HomeSectionsField'
 import { SITE_TEMPLATE_OPTIONS, type SiteTemplateKey } from '@/constants/siteTemplates'
 import Pagination from '@/components/Pagination'
 import MediaPicker, { type MediaUrlVariant } from '@/components/MediaPicker'
@@ -43,6 +44,7 @@ export default function Sites() {
     sitemapEnabled: true,
     enabledModules: [],
     template: 'standard',
+    homeSections: [],
   })
 
   const { data, isLoading, error } = useSites({
@@ -92,6 +94,7 @@ export default function Sites() {
       sitemapEnabled: true,
       enabledModules: [],
       template: 'standard',
+      homeSections: [],
     })
   }
 
@@ -114,6 +117,7 @@ export default function Sites() {
       sitemapEnabled: site.sitemapEnabled,
       enabledModules: site.enabledModules ?? [],
       template: site.template ?? 'standard',
+      homeSections: site.homeSections ?? [],
     })
     setIsEditModalOpen(true)
   }
@@ -248,6 +252,7 @@ export default function Sites() {
       sitemapEnabled: formData.sitemapEnabled,
       enabledModules: formData.enabledModules ?? [],
       template: formData.template ?? 'standard',
+      homeSections: formData.homeSections ?? [],
     })
   }
 
@@ -274,6 +279,7 @@ export default function Sites() {
         sitemapEnabled: formData.sitemapEnabled,
         enabledModules: formData.enabledModules ?? [],
         template: formData.template ?? 'standard',
+        homeSections: formData.homeSections ?? [],
       }
     })
   }
@@ -519,6 +525,13 @@ export default function Sites() {
               value={formData.enabledModules ?? []}
               onChange={(enabledModules) => setFormData({ ...formData, enabledModules })}
             />
+
+            {(formData.enabledModules ?? []).includes('home') && (
+              <HomeSectionsField
+                value={formData.homeSections ?? []}
+                onChange={(homeSections) => setFormData({ ...formData, homeSections })}
+              />
+            )}
 
             {/* SEO */}
             <div>

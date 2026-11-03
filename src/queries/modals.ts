@@ -22,6 +22,7 @@ export const useModalList = (
     queryKey: MODAL_KEYS.list(filters),
     queryFn: () => modalActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

@@ -22,6 +22,7 @@ export const useRecipes = (
     queryKey: RECIPE_KEYS.list(filters),
     queryFn: () => recipeActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

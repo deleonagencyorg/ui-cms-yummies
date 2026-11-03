@@ -2,10 +2,10 @@ import { useTranslation } from 'react-i18next'
 import { useState, useMemo } from 'react'
 import Layout from '@/components/Layout'
 import { useLanguages } from '@/queries/languages'
-import { useBrands } from '@/queries/brands'
 import { useTopMessages } from '@/queries/top-messages'
 import { useCreateTopMessage, useUpdateTopMessage, useDeleteTopMessage } from '@/mutations/top-messages'
 import type { TopMessageResponse } from '@/actions/top-messages'
+import { useSite } from '@/contexts/SiteContext'
 import {
   useReactTable,
   getCoreRowModel,
@@ -20,7 +20,6 @@ interface TopMessageFormData {
   title: string
   link: string
   order: number
-  brandId: string
   languageCode: string
 }
 
@@ -28,7 +27,6 @@ const initialFormData: TopMessageFormData = {
   title: '',
   link: '',
   order: 0,
-  brandId: '',
   languageCode: '',
 }
 
@@ -41,16 +39,15 @@ export function TopMessagesContent() {
   const [formData, setFormData] = useState<TopMessageFormData>(initialFormData)
 
   // Filtros de búsqueda
-  const [filterBrandId, setFilterBrandId] = useState<string>('')
+  const { selectedSiteId } = useSite()
   const [filterLanguageCode, setFilterLanguageCode] = useState<string>('')
 
-  // Consultas de datos
+  const { data: unassignedMessages } = useTopMessages({ unassigned: true })
   const { data: messages, isLoading, error } = useTopMessages({
-    brandId: filterBrandId || undefined,
+    siteId: selectedSiteId || undefined,
     languageCode: filterLanguageCode || undefined,
   })
   const { data: languagesData } = useLanguages({ page: 1, pageSize: 100, isActive: true })
-  const { data: brandsData } = useBrands({ page: 1, pageSize: 100 })
 
   // Mutaciones
   const createMutation = useCreateTopMessage()
@@ -61,10 +58,6 @@ export function TopMessagesContent() {
   const languagesMap = useMemo(() => {
     return new Map(languagesData?.data?.map((l) => [l.code, l.name]) || [])
   }, [languagesData])
-
-  const brandsMap = useMemo(() => {
-    return new Map(brandsData?.data?.map((b) => [b.id, b.name]) || [])
-  }, [brandsData])
 
   const openCreateModal = () => {
     createMutation.reset()
@@ -79,7 +72,6 @@ export function TopMessagesContent() {
       title: message.title || '',
       link: message.link || '',
       order: message.order ?? 0,
-      brandId: message.brandId || '',
       languageCode: message.languageCode || '',
     })
     setIsEditModalOpen(true)
@@ -92,7 +84,6 @@ export function TopMessagesContent() {
   }
 
   const clearFilters = () => {
-    setFilterBrandId('')
     setFilterLanguageCode('')
   }
 
@@ -133,17 +124,6 @@ export function TopMessagesContent() {
           )
         },
       }),
-      columnHelper.accessor('brandId', {
-        header: t("Marca"),
-        cell: (info) => {
-          const brandId = info.getValue()
-          return (
-            <span className="text-sm text-muted-foreground">
-              {brandId ? (brandsMap.get(brandId) || `ID: ${brandId}`) : '-'}
-            </span>
-          )
-        },
-      }),
       columnHelper.accessor('languageCode', {
         header: t("Idioma"),
         cell: (info) => {
@@ -178,7 +158,7 @@ export function TopMessagesContent() {
         ),
       }),
     ],
-    [brandsMap, languagesMap, t]
+    [languagesMap, t]
   )
 
   const table = useReactTable({
@@ -189,12 +169,13 @@ export function TopMessagesContent() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!selectedSiteId) return
     try {
       await createMutation.mutateAsync({
         title: formData.title,
         link: formData.link || undefined,
         order: Number(formData.order) || 0,
-        brandId: formData.brandId,
+        siteId: selectedSiteId,
         languageCode: formData.languageCode,
       })
       setIsCreateModalOpen(false)
@@ -206,7 +187,7 @@ export function TopMessagesContent() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedMessage) return
+    if (!selectedMessage || !selectedSiteId) return
     try {
       await updateMutation.mutateAsync({
         id: selectedMessage.id,
@@ -214,7 +195,7 @@ export function TopMessagesContent() {
           title: formData.title,
           link: formData.link || undefined,
           order: Number(formData.order) || 0,
-          brandId: formData.brandId,
+          siteId: selectedSiteId,
           languageCode: formData.languageCode,
         },
       })
@@ -223,6 +204,24 @@ export function TopMessagesContent() {
       setFormData(initialFormData)
     } catch (err) {
       console.error('Failed to update top message:', err)
+    }
+  }
+
+  const assignToSite = async (message: TopMessageResponse) => {
+    if (!selectedSiteId) return
+    try {
+      await updateMutation.mutateAsync({
+        id: message.id,
+        data: {
+          title: message.title,
+          link: message.link,
+          order: message.order,
+          languageCode: message.languageCode,
+          siteId: selectedSiteId,
+        },
+      })
+    } catch (err) {
+      console.error('Failed to assign top message:', err)
     }
   }
 
@@ -237,7 +236,7 @@ export function TopMessagesContent() {
     }
   }
 
-  const hasActiveFilters = Boolean(filterBrandId || filterLanguageCode)
+  const hasActiveFilters = Boolean(filterLanguageCode)
 
   return (
     <>
@@ -254,33 +253,38 @@ export function TopMessagesContent() {
             </div>
             <button
               onClick={openCreateModal}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+              disabled={!selectedSiteId}
+              title={!selectedSiteId ? t("Select a site in the sidebar first") : undefined}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <PlusIcon className="w-5 h-5" />
               {t("Crear Cintillo")}
             </button>
           </div>
 
+          {(unassignedMessages?.length ?? 0) > 0 && (
+            <div className="mb-6 rounded-lg border border-border bg-secondary/40 p-4 space-y-3">
+              <p className="text-sm text-card-foreground">
+                {t("These messages are not on any site. Assign them to the site selected in the sidebar.")}
+              </p>
+              {unassignedMessages?.map((message) => (
+                <div key={message.id} className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-sm text-card-foreground">{message.title}</span>
+                  <button
+                    type="button"
+                    onClick={() => void assignToSite(message)}
+                    disabled={!selectedSiteId || updateMutation.isPending}
+                    className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm disabled:opacity-50"
+                  >
+                    {t("Assign to this site")}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Filtros de la tabla */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6 pb-6 border-b border-border">
-            <div className="flex-1 max-w-xs">
-              <label className="block text-xs font-medium text-muted-foreground mb-1">
-                {t("Filtrar por Marca")}
-              </label>
-              <select
-                value={filterBrandId}
-                onChange={(e) => setFilterBrandId(e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">{t("Todas las marcas")}</option>
-                {brandsData?.data?.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div className="flex-1 max-w-xs">
               <label className="block text-xs font-medium text-muted-foreground mb-1">
                 {t("Filtrar por Idioma")}
@@ -418,21 +422,6 @@ export function TopMessagesContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Marca *")}</label>
-                <select
-                  value={formData.brandId}
-                  onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                >
-                  <option value="">{t("Selecciona una marca")}</option>
-                  {brandsData?.data?.map((brand) => (
-                    <option key={brand.id} value={brand.id}>{brand.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">{t("Idioma *")}</label>
                 <select
                   value={formData.languageCode}
@@ -460,7 +449,7 @@ export function TopMessagesContent() {
                   disabled={createMutation.isPending}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 text-sm font-medium"
                 >
-                  {createMutation.isPending ? t("Updating...") : t("Update")}
+                  {createMutation.isPending ? t("Creating...") : t("Create")}
                 </button>
               </div>
             </form>
@@ -518,21 +507,6 @@ export function TopMessagesContent() {
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                   placeholder={t("Ej: https://ejemplo.com/promocion")}
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-card-foreground mb-2">{t("Marca *")}</label>
-                <select
-                  value={formData.brandId}
-                  onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                >
-                  <option value="">{t("Selecciona una marca")}</option>
-                  {brandsData?.data?.map((brand) => (
-                    <option key={brand.id} value={brand.id}>{brand.name}</option>
-                  ))}
-                </select>
               </div>
 
               <div>

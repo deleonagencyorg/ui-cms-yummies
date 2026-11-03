@@ -23,6 +23,7 @@ export const useDescubrenosList = (
     queryKey: DESCUBRENOS_KEYS.list(filters),
     queryFn: () => descubrenosActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

@@ -383,6 +383,8 @@ export default function News() {
     }))
   }
 
+  const newsCategories = [...new Set((data?.data ?? []).map((item) => item.category).filter(Boolean))]
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -422,12 +424,18 @@ export default function News() {
               type="text"
               placeholder={t("Filter by category...")}
               value={filterCategory}
+              list="news-categories"
               onChange={(e) => {
                 setFilterCategory(e.target.value)
                 setPage(1)
               }}
               className="w-48 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            <datalist id="news-categories">
+              {newsCategories.map((category) => (
+                <option key={category} value={category} />
+              ))}
+            </datalist>
             <select
               value={filterPublished}
               onChange={(e) => {
@@ -726,6 +734,7 @@ function NewsFormModal({
                 <input
                   type="text"
                   value={formData.category}
+                  list="news-categories"
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   maxLength={100}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"

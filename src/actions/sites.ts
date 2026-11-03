@@ -22,6 +22,7 @@ export interface SiteResponse {
   sitemapEnabled: boolean
   enabledModules: SiteModuleKey[]
   template: SiteTemplateKey
+  homeSections: string[]
   createdAt: string
   updatedAt: string
 }
@@ -48,6 +49,7 @@ export interface CreateSiteRequest {
   sitemapEnabled?: boolean
   enabledModules?: SiteModuleKey[]
   template?: SiteTemplateKey
+  homeSections?: string[]
 }
 
 export interface UpdateSiteRequest {
@@ -67,6 +69,7 @@ export interface UpdateSiteRequest {
   sitemapEnabled?: boolean
   enabledModules?: SiteModuleKey[]
   template?: SiteTemplateKey
+  homeSections?: string[]
 }
 
 export interface SiteFiltersRequest {

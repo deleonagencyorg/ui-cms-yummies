@@ -1132,6 +1132,7 @@ function ZambosTruckFormModal({
                   label={t("Category")}
                   value={item.category}
                   placeholder={t("Eventos")}
+                  suggestions={[...new Set(formData.galleryImages.map((image) => image.category).filter(Boolean))]}
                   onChange={(v) =>
                     setFormData((prev) => ({
                       ...prev,

@@ -1,10 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
-import Layout from '@/components/Layout'
 import ModulePage from '@/components/ModulePage'
 import SectionTextsForm from '@/components/SectionTextsForm'
-import { useSiteModules } from '@/lib/siteModules'
-import { BREADCRUMB_FIELD_KEYS, BREADCRUMB_FIELDS, BREADCRUMB_SITES, HEADER_TEXT_FIELDS, HEADER_TEXT_SITES, MENU_ITEM_ACTIONS, pickVariant } from '@/constants/siteSections'
+import { BREADCRUMB_FIELDS, HEADER_TEXT_FIELDS, MENU_ITEM_ACTIONS } from '@/constants/siteSections'
 import Pagination from '@/components/Pagination'
 import Modal from '@/components/Modal'
 import TextField from '@/components/TextField'
@@ -476,40 +474,26 @@ export function NavigationPageContent() {
 
 export default function NavigationPage() {
   const { t } = useTranslation()
-  const { selectedSite } = useSiteModules()
 
-  const template = selectedSite?.template ?? ''
-  const tabs = [{ key: 'menu', label: t("Menu"), content: <NavigationPageContent /> }]
-  if (HEADER_TEXT_SITES.includes(template)) {
-    tabs.push({
+  const tabs = [
+    { key: 'menu', label: t("Menu"), content: <NavigationPageContent /> },
+    {
       key: 'header-texts',
       label: t("Header buttons"),
       content: <SectionTextsForm title={t("Header buttons")} description={t("Texts of the buttons in the header menu.")} fields={HEADER_TEXT_FIELDS} />,
-    })
-  }
-  if (BREADCRUMB_SITES.includes(template)) {
-    const breadcrumbKeys = pickVariant(BREADCRUMB_FIELD_KEYS, template)
-    const breadcrumbFields = breadcrumbKeys === 'all' ? BREADCRUMB_FIELDS : BREADCRUMB_FIELDS.filter((field) => breadcrumbKeys.includes(field.key))
-    tabs.push({
+    },
+    {
       key: 'breadcrumbs',
       label: t("Breadcrumbs"),
       content: (
         <SectionTextsForm
           title={t("Breadcrumbs")}
           description={t("Names shown in the path at the top of each page (Home > Product). Leave empty to use the section name.")}
-          fields={breadcrumbFields}
+          fields={BREADCRUMB_FIELDS}
         />
       ),
-    })
-  }
-
-  if (tabs.length === 1) {
-    return (
-      <Layout>
-        <NavigationPageContent />
-      </Layout>
-    )
-  }
+    },
+  ]
 
   return <ModulePage title={t("Navigation")} description={t("Header menu and breadcrumbs.")} tabs={tabs} />
 }
@@ -550,7 +534,7 @@ function NavigationFormModal({
   const { t } = useTranslation()
   const set = <K extends keyof NavigationFormData>(key: K, value: NavigationFormData[K]) =>
     setFormData({ ...formData, [key]: value })
-  const actionOptions = pickVariant(MENU_ITEM_ACTIONS, sites.find((site) => site.id === formData.siteId)?.template)
+  const actionOptions = MENU_ITEM_ACTIONS
 
   return (
     <Modal title={title} onClose={onClose} maxWidth="max-w-4xl" scrollBody>

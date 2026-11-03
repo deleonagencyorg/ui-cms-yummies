@@ -22,6 +22,7 @@ export const useProducts = (
     queryKey: PRODUCT_KEYS.list(filters),
     queryFn: () => productActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

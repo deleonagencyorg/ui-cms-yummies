@@ -24,8 +24,11 @@ export const HOME_TEXT_GROUPS: Record<string, SectionTextGroup> = {
   products: {
     id: 'products',
     title: 'Products section',
-    description: 'Title shown above the products on the home page.',
-    fields: [{ key: 'home.products.title', label: 'Section title' }],
+    description: 'Title and subtitle shown above the products on the home page and the products page.',
+    fields: [
+      { key: 'home.products.title', label: 'Section title' },
+      { key: 'home.products.subtitle', label: 'Subtitle', help: 'Only some sites show it.' },
+    ],
   },
   recipes: {
     id: 'recipes',
@@ -62,22 +65,21 @@ export const HOME_TEXT_GROUPS: Record<string, SectionTextGroup> = {
     title: 'Quiz invitation',
     description: 'Block that invites people to take the quiz.',
     fields: [
-      { key: 'home.quiz.title_image', label: 'Title image', image: true },
+      { key: 'home.quiz.title', label: 'Title' },
       { key: 'home.quiz.description', label: 'Description', textarea: true },
       { key: 'home.quiz.button', label: 'Button text' },
-      { key: 'home.quiz.button_url', label: 'Button link' },
+      { key: 'home.quiz.urlButton', label: 'Button link' },
     ],
   },
   social: {
     id: 'social',
-    title: 'Social networks and newsletter',
+    title: 'Social networks',
     description: 'Texts of the social networks block. The Instagram posts are managed in Descúbrenos.',
     fields: [
       { key: 'home.socialmedia.tagtitle', label: 'Small highlighted word' },
       { key: 'home.socialmedia.title', label: 'Section title' },
-      { key: 'home.socialmedia.newsletter', label: 'Newsletter invitation', textarea: true },
-      { key: 'home.newsletter.placeholder', label: 'Email field placeholder' },
-      { key: 'home.newsletter.button', label: 'Button text' },
+      { key: 'home.socialmedia.description', label: 'Description', textarea: true },
+      { key: 'home.socialmedia.newsletter', label: 'Newsletter line', textarea: true },
     ],
   },
   delivery: {
@@ -85,17 +87,10 @@ export const HOME_TEXT_GROUPS: Record<string, SectionTextGroup> = {
     title: 'Where to find us',
     description: 'Title of the delivery apps carousel.',
     fields: [
-      { key: 'home.delivery.title', label: 'Title' },
-      { key: 'home.delivery.subtitle', label: 'Subtitle' },
-    ],
-  },
-  productsHeading: {
-    id: 'productsHeading',
-    title: 'Products section',
-    description: 'Title and subtitle shown above the products on the home page and the products page.',
-    fields: [
-      { key: 'home.products.title', label: 'Section title' },
-      { key: 'home.products.subtitle', label: 'Subtitle' },
+      { key: 'home.delivery.delivery_title', label: 'Title' },
+      { key: 'home.delivery.delivery_sub_title', label: 'Subtitle' },
+      { key: 'home.delivery.delivery_button', label: 'Button text' },
+      { key: 'home.delivery.delivery_url', label: 'Button link', type: 'url' },
     ],
   },
   gallery: {
@@ -116,9 +111,8 @@ export const HOME_TEXT_GROUPS: Record<string, SectionTextGroup> = {
   newsletter: {
     id: 'newsletter',
     title: 'Newsletter',
-    description: 'Subscription block on the home page.',
+    description: 'Subscription block shown on the home page and reused by the site.',
     fields: [
-      { key: 'home.newsletter.title', label: 'Title' },
       { key: 'home.newsletter.placeholder', label: 'Email field placeholder' },
       { key: 'home.newsletter.buttonText', label: 'Button text' },
     ],
@@ -156,50 +150,42 @@ export const HOME_TEXT_GROUPS: Record<string, SectionTextGroup> = {
     title: 'Home introduction',
     description: 'Introduction text displayed on the home page.',
     fields: [
+      { key: 'home.text_home.since', label: 'Since', help: 'Only some sites show it.' },
       { key: 'home.text_home.title', label: 'Title' },
       { key: 'home.text_home.subtitle', label: 'Highlighted subtitle' },
       { key: 'home.text_home.description', label: 'Description', textarea: true },
-      { key: 'home.text_home.descrition2', label: 'Additional description', textarea: true },
+      { key: 'home.text_home.description2', label: 'Additional description', textarea: true },
       { key: 'home.text_home.button', label: 'Primary button text' },
       { key: 'home.text_home.button2', label: 'Secondary button text' },
     ],
   },
-  yummiPopsTextHome: {
-    id: 'textHome',
-    title: 'Home introduction',
-    description: 'Introduction text displayed on the home page.',
-    fields: [
-      { key: 'home.text_home.since', label: 'Since' },
-      { key: 'home.text_home.title', label: 'Title' },
-      { key: 'home.text_home.subtitle', label: 'Highlighted subtitle' },
-      { key: 'home.text_home.description', label: 'Description', textarea: true },
-      { key: 'home.text_home.descrition2', label: 'Additional description', textarea: true },
-      { key: 'home.text_home.button', label: 'Primary button text' },
-      { key: 'home.text_home.button2', label: 'Secondary button text' },
-    ],
-  },
-  discover: {
-    id: 'discover',
-    title: 'Discover section',
-    description: 'Title displayed above the Discover section.',
-    fields: [{ key: 'assets.discoverSection.title', label: 'Section title' }],
-  },
 }
 
-export const HOME_SECTIONS: SiteVariantMap<string[]> = {
-  zambos: ['products', 'videos', 'newsletter'],
-  yumminuts: ['products', 'recipes', 'newsletter', 'discover'],
-  snacksyummies: ['brands', 'newProducts', 'quiz', 'social', 'delivery'],
-  taqueritos_gaming: ['productsHeading', 'gallery', 'whereToBuy'],
-  default: ['products', 'recipes', 'videos', 'newsletter'],
+export interface HomeSectionDefinition {
+  key: string
+  label: string
 }
 
-export const HOME_SITE_SECTIONS: Record<string, string[]> = {
-  cappy: ['games', 'backToSchool'],
-  ranchitas: ['cardVideo', 'cardQuiz', 'textHome'],
-  yummipops: ['cardVideo', 'cardQuiz', 'yummiPopsTextHome'],
-  yumminuts: ['discover'],
-}
+export const HOME_SECTION_OPTIONS: HomeSectionDefinition[] = [
+  { key: 'products', label: 'Products section' },
+  { key: 'recipes', label: 'Recipes section' },
+  { key: 'videos', label: 'Recipe videos' },
+  { key: 'brands', label: 'Brands section' },
+  { key: 'newProducts', label: 'New products' },
+  { key: 'quiz', label: 'Quiz invitation' },
+  { key: 'social', label: 'Social networks' },
+  { key: 'delivery', label: 'Where to find us' },
+  { key: 'gallery', label: 'Gallery section' },
+  { key: 'whereToBuy', label: 'Where to buy' },
+  { key: 'newsletter', label: 'Newsletter' },
+  { key: 'cardVideo', label: 'Video feature card' },
+  { key: 'cardQuiz', label: 'Quiz feature card' },
+  { key: 'textHome', label: 'Home introduction' },
+  { key: 'games', label: 'Games' },
+  { key: 'backToSchool', label: 'Back-to-school promotion' },
+]
+
+export const HOME_SECTION_KEYS = HOME_SECTION_OPTIONS.map((option) => option.key)
 
 export const ABOUT_TEXT_GROUPS: SectionTextGroup[] = [
   {
@@ -220,42 +206,29 @@ export const ABOUT_TEXT_GROUPS: SectionTextGroup[] = [
   },
 ]
 
-export const MESSAGE_FIELDS: Record<string, SectionTextField> = {
-  required: { key: 'form_validation.required', label: 'Required field', help: 'Shown when a required field is empty.' },
-  invalidEmail: { key: 'form_validation.invalid_email', label: 'Invalid email', help: 'Shown when the email format is wrong.' },
-  subscribed: { key: 'subscribe.success', label: 'Subscription confirmed', help: 'Shown after subscribing to the newsletter.' },
-  productNotFound: { key: 'errors.product_not_found', label: 'Product not found', help: 'Shown when a product page does not exist.' },
-}
+export const MESSAGE_FIELDS: SectionTextField[] = [
+  { key: 'form_validation.required', label: 'Required field', help: 'Shown when a required field is empty.' },
+  { key: 'form_validation.invalid_email', label: 'Invalid email', help: 'Shown when the email format is wrong.' },
+  { key: 'form_validation.password_min', label: 'Password too short' },
+  { key: 'form_validation.passwords_not_match', label: 'Passwords do not match' },
+  { key: 'subscribe.success', label: 'Subscription confirmed', help: 'Shown after subscribing to the newsletter.' },
+  { key: 'errors.product_not_found', label: 'Product not found', help: 'Shown when a product page does not exist.' },
+]
 
-export const MESSAGE_SECTIONS: SiteVariantMap<string[]> = {
-  zambos: ['required', 'invalidEmail', 'subscribed', 'productNotFound'],
-  snacksyummies: ['required', 'invalidEmail', 'subscribed'],
-  taqueritos_gaming: ['productNotFound'],
-  default: ['required', 'invalidEmail', 'subscribed', 'productNotFound'],
-}
-
-export const NOT_FOUND_FIELDS: Record<string, SectionTextField> = {
-  code: { key: 'not_found.code', label: 'Big number', help: 'Usually 404.' },
-  title: { key: 'not_found.title', label: 'Title' },
-  description: { key: 'not_found.description', label: 'Description', textarea: true },
-  goHome: { key: 'not_found.go_home', label: 'Go home button' },
-  exploreProducts: { key: 'not_found.explore_products', label: 'Explore products button' },
-  productsTitle: { key: 'not_found.products_title', label: 'Suggested products title' },
-  productsDescription: { key: 'not_found.products_description', label: 'Suggested products description', textarea: true },
-}
-
-export const NOT_FOUND_SECTIONS: SiteVariantMap<string[]> = {
-  yumminuts: ['code', 'title', 'goHome'],
-  zambos: ['code', 'title', 'description', 'goHome', 'exploreProducts', 'productsTitle', 'productsDescription'],
-  default: ['code', 'title', 'description', 'goHome', 'exploreProducts', 'productsTitle'],
-}
+export const NOT_FOUND_FIELDS: SectionTextField[] = [
+  { key: 'not_found.code', label: 'Big number', help: 'Usually 404.' },
+  { key: 'not_found.title', label: 'Title' },
+  { key: 'not_found.description', label: 'Description', textarea: true },
+  { key: 'not_found.go_home', label: 'Go home button' },
+  { key: 'not_found.explore_products', label: 'Explore products button' },
+  { key: 'not_found.products_title', label: 'Suggested products title' },
+  { key: 'not_found.products_description', label: 'Suggested products description', textarea: true },
+]
 
 export const PRODUCTS_PAGE_FIELDS: SectionTextField[] = [
   { key: 'products.page.view_details', label: 'View details button', help: 'Button on each product card.' },
   { key: 'delivery.amazon_buy_url', label: 'Buy button link', help: 'Where the Buy button of the header and product pages goes.' },
 ]
-
-export const PRODUCTS_PAGE_SITES: string[] = ['zambos']
 
 export const BREADCRUMB_FIELDS: SectionTextField[] = [
   { key: 'breadcrumb.home', label: 'Home' },
@@ -275,20 +248,9 @@ export const RECIPES_PAGE_FIELDS: SectionTextField[] = [
   { key: 'recipes.page.no_more_recipes', label: 'No more recipes message' },
 ]
 
-export const RECIPES_PAGE_SITES: string[] = ['snacksyummies']
-
-export const BREADCRUMB_SITES: string[] = ['zambos', 'yumminuts', 'taqueritos_gaming', 'snacksyummies']
-
-export const BREADCRUMB_FIELD_KEYS: SiteVariantMap<string[] | 'all'> = {
-  snacksyummies: ['breadcrumb.home'],
-  default: 'all',
-}
-
 export const HEADER_TEXT_FIELDS: SectionTextField[] = [
   { key: 'navigation.contact_button', label: 'Contact button', help: 'Last item of the menu, links to the contact page.' },
 ]
-
-export const HEADER_TEXT_SITES: string[] = ['taqueritos_gaming']
 
 export interface FooterFieldDefinition {
   name: FooterTextField
@@ -301,10 +263,8 @@ export type FooterTextField =
   | 'mainText' | 'description' | 'choose' | 'followUs' | 'contactUs' | 'contactTitle'
   | 'address' | 'hours' | 'phone' | 'email'
   | 'newsletter' | 'newsletterDescription' | 'emailPlaceholder' | 'newsletterButton'
-  | 'home' | 'products' | 'health' | 'latestNews' | 'contact' | 'help' | 'support'
-  | 'instagramText' | 'facebookText' | 'tiktokText' | 'mainText2'
-  | 'copyright' | 'privacyPolicyText' | 'privacyPolicyUrl' | 'privacyPolicy' | 'cookiePolicy'
-  | 'termsConditions' | 'complaintsBook'
+  | 'home' | 'help' | 'mainText2'
+  | 'copyright' | 'privacyPolicyText' | 'privacyPolicyUrl'
 
 export const FOOTER_FIELD_GROUPS: { title: string; fields: FooterFieldDefinition[] }[] = [
   {
@@ -338,23 +298,10 @@ export const FOOTER_FIELD_GROUPS: { title: string; fields: FooterFieldDefinition
     ],
   },
   {
-    title: 'Menu links',
+    title: 'Column titles',
     fields: [
-      { name: 'home', label: 'Home link' },
-      { name: 'products', label: 'Products link' },
-      { name: 'health', label: 'Health link' },
-      { name: 'latestNews', label: 'News link' },
-      { name: 'contact', label: 'Contact link' },
-      { name: 'help', label: '"Help" title' },
-      { name: 'support', label: 'Support link' },
-    ],
-  },
-  {
-    title: 'Social networks',
-    fields: [
-      { name: 'instagramText', label: 'Instagram text' },
-      { name: 'facebookText', label: 'Facebook text' },
-      { name: 'tiktokText', label: 'TikTok link text', placeholder: 'Tiktok' },
+      { name: 'home', label: '"Links" column title' },
+      { name: 'help', label: '"Social networks" column title' },
     ],
   },
   {
@@ -363,52 +310,9 @@ export const FOOTER_FIELD_GROUPS: { title: string; fields: FooterFieldDefinition
       { name: 'copyright', label: 'Copyright' },
       { name: 'privacyPolicyText', label: 'Privacy policy link text' },
       { name: 'privacyPolicyUrl', label: 'Privacy policy link URL' },
-      { name: 'privacyPolicy', label: 'Privacy policy' },
-      { name: 'cookiePolicy', label: 'Cookie policy' },
-      { name: 'termsConditions', label: 'Terms and conditions' },
-      { name: 'complaintsBook', label: 'Complaints book' },
     ],
   },
 ]
-
-export const FOOTER_FIELDS: SiteVariantMap<FooterTextField[] | 'all'> = {
-  yumminuts: ['newsletter', 'newsletterDescription', 'home', 'products', 'health', 'latestNews', 'contact', 'help', 'contactUs', 'copyright'],
-  zambos: ['contactTitle'],
-  snacksyummies: ['address', 'hours', 'phone', 'newsletter', 'emailPlaceholder', 'newsletterButton', 'copyright', 'privacyPolicyText', 'privacyPolicyUrl'],
-  taqueritos_gaming: ['followUs', 'contactUs'],
-  default: 'all',
-}
-
-export const FOOTER_PHONE_SITES: SiteVariantMap<boolean> = {
-  taqueritos_gaming: false,
-  default: true,
-}
-
-export const FOOTER_PHONE_FIELDS: SiteVariantMap<string[]> = {
-  yumminuts: ['country', 'flagImageId', 'number'],
-  default: ['country', 'flag', 'number'],
-}
-
-export const HEALTH_ICON_SITES: SiteVariantMap<boolean> = {
-  yumminuts: true,
-  default: false,
-}
-
-export const ABOUT_TIMELINE_FIELDS: SiteVariantMap<string[]> = {
-  zambos: ['year', 'title', 'text', 'imageId'],
-  snacksyummies: ['year', 'text', 'imageId', 'mobileImageId'],
-  default: ['year', 'title', 'text', 'imageId', 'mobileImageId'],
-}
-
-export const ABOUT_TIMELINE_YEAR_REQUIRED: SiteVariantMap<boolean> = {
-  zambos: false,
-  default: true,
-}
-
-export const FOOTER_LINK_SITES: SiteVariantMap<boolean> = {
-  zambos: true,
-  default: false,
-}
 
 export const ABOUT_LAYOUT: SiteVariantMap<string[]> = {
   taqueritos_gaming: ['story', 'presence', 'experiences', 'cards'],
@@ -461,21 +365,14 @@ export const ABOUT_EXTRA_GROUPS: Record<string, SectionTextGroup> = {
   },
 }
 
-export const PRODUCT_DESIGN_SITES: string[] = ['taqueritos_gaming']
-
-export const PRODUCT_BANNER_SITES: string[] = ['taqueritos_gaming']
-
 export interface MenuItemActionOption {
   value: string
   label: string
 }
 
-export const MENU_ITEM_ACTIONS: SiteVariantMap<MenuItemActionOption[]> = {
-  taqueritos_gaming: [
-    { value: 'where_to_buy', label: 'Open the "Where to buy" window' },
-    { value: 'products_menu', label: 'Show the products list' },
-    { value: 'games_menu', label: 'Show the games list' },
-    { value: 'mobile_only', label: 'Show only in the mobile menu' },
-  ],
-  default: [],
-}
+export const MENU_ITEM_ACTIONS: MenuItemActionOption[] = [
+  { value: 'where_to_buy', label: 'Open the "Where to buy" window' },
+  { value: 'products_menu', label: 'Show the products list' },
+  { value: 'games_menu', label: 'Show the games list' },
+  { value: 'mobile_only', label: 'Show only in the mobile menu' },
+]

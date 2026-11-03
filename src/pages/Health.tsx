@@ -1,10 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useMemo, useEffect } from 'react'
-import Layout from '@/components/Layout'
 import ModulePage from '@/components/ModulePage'
 import SectionListEditor, { type SectionListField } from '@/components/SectionListEditor'
-import { useSiteModules } from '@/lib/siteModules'
-import { HEALTH_ICON_SITES, pickVariant } from '@/constants/siteSections'
 import { API_ENDPOINTS } from '@/constants/api'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
@@ -101,7 +98,6 @@ function formDataToPayload(
     title: formData.title,
     description: formData.description,
     imageId: formData.image?.id ?? null,
-    slider: [],
     videosSectionTitle: formData.videosSectionTitle,
     videosSectionDescription: formData.videosSectionDescription,
     videos: formData.videos.map((video, index) => ({
@@ -1102,20 +1098,11 @@ const HEALTH_ICON_FIELDS: SectionListField[] = [
 
 export default function Health() {
   const { t } = useTranslation()
-  const { selectedSite } = useSiteModules()
-
-  if (!pickVariant(HEALTH_ICON_SITES, selectedSite?.template)) {
-    return (
-      <Layout>
-        <HealthPageContent />
-      </Layout>
-    )
-  }
 
   return (
     <ModulePage
       title={t("Health")}
-      description={t("Health page with slides, videos and icons.")}
+      description={t("Health page with videos and icons.")}
       tabs={[
         { key: 'page', label: t("Health page"), content: <HealthPageContent /> },
         {
