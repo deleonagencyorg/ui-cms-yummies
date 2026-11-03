@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react'
-import Layout from '@/components/Layout'
-import TextField from '@/components/TextField'
+import { Link } from 'react-router-dom'
 import ModulePage from '@/components/ModulePage'
+import TextField from '@/components/TextField'
 import SectionTextsForm from '@/components/SectionTextsForm'
-import { useSiteModules } from '@/lib/siteModules'
-import { PRODUCT_DESIGN_SITES, PRODUCTS_PAGE_FIELDS, PRODUCTS_PAGE_SITES } from '@/constants/siteSections'
+import { PRODUCTS_PAGE_FIELDS } from '@/constants/siteSections'
 import Pagination from '@/components/Pagination'
 import MediaPicker from '@/components/MediaPicker'
 import type { MultimediaResponse } from '@/actions/multimedia'
@@ -12,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { useProducts } from '@/queries/products'
 import { useLanguages } from '@/queries/languages'
 import { useBrands } from '@/queries/brands'
+import { useProductCategoryList } from '@/queries/product-categories'
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/mutations/products'
 import type {
   ProductResponse,
@@ -117,6 +117,23 @@ export function ProductsPageContent() {
   }, { enabled: !!selectedSiteId })
   const { data: languagesData } = useLanguages({ page: 1, pageSize: 100, isActive: true })
   const { data: brandsData } = useBrands({ page: 1, pageSize: 100 })
+  const { data: categoryData } = useProductCategoryList(
+    {
+      siteId: selectedSiteId || undefined,
+      languageCode: formData.languageCode || undefined,
+      page: 1,
+      pageSize: 100,
+    },
+    { enabled: !!selectedSiteId && !!formData.languageCode }
+  )
+  const productCategories = categoryData?.data ?? []
+  const matchedCategory = productCategories.find(
+    (category) =>
+      category.label === formData.category ||
+      category.key === formData.category ||
+      category.slug === formData.category
+  )
+  const categoryValue = matchedCategory?.label ?? formData.category
   const createMutation = useCreateProduct()
   const updateMutation = useUpdateProduct()
   const deleteMutation = useDeleteProduct()
@@ -271,7 +288,7 @@ export function ProductsPageContent() {
         image: formData.image || undefined,
         imageMobile: formData.imageMobile || undefined,
         backgroundColor: formData.backgroundColor || undefined,
-        category: formData.category || undefined,
+        category: categoryValue || undefined,
         headerTextColor: formData.headerTextColor || undefined,
         colorButton: formData.colorButton || undefined,
         textColor: formData.textColor || undefined,
@@ -310,7 +327,7 @@ export function ProductsPageContent() {
           image: formData.image || undefined,
           imageMobile: formData.imageMobile || undefined,
           backgroundColor: formData.backgroundColor || undefined,
-          category: formData.category || undefined,
+          category: categoryValue || undefined,
           headerTextColor: formData.headerTextColor || undefined,
           colorButton: formData.colorButton || undefined,
           textColor: formData.textColor || undefined,
@@ -587,6 +604,7 @@ export function ProductsPageContent() {
           submitLabel={t("Create")}
           languages={languagesData?.data || []}
           brands={brandsData?.data || []}
+          categories={productCategories}
           onOpenMediaPicker={setMediaPickerTarget}
           onAddSize={addSize}
           onRemoveSize={removeSize}
@@ -617,6 +635,7 @@ export function ProductsPageContent() {
           submitLabel={t("Update")}
           languages={languagesData?.data || []}
           brands={brandsData?.data || []}
+          categories={productCategories}
           onOpenMediaPicker={setMediaPickerTarget}
           onAddSize={addSize}
           onRemoveSize={removeSize}
@@ -688,6 +707,7 @@ interface ProductFormModalProps {
   submitLabel: string
   languages: { code: string; name: string; nativeName: string }[]
   brands: { id: string; name: string }[]
+  categories: { id: string; label: string; key: string; slug: string }[]
   onOpenMediaPicker: (target: MediaPickerTarget) => void
   onAddSize: () => void
   onRemoveSize: (index: number) => void
@@ -711,6 +731,7 @@ function ProductFormModal({
   submitLabel,
   languages,
   brands,
+  categories,
   onOpenMediaPicker,
   onAddSize,
   onRemoveSize,
@@ -724,8 +745,13 @@ function ProductFormModal({
   onUpdateNutrition,
 }: ProductFormModalProps) {
   const { t } = useTranslation()
-  const { selectedSite } = useSiteModules()
-  const showDesignFields = !!selectedSite && PRODUCT_DESIGN_SITES.includes(selectedSite.template)
+  const matchedCategory = categories.find(
+    (category) =>
+      category.label === formData.category ||
+      category.key === formData.category ||
+      category.slug === formData.category
+  )
+  const categoryValue = matchedCategory?.label ?? formData.category
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full border border-border max-h-[90vh] overflow-y-auto">
@@ -810,14 +836,31 @@ function ProductFormModal({
                 <label className="block text-sm font-medium text-card-foreground mb-2">
                   {t("Category")}
                 </label>
-                <input
-                  type="text"
-                  value={formData.category}
+                <select
+                  value={categoryValue}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  maxLength={100}
+                  disabled={!formData.languageCode}
                   className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder={t("Product category")}
-                />
+                >
+                  <option value="">
+                    {formData.languageCode ? t("Select a category") : t("Select a language first")}
+                  </option>
+                  {categoryValue && !categories.some((category) => category.label === categoryValue) && (
+                    <option value={categoryValue}>{categoryValue}</option>
+                  )}
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.label}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("Categories are created once in")}{' '}
+                  <Link to="/product-categories" className="text-primary font-medium hover:underline">
+                    {t('nav.productCategories')}
+                  </Link>
+                  .
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-card-foreground mb-2">
@@ -917,30 +960,28 @@ function ProductFormModal({
             </div>
           </div>
 
-          {showDesignFields && (
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
-                {t("Additional design")}
-              </h4>
-              <TextField
-                label={t("Short description")}
-                value={formData.nameDescription}
-                onChange={(v) => setFormData({ ...formData, nameDescription: v })}
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-card-foreground border-b border-border pb-2">
+              {t("Additional design")}
+            </h4>
+            <TextField
+              label={t("Short description")}
+              value={formData.nameDescription}
+              onChange={(v) => setFormData({ ...formData, nameDescription: v })}
+            />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <ColorField
+                label={t("Second button")}
+                value={formData.secondColorButton}
+                onChange={(v) => setFormData({ ...formData, secondColorButton: v })}
               />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <ColorField
-                  label={t("Second button")}
-                  value={formData.secondColorButton}
-                  onChange={(v) => setFormData({ ...formData, secondColorButton: v })}
-                />
-                <ColorField
-                  label={t("Border")}
-                  value={formData.borderColor}
-                  onChange={(v) => setFormData({ ...formData, borderColor: v })}
-                />
-              </div>
+              <ColorField
+                label={t("Border")}
+                value={formData.borderColor}
+                onChange={(v) => setFormData({ ...formData, borderColor: v })}
+              />
             </div>
-          )}
+          </div>
 
           {/* Sizes Section */}
           <div className="space-y-4">
@@ -1328,15 +1369,6 @@ function PhotoIcon({ className }: { className?: string }) {
 
 export default function Products() {
   const { t } = useTranslation()
-  const { selectedSite } = useSiteModules()
-
-  if (!selectedSite || !PRODUCTS_PAGE_SITES.includes(selectedSite.template)) {
-    return (
-      <Layout>
-        <ProductsPageContent />
-      </Layout>
-    )
-  }
 
   return (
     <ModulePage

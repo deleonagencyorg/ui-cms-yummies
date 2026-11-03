@@ -23,6 +23,7 @@ export const useContactList = (
     queryKey: CONTACT_KEYS.list(filters),
     queryFn: () => contactActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

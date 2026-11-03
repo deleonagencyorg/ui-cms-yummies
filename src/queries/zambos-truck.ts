@@ -22,6 +22,7 @@ export const useZambosTruckList = (
     queryKey: ZAMBOS_TRUCK_KEYS.list(filters),
     queryFn: () => zambosTruckActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

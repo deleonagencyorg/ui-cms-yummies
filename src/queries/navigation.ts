@@ -23,6 +23,7 @@ export const useNavigationList = (
     queryKey: NAVIGATION_KEYS.list(filters),
     queryFn: () => navigationActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

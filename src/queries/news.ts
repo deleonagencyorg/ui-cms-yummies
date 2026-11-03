@@ -22,6 +22,7 @@ export const useNews = (
     queryKey: NEWS_KEYS.list(filters),
     queryFn: () => newsActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

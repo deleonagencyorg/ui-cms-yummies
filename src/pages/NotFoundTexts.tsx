@@ -1,13 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import ModulePage from '@/components/ModulePage'
 import SectionTextsForm from '@/components/SectionTextsForm'
-import { useSiteModules } from '@/lib/siteModules'
-import { NOT_FOUND_FIELDS, NOT_FOUND_SECTIONS, pickVariant } from '@/constants/siteSections'
+import { NOT_FOUND_FIELDS } from '@/constants/siteSections'
 
 export default function NotFoundTexts() {
   const { t } = useTranslation()
-  const { selectedSite } = useSiteModules()
-  const fields = pickVariant(NOT_FOUND_SECTIONS, selectedSite?.template).map((id) => NOT_FOUND_FIELDS[id])
 
   return (
     <ModulePage
@@ -21,7 +18,7 @@ export default function NotFoundTexts() {
             <SectionTextsForm
               title={t("404 page texts")}
               description={t("Title and buttons of the page.")}
-              fields={fields}
+              fields={NOT_FOUND_FIELDS}
             />
           ),
         },

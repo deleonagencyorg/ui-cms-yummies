@@ -18,5 +18,6 @@ export const useTopMessages = (
     queryKey: TOP_MESSAGE_KEYS.lists(filters),
     queryFn: () => topMessageActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && (!!filters?.siteId || filters?.unassigned === true),
   })
 }

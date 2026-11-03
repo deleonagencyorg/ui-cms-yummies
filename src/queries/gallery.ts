@@ -22,6 +22,7 @@ export const useGalleryList = (
     queryKey: GALLERY_KEYS.list(filters),
     queryFn: () => galleryActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

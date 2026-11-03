@@ -9,8 +9,6 @@ import { useSites } from '@/queries/sites'
 import { useLanguages } from '@/queries/languages'
 import { useCreatePage, useUpdatePage, useDeletePage } from '@/mutations/pages'
 import type { PageResponse, CreatePageRequest, CreatePageBannerRequest, PageBannerProduct, PageBannerType } from '@/actions/pages'
-import { useSiteModules } from '@/lib/siteModules'
-import { PRODUCT_BANNER_SITES } from '@/constants/siteSections'
 import type { MultimediaResponse } from '@/actions/multimedia'
 import {
   useReactTable,
@@ -1129,8 +1127,6 @@ function PageBannerCard({
   onOpenMediaPicker,
 }: PageBannerCardProps) {
   const { t } = useTranslation()
-  const { selectedSite } = useSiteModules()
-  const allowProductBanner = !!selectedSite && PRODUCT_BANNER_SITES.includes(selectedSite.template)
   return (
     <div className="border border-border rounded-lg p-4 bg-secondary/30 space-y-3">
       <div className="flex items-center justify-between gap-2">
@@ -1176,7 +1172,7 @@ function PageBannerCard({
           onChange={(e) => onChange(index, { type: e.target.value as PageBannerType })}
           className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          {BANNER_TYPES.filter((type) => type !== 'product' || allowProductBanner || banner.type === 'product').map((type) => (
+          {BANNER_TYPES.map((type) => (
             <option key={type} value={type}>
               {type === 'html' ? t("HTML (hero)") : type === 'video' ? t("Video") : type === 'product' ? t("Product") : t("Image")}
             </option>

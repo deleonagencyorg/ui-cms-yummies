@@ -8,32 +8,16 @@ import {
   ABOUT_EXTRA_GROUPS,
   ABOUT_LAYOUT,
   ABOUT_TEXT_GROUPS,
-  ABOUT_TIMELINE_FIELDS,
-  ABOUT_TIMELINE_YEAR_REQUIRED,
   pickVariant,
 } from '@/constants/siteSections'
 
-const TIMELINE_FIELD_DEFINITIONS: Record<string, SectionListField> = {
-  year: { name: 'year', label: 'Year', placeholder: '1973' },
-  title: { name: 'title', label: 'Title' },
-  text: { name: 'text', label: 'Text', type: 'textarea' },
-  imageId: { name: 'imageId', label: 'Image (desktop)', type: 'image' },
-  mobileImageId: { name: 'mobileImageId', label: 'Image (mobile)', type: 'image', help: 'Optional. If empty, the desktop image is used.' },
-}
-
-const timelineFieldsCache = new Map<string, SectionListField[]>()
-
-function timelineFields(siteTemplate: string | undefined): SectionListField[] {
-  const cacheKey = siteTemplate ?? ''
-  const cached = timelineFieldsCache.get(cacheKey)
-  if (cached) return cached
-  const yearRequired = pickVariant(ABOUT_TIMELINE_YEAR_REQUIRED, siteTemplate)
-  const fields = pickVariant(ABOUT_TIMELINE_FIELDS, siteTemplate).map((name) => (
-    name === 'year' ? { ...TIMELINE_FIELD_DEFINITIONS.year, required: yearRequired } : TIMELINE_FIELD_DEFINITIONS[name]
-  ))
-  timelineFieldsCache.set(cacheKey, fields)
-  return fields
-}
+const TIMELINE_FIELDS: SectionListField[] = [
+  { name: 'year', label: 'Year', placeholder: '1973' },
+  { name: 'title', label: 'Title' },
+  { name: 'text', label: 'Text', type: 'textarea' },
+  { name: 'imageId', label: 'Image (desktop)', type: 'image' },
+  { name: 'mobileImageId', label: 'Image (mobile)', type: 'image', help: 'Optional. If empty, the desktop image is used.' },
+]
 
 export default function AboutUs() {
   const { t } = useTranslation()
@@ -55,7 +39,7 @@ export default function AboutUs() {
           title={t("History timeline")}
           description={t("Milestones of the history, shown from top to bottom in this order.")}
           endpoint={API_ENDPOINTS.SECTION_LISTS.ABOUT_TIMELINE}
-          fields={timelineFields(selectedSite?.template)}
+          fields={TIMELINE_FIELDS}
           itemLabel="Milestone"
           addLabel="Add milestone"
           emptyMessage="There are no milestones yet."

@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 interface TextFieldProps {
   label: string
   value: string
@@ -8,6 +10,7 @@ interface TextFieldProps {
   rows?: number
   maxLength?: number
   type?: string
+  suggestions?: string[]
 }
 
 export default function TextField({
@@ -20,9 +23,12 @@ export default function TextField({
   rows = 3,
   maxLength,
   type = 'text',
+  suggestions,
 }: TextFieldProps) {
+  const suggestionListId = useId()
   const className =
     'w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary'
+  const listId = suggestions && suggestions.length > 0 ? suggestionListId : undefined
   return (
     <div>
       <label className="block text-sm font-medium text-card-foreground mb-2">
@@ -47,8 +53,16 @@ export default function TextField({
           required={required}
           placeholder={placeholder}
           maxLength={maxLength}
+          list={listId}
           className={className}
         />
+      )}
+      {listId && (
+        <datalist id={listId}>
+          {suggestions?.map((option) => (
+            <option key={option} value={option} />
+          ))}
+        </datalist>
       )}
     </div>
   )

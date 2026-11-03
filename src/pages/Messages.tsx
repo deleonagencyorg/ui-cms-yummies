@@ -1,13 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import ModulePage from '@/components/ModulePage'
 import SectionTextsForm from '@/components/SectionTextsForm'
-import { useSiteModules } from '@/lib/siteModules'
-import { MESSAGE_FIELDS, MESSAGE_SECTIONS, pickVariant } from '@/constants/siteSections'
+import { MESSAGE_FIELDS } from '@/constants/siteSections'
 
 export default function Messages() {
   const { t } = useTranslation()
-  const { selectedSite } = useSiteModules()
-  const fields = pickVariant(MESSAGE_SECTIONS, selectedSite?.template).map((id) => MESSAGE_FIELDS[id])
 
   return (
     <ModulePage
@@ -21,7 +18,7 @@ export default function Messages() {
             <SectionTextsForm
               title={t("Form messages")}
               description={t("Validation errors and confirmations.")}
-              fields={fields}
+              fields={MESSAGE_FIELDS}
             />
           ),
         },

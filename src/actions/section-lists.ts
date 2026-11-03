@@ -52,17 +52,18 @@ export interface SectionListResponse<T> {
 }
 
 export const sectionListActions = {
-  getAll: async <T>(endpoint: SectionListEndpoint, siteId: string, languageCode: string) => {
+  getAll: async <T>(endpoint: SectionListEndpoint, siteId: string, languageCode: string, section?: string) => {
     const response = await axiosInstance.get<SectionListResponse<T>>(endpoint, {
-      params: { siteId, languageCode },
+      params: { siteId, languageCode, section: section || undefined },
     })
     return response.data
   },
 
-  replace: async <T>(endpoint: SectionListEndpoint, siteId: string, languageCode: string, items: T[]) => {
+  replace: async <T>(endpoint: SectionListEndpoint, siteId: string, languageCode: string, items: T[], section?: string) => {
     const response = await axiosInstance.put<SectionListResponse<T>>(endpoint, {
       siteId,
       languageCode,
+      section: section || undefined,
       items,
     })
     return response.data

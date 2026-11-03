@@ -6,7 +6,7 @@ export interface TopMessageResponse {
   link?: string
   order?: number
   languageCode: string
-  brandId: string
+  siteId: string
   createdAt?: string
   updatedAt?: string
 }
@@ -16,7 +16,7 @@ export interface CreateTopMessageRequest {
   link?: string
   order?: number
   languageCode: string
-  brandId: string
+  siteId: string
 }
 
 export interface UpdateTopMessageRequest {
@@ -24,12 +24,13 @@ export interface UpdateTopMessageRequest {
   link?: string
   order?: number
   languageCode: string
-  brandId: string
+  siteId: string
 }
 
 export interface TopMessageFiltersRequest {
-  brandId?: string
+  siteId?: string
   languageCode?: string
+  unassigned?: boolean
 }
 
 export interface TopMessageListResponse {

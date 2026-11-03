@@ -22,6 +22,7 @@ export const useHealthList = (
     queryKey: HEALTH_KEYS.list(filters),
     queryFn: () => healthActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

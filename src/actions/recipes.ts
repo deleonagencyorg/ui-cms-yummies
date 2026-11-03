@@ -24,6 +24,7 @@ export interface RecipeResponse {
   people: string
   difficulty: string
   image: string
+  previewImage: string
   gallery: string[]
   type: string
   preparationTime: number
@@ -32,6 +33,7 @@ export interface RecipeResponse {
   ingredients: string[]
   category: string
   instructions: string[]
+  chefTips: string[]
   languageCode: string
   brands: RecipeBrandResponse[]
   products: RecipeProductResponse[]
@@ -52,6 +54,7 @@ export interface CreateRecipeRequest {
   people?: string
   difficulty?: string
   image?: string
+  previewImage?: string
   gallery?: string[]
   type?: string
   preparationTime?: number
@@ -60,6 +63,7 @@ export interface CreateRecipeRequest {
   ingredients?: string[]
   category?: string
   instructions?: string[]
+  chefTips?: string[]
   languageCode: string
   brandIds?: string[]
   productIds?: string[]
@@ -73,6 +77,7 @@ export interface UpdateRecipeRequest {
   people?: string
   difficulty?: string
   image?: string
+  previewImage?: string
   gallery?: string[]
   type?: string
   preparationTime?: number
@@ -81,6 +86,7 @@ export interface UpdateRecipeRequest {
   ingredients?: string[]
   category?: string
   instructions?: string[]
+  chefTips?: string[]
   languageCode?: string
   brandIds?: string[]
   productIds?: string[]

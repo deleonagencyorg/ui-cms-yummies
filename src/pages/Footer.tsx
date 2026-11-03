@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ModulePage, { ModuleSection } from '@/components/ModulePage'
 import TextField from '@/components/TextField'
 import SectionListEditor, { type SectionListField } from '@/components/SectionListEditor'
 import { useSite } from '@/contexts/SiteContext'
-import { useSiteModules } from '@/lib/siteModules'
 import { useContentLanguage } from '@/lib/contentLanguage'
 import { useFooterList } from '@/queries/footer'
 import { useCreateFooter, useUpdateFooter } from '@/mutations/footer'
@@ -12,30 +11,15 @@ import type { FooterConfig } from '@/actions/footer'
 import { API_ENDPOINTS } from '@/constants/api'
 import {
   FOOTER_FIELD_GROUPS,
-  FOOTER_FIELDS,
-  FOOTER_PHONE_FIELDS,
-  FOOTER_PHONE_SITES,
-  pickVariant,
   type FooterTextField,
 } from '@/constants/siteSections'
 
-const PHONE_FIELD_DEFINITIONS: Record<string, SectionListField> = {
-  country: { name: 'country', label: 'Country', placeholder: 'Guatemala' },
-  flag: { name: 'flag', label: 'Flag', placeholder: '🇬🇹', help: 'Flag emoji shown next to the number.' },
-  flagImageId: { name: 'flagImageId', label: 'Flag image', type: 'image', help: 'Small flag image shown next to the number.' },
-  number: { name: 'number', label: 'Phone number', required: true, placeholder: '(+502) 2502-7050' },
-}
-
-const phoneFieldsCache = new Map<string, SectionListField[]>()
-
-function phoneFields(siteTemplate: string | undefined): SectionListField[] {
-  const cacheKey = siteTemplate ?? ''
-  const cached = phoneFieldsCache.get(cacheKey)
-  if (cached) return cached
-  const fields = pickVariant(FOOTER_PHONE_FIELDS, siteTemplate).map((name) => PHONE_FIELD_DEFINITIONS[name])
-  phoneFieldsCache.set(cacheKey, fields)
-  return fields
-}
+const PHONE_FIELDS: SectionListField[] = [
+  { name: 'country', label: 'Country', placeholder: 'Guatemala' },
+  { name: 'flag', label: 'Flag', placeholder: '🇬🇹', help: 'Flag emoji shown next to the number.' },
+  { name: 'flagImageId', label: 'Flag image', type: 'image', help: 'Small flag image shown next to the number. Optional.' },
+  { name: 'number', label: 'Phone number', required: true, placeholder: '(+502) 2502-7050' },
+]
 
 const LINK_FIELDS: SectionListField[] = [
   { name: 'label', label: 'Text', required: true, placeholder: 'Contacto' },
@@ -47,15 +31,8 @@ type FooterValues = Partial<Record<FooterTextField, string>>
 function FooterTextsForm() {
   const { t } = useTranslation()
   const { selectedSiteId } = useSite()
-  const { selectedSite } = useSiteModules()
   const languageCode = useContentLanguage()
-  const variant = pickVariant(FOOTER_FIELDS, selectedSite?.template)
-  const groups = useMemo(
-    () => FOOTER_FIELD_GROUPS
-      .map((group) => ({ ...group, fields: group.fields.filter((field) => variant === 'all' || variant.includes(field.name)) }))
-      .filter((group) => group.fields.length > 0),
-    [variant]
-  )
+  const groups = FOOTER_FIELD_GROUPS
   const { data, isLoading, error } = useFooterList(
     { page: 1, pageSize: 10, languageCode, siteId: selectedSiteId || undefined },
     { enabled: !!selectedSiteId && !!languageCode }
@@ -113,7 +90,7 @@ function FooterTextsFields({ config, groups, siteId, languageCode }: {
   return (
     <ModuleSection
       title={t("Footer texts")}
-      description={t("Only the fields this site's footer shows are listed.")}
+      description={t("Texts of the footer. Leave empty any field this site does not show.")}
       actions={
         <button
           type="button"
@@ -151,8 +128,6 @@ function FooterTextsFields({ config, groups, siteId, languageCode }: {
 
 export default function FooterPage() {
   const { t } = useTranslation()
-  const { selectedSite } = useSiteModules()
-  const showPhones = pickVariant(FOOTER_PHONE_SITES, selectedSite?.template)
 
   const tabs = [{ key: 'texts', label: t("Footer texts"), content: <FooterTextsForm /> }]
   tabs.push({
@@ -171,24 +146,22 @@ export default function FooterPage() {
       />
     ),
   })
-  if (showPhones) {
-    tabs.push({
-      key: 'phones',
-      label: t("Phone numbers by country"),
-      content: (
-        <SectionListEditor
-          title={t("Phone numbers by country")}
-          description={t("Numbers listed in the footer, in this order.")}
-          endpoint={API_ENDPOINTS.SECTION_LISTS.FOOTER_PHONES}
-          fields={phoneFields(selectedSite?.template)}
-          itemLabel="Phone"
-          addLabel="Add phone number"
-          emptyMessage="There are no phone numbers yet."
-          itemTitle={(item) => [item.flag, item.country].filter(Boolean).join(' ')}
-        />
-      ),
-    })
-  }
+  tabs.push({
+    key: 'phones',
+    label: t("Phone numbers by country"),
+    content: (
+      <SectionListEditor
+        title={t("Phone numbers by country")}
+        description={t("Numbers listed in the footer, in this order.")}
+        endpoint={API_ENDPOINTS.SECTION_LISTS.FOOTER_PHONES}
+        fields={PHONE_FIELDS}
+        itemLabel="Phone"
+        addLabel="Add phone number"
+        emptyMessage="There are no phone numbers yet."
+        itemTitle={(item) => [item.flag, item.country].filter(Boolean).join(' ')}
+      />
+    ),
+  })
 
   return <ModulePage title={t("Footer")} description={t("Content shown at the bottom of every page.")} tabs={tabs} />
 }

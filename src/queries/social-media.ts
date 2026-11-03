@@ -23,6 +23,7 @@ export const useSocialMediaList = (
     queryKey: SOCIAL_MEDIA_KEYS.list(filters),
     queryFn: () => socialMediaActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

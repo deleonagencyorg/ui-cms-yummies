@@ -45,6 +45,7 @@ export default function HomeContent() {
         title={t("Delivery apps")}
         description={t("Apps shown in the carousel, in this order.")}
         endpoint={API_ENDPOINTS.SECTION_LISTS.DELIVERY_APPS}
+        section="delivery"
         fields={DELIVERY_APP_FIELDS}
         itemLabel="App"
         addLabel="Add app"
@@ -57,6 +58,7 @@ export default function HomeContent() {
         title={t("Where to buy")}
         description={t("Stores and apps shown in the carousel, in this order.")}
         endpoint={API_ENDPOINTS.SECTION_LISTS.DELIVERY_APPS}
+        section="where_to_buy"
         fields={DELIVERY_APP_FIELDS}
         itemLabel="Store"
         addLabel="Add store"

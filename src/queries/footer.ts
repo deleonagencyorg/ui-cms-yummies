@@ -23,6 +23,7 @@ export const useFooterList = (
     queryKey: FOOTER_KEYS.list(filters),
     queryFn: () => footerActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 

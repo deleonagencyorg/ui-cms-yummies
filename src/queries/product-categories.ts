@@ -23,6 +23,7 @@ export const useProductCategoryList = (
     queryKey: PRODUCT_CATEGORY_KEYS.list(filters),
     queryFn: () => productCategoryActions.getAll(filters),
     ...options,
+    enabled: (options?.enabled ?? true) && !!filters?.siteId,
   })
 }
 
