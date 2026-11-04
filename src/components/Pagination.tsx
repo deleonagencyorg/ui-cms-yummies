@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 interface PaginationProps {
   currentPage: number
   pageCount: number
@@ -17,6 +18,7 @@ export default function Pagination({
   onPageSizeChange,
   pageSizeOptions = [10, 25, 50, 100]
 }: PaginationProps) {
+  const { t } = useTranslation()
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = []
@@ -62,13 +64,13 @@ export default function Pagination({
       {/* Items info and page size selector */}
       <div className="flex items-center gap-4">
         <p className="text-sm text-muted-foreground">
-          Showing <span className="font-medium">{startItem}</span> to{' '}
+          {t("Showing")} <span className="font-medium">{startItem}</span> to{' '}
           <span className="font-medium">{endItem}</span> of{' '}
           <span className="font-medium">{totalItems}</span> results
         </p>
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground">Per page:</label>
+          <label className="text-sm text-muted-foreground">{t("Per page:")}</label>
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
@@ -90,7 +92,7 @@ export default function Pagination({
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
           className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary"
-          title="First page"
+          title={t("First page")}
         >
           <FirstPageIcon className="w-4 h-4" />
         </button>
@@ -101,7 +103,7 @@ export default function Pagination({
           disabled={currentPage === 1}
           className="px-3 py-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary text-sm"
         >
-          Previous
+          {t("Previous")}
         </button>
 
         {/* Page numbers */}
@@ -135,7 +137,7 @@ export default function Pagination({
           disabled={currentPage === pageCount}
           className="px-3 py-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary text-sm"
         >
-          Next
+          {t("Next")}
         </button>
 
         {/* Last page */}
@@ -143,7 +145,7 @@ export default function Pagination({
           onClick={() => onPageChange(pageCount)}
           disabled={currentPage === pageCount}
           className="p-2 border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-secondary"
-          title="Last page"
+          title={t("Last page")}
         >
           <LastPageIcon className="w-4 h-4" />
         </button>

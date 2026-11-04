@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -7,6 +8,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onMenuClick }: NavbarProps) {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -23,7 +25,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           <button
             onClick={onMenuClick}
             className="lg:hidden text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Open sidebar"
+            aria-label={t("Open sidebar")}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -42,7 +44,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           </button>
 
           <h1 className="text-lg font-semibold text-card-foreground hidden sm:block">
-            Welcome back, {user?.name}
+            {t("Welcome back,")} {user?.name}
           </h1>
         </div>
 
@@ -53,7 +55,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             onClick={handleLogout}
             className="bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded-md hover:bg-red-700 dark:hover:bg-red-800 transition-colors text-sm font-medium"
           >
-            Logout
+            {t("Logout")}
           </button>
         </div>
       </div>

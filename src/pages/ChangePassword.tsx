@@ -10,7 +10,7 @@ const DEFAULT_PASSWORD = 'my-company2026'
 export default function ChangePassword() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { user, logout, refreshUser } = useAuth()
+  const { logout, refreshUser } = useAuth()
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -50,8 +50,9 @@ export default function ChangePassword() {
 
       // Redirect to dashboard
       navigate('/dashboard')
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.response?.data?.message || t('changePassword.errors.failed')
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { error?: string; message?: string } } }
+      const errorMessage = axiosErr.response?.data?.error || axiosErr.response?.data?.message || t('changePassword.errors.failed')
       setError(errorMessage)
       toast.error(errorMessage)
     }

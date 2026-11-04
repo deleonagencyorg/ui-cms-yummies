@@ -1,0 +1,75 @@
+import { useTranslation } from 'react-i18next'
+import ModulePage from '@/components/ModulePage'
+import SectionTextsForm from '@/components/SectionTextsForm'
+import SectionListEditor, { type SectionListField } from '@/components/SectionListEditor'
+import { API_ENDPOINTS } from '@/constants/api'
+import { useSiteModules } from '@/lib/siteModules'
+import {
+  ABOUT_EXTRA_GROUPS,
+  ABOUT_LAYOUT,
+  ABOUT_TEXT_GROUPS,
+  pickVariant,
+} from '@/constants/siteSections'
+
+const TIMELINE_FIELDS: SectionListField[] = [
+  { name: 'year', label: 'Year', placeholder: '1973' },
+  { name: 'title', label: 'Title' },
+  { name: 'text', label: 'Text', type: 'textarea' },
+  { name: 'imageId', label: 'Image (desktop)', type: 'image' },
+  { name: 'mobileImageId', label: 'Image (mobile)', type: 'image', help: 'Optional. If empty, the desktop image is used.' },
+]
+
+export default function AboutUs() {
+  const { t } = useTranslation()
+  const { selectedSite } = useSiteModules()
+  const [header, closing] = ABOUT_TEXT_GROUPS
+  const layout = pickVariant(ABOUT_LAYOUT, selectedSite?.template)
+
+  const defaultTabs = [
+    {
+      key: 'header',
+      label: t(header.title),
+      content: <SectionTextsForm title={t(header.title)} description={t(header.description)} fields={header.fields} />,
+    },
+    {
+      key: 'timeline',
+      label: t("History timeline"),
+      content: (
+        <SectionListEditor
+          title={t("History timeline")}
+          description={t("Milestones of the history, shown from top to bottom in this order.")}
+          endpoint={API_ENDPOINTS.SECTION_LISTS.ABOUT_TIMELINE}
+          fields={TIMELINE_FIELDS}
+          itemLabel="Milestone"
+          addLabel="Add milestone"
+          emptyMessage="There are no milestones yet."
+          itemTitle={(item) => [item.year, item.title].filter(Boolean).join(' · ')}
+        />
+      ),
+    },
+    {
+      key: 'closing',
+      label: t(closing.title),
+      content: <SectionTextsForm title={t(closing.title)} description={t(closing.description)} fields={closing.fields} />,
+    },
+  ]
+
+  const tabs = layout.map((id) => {
+    const standard = defaultTabs.find((tab) => tab.key === id)
+    if (standard) return standard
+    const group = ABOUT_EXTRA_GROUPS[id]
+    return {
+      key: id,
+      label: t(group.title),
+      content: <SectionTextsForm title={t(group.title)} description={t(group.description)} fields={group.fields} />,
+    }
+  })
+
+  return (
+    <ModulePage
+      title={t("About us")}
+      description={t("Content of the About us page.")}
+      tabs={tabs}
+    />
+  )
+}

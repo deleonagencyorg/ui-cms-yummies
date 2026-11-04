@@ -16,6 +16,11 @@ export interface MultimediaResponse {
   width?: number
   height?: number
   duration?: number
+  externalUrl?: string
+  provider?: string
+  videoId?: string
+  embedCode?: string
+  isExternal?: boolean
   altText?: string
   caption?: string
   folderId?: string | null
@@ -51,8 +56,9 @@ export interface MultimediaFiltersRequest {
   pageSize?: number
 }
 
-export interface UploadMultimediaRequest {
-  file: File
+export interface CreateMultimediaRequest {
+  file?: File
+  externalUrl?: string
   altText?: string
   caption?: string
   folderId?: string | null
@@ -74,12 +80,20 @@ export const multimediaActions = {
     return response.data
   },
 
-  upload: async (data: UploadMultimediaRequest) => {
+  create: async (data: CreateMultimediaRequest) => {
     const formData = new FormData()
-    formData.append('file', data.file)
+
+    if (data.file) {
+      formData.append('file', data.file)
+    }
+    if (data.externalUrl) {
+      formData.append('externalUrl', data.externalUrl)
+    }
     if (data.altText) formData.append('altText', data.altText)
     if (data.caption) formData.append('caption', data.caption)
-    if (data.folderId) formData.append('folderId', data.folderId)
+    if (data.folderId !== undefined) {
+      formData.append('folderId', data.folderId || '')
+    }
 
     const response = await axiosInstance.post<MultimediaResponse>(
       API_ENDPOINTS.MULTIMEDIA.BASE,

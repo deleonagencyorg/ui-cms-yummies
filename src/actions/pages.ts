@@ -1,6 +1,72 @@
 import axiosInstance from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants/api'
 import type { Pagination } from './departments'
+import type { MultimediaResponse } from './multimedia'
+
+export type PageBannerType = 'image' | 'video' | 'html' | 'product'
+
+export interface PageBannerProduct {
+  hero?: string
+  topText?: string
+  leftText?: string
+  rightText?: string
+  buttonText?: string
+  buttonUrl?: string
+  colorTheme?: string
+}
+
+export interface PageBannerHTMLResponse {
+  backgroundImage?: MultimediaResponse | null
+  backgroundImageMobile?: MultimediaResponse | null
+  image?: MultimediaResponse | null
+  imageMobile?: MultimediaResponse | null
+  title?: string
+  subtitle?: string
+  description?: string
+  buttonText?: string
+  buttonUrl?: string
+}
+
+export interface PageBannerResponse {
+  id: string
+  type: PageBannerType
+  desktop?: MultimediaResponse | null
+  mobile?: MultimediaResponse | null
+  alt?: string
+  title?: string
+  subtitle?: string
+  description?: string
+  link?: string
+  html?: PageBannerHTMLResponse | null
+  product?: PageBannerProduct | null
+  order: number
+}
+
+export interface PageBannerHTMLRequest {
+  backgroundMediaId?: string | null
+  backgroundMobileMediaId?: string | null
+  imageMediaId?: string | null
+  imageMobileMediaId?: string | null
+  title?: string
+  subtitle?: string
+  description?: string
+  buttonText?: string
+  buttonUrl?: string
+}
+
+export interface CreatePageBannerRequest {
+  type: PageBannerType
+  desktopMediaId?: string | null
+  mobileMediaId?: string | null
+  alt?: string
+  title?: string
+  subtitle?: string
+  description?: string
+  link?: string
+  html?: PageBannerHTMLRequest
+  product?: PageBannerProduct
+  order?: number
+}
 
 export interface PageResponse {
   id: string
@@ -67,6 +133,7 @@ export interface PageResponse {
   footerScripts?: string
   abTestEnabled: boolean
   abTestConfig?: string
+  banners?: PageBannerResponse[]
   createdAt: string
   updatedAt: string
 }
@@ -111,6 +178,7 @@ export interface CreatePageRequest {
   footerScripts?: string
   abTestEnabled?: boolean
   abTestConfig?: string
+  banners?: CreatePageBannerRequest[]
 }
 
 export interface UpdatePageRequest {
@@ -148,6 +216,7 @@ export interface UpdatePageRequest {
   footerScripts?: string
   abTestEnabled?: boolean
   abTestConfig?: string
+  banners?: CreatePageBannerRequest[]
 }
 
 export interface PageFiltersRequest {

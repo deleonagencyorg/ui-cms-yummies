@@ -5,6 +5,7 @@ export const usePages = (filters?: PageFiltersRequest) => {
   return useQuery({
     queryKey: ['pages', filters],
     queryFn: () => pageActions.getAll(filters),
+    enabled: !!filters?.siteId,
   })
 }
 

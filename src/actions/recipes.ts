@@ -16,18 +16,24 @@ export interface RecipeProductResponse {
 
 export interface RecipeResponse {
   id: string
+  siteId: string | null
   title: string
+  description: string
   slug: string
   date: string
   people: string
   difficulty: string
   image: string
+  previewImage: string
   gallery: string[]
   type: string
   preparationTime: number
+  video: string
+  isNew: boolean
   ingredients: string[]
   category: string
   instructions: string[]
+  chefTips: string[]
   languageCode: string
   brands: RecipeBrandResponse[]
   products: RecipeProductResponse[]
@@ -40,18 +46,24 @@ export interface RecipeListResponse {
 }
 
 export interface CreateRecipeRequest {
+  siteId: string
   title: string
+  description?: string
   slug: string
   date?: string
   people?: string
   difficulty?: string
   image?: string
+  previewImage?: string
   gallery?: string[]
   type?: string
   preparationTime?: number
+  video?: string
+  isNew?: boolean
   ingredients?: string[]
   category?: string
   instructions?: string[]
+  chefTips?: string[]
   languageCode: string
   brandIds?: string[]
   productIds?: string[]
@@ -59,23 +71,29 @@ export interface CreateRecipeRequest {
 
 export interface UpdateRecipeRequest {
   title?: string
+  description?: string
   slug?: string
   date?: string
   people?: string
   difficulty?: string
   image?: string
+  previewImage?: string
   gallery?: string[]
   type?: string
   preparationTime?: number
+  video?: string
+  isNew?: boolean
   ingredients?: string[]
   category?: string
   instructions?: string[]
+  chefTips?: string[]
   languageCode?: string
   brandIds?: string[]
   productIds?: string[]
 }
 
 export interface RecipeFiltersRequest {
+  siteId?: string
   title?: string
   slug?: string
   category?: string
